@@ -5,7 +5,7 @@ import incidentPage from '../../client/index.html'
 UiPage({
     $id: Now.ID['incident-manager-page'],
     endpoint: 'x_2305075_roomrela_incident_manager.do',
-    description: 'Incident Response Manager UI Page',
+    description: 'RoomRelay AI hotel operations UI Page',
     category: 'general',
     html: incidentPage,
     direct: true,

@@ -41,7 +41,16 @@ export function AppShell({ routeKey, activeRoute, title, description, children }
 
     return (
         <div className="shell">
-            <a className="skip-link" href="#main-content">
+            {/* Moves focus only. A normal "#main-content" link would change the address and the hash router would
+                treat it as an unknown page. */}
+            <a
+                className="skip-link"
+                href="#main-content"
+                onClick={(e) => {
+                    e.preventDefault()
+                    mainRef.current?.focus()
+                }}
+            >
                 Skip to main content
             </a>
             <Sidebar activeRoute={activeRoute} role={role} open={menuOpen} onNavigate={() => setMenuOpen(false)} />

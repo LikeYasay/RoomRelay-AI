@@ -11,7 +11,9 @@
         "deploy": "now-sdk install",
         "transform": "now-sdk transform",
         "types": "now-sdk dependencies",
-        "dev": "now-sdk run dev"
+        "dev": "now-sdk run dev",
+        "preview": "node scripts/local-preview.mjs",
+        "test:logic": "node scripts/run-logic-tests.mjs"
     },
     "devDependencies": {
         "@servicenow/sdk": "4.14.0",
