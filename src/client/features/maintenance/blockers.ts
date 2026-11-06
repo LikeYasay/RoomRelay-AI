@@ -1,5 +1,5 @@
-import { DEFECT_STATUS_ORDER } from '../../shared/domain/labels'
-import type { Defect, RoomView, Staff } from '../../shared/domain/types'
+import { DEFECT_STATUS_ORDER } from '../../shared/domain/labels.ts'
+import type { Defect, RoomView, Staff } from '../../shared/domain/types.ts'
 
 /** Only an unresolved defect with priority Blocking stops a room from being Ready. */
 export function isBlockingOpen(d: Defect): boolean {

@@ -69,13 +69,13 @@ src/client/
 Screen (e.g. ChecklistPanel)
   -> run({ type: 'task.complete', taskId })        useCommands() from shared/api/DataContext.tsx
   -> app/DataProvider.tsx                           calls source.execute(command), then quietly reloads
-  -> RoomRelayDataSource.execute                    today: mock/mockDataSource.ts; Phase 4: ServiceNow REST
-  -> the rule for that command                      features/housekeeping/taskCommands.ts (the server must repeat it)
+  -> RoomRelayDataSource.execute                    ServiceNow: shared/api/serviceNowDataSource.ts; local preview: mock/mockDataSource.ts
+  -> the rule for that command                      features/housekeeping/taskCommands.ts (run on the server, or by the demo store)
   -> new data + an audit entry
 ```
 
 The rule functions are pure: `(data, who and when, input) -> new data or a safe failure`. That is why they can be
-tested without a browser, and why the backend teammate can port them one by one.
+tested without a browser, and why the ServiceNow server can run the very same files.
 
 ## The dependency rules
 
@@ -120,6 +120,10 @@ src/server/                 server code (ServiceNow server modules)
 TypeScript files (`client/shared/**`, `client/features/**/*.ts`, `client/app/applyCommand.ts`, `client/mock/mockData.ts`)
 into server modules as well, and `src/server/tsconfig.json` type-checks them. So the rule files must stay free of React
 and browser APIs; the browser-only ones are listed in `serverModulesExcludePatterns`.
+
+**Imports between server-module files end in `.ts`** (`import { plural } from '../../shared/lib/format.ts'`).
+ServiceNow finds a module by its exact path, which includes `.ts`; without the extension the import fails at runtime
+even though the local build passes. Screens (`.tsx`) can keep extensionless imports.
 
 ```
 Browser                                   ServiceNow

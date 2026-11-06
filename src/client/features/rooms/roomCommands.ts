@@ -1,14 +1,15 @@
-import type { Room, Snapshot } from '../../shared/domain/types'
-import { fail, notAvailable, withAudit } from '../../shared/domain/commandKit'
-import type { CommandContext, RuleResult } from '../../shared/domain/commandKit'
-import { failBlockedReason, passBlockedReason, submitBlockedReason } from './roomActions'
-import { buildRoomViews } from './roomViews'
+import type { Room, Snapshot } from '../../shared/domain/types.ts'
+import { fail, notAvailable, withAudit } from '../../shared/domain/commandKit.ts'
+import type { CommandContext, RuleResult } from '../../shared/domain/commandKit.ts'
+import { failBlockedReason, passBlockedReason, submitBlockedReason } from './roomActions.ts'
+import { buildRoomViews } from './roomViews.ts'
 
 /**
  * Inspection rules. Only a supervisor can pass a room, and only when all three readiness rules
  * are met (see readiness.ts). That is the ONLY way a room becomes Ready.
  *
- * PROTOTYPE NOTE: the ServiceNow server must enforce the same rules on every request.
+ * These run on the ServiceNow server for every request (src/server/api/handlers.ts), and in
+ * the browser for the local preview.
  */
 
 function viewFor(snapshot: Snapshot, roomId: string) {

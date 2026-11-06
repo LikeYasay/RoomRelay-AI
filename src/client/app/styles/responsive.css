@@ -31,10 +31,6 @@ html {
         min-height: 40px;
     }
 
-    .form-field--check input {
-        width: 24px;
-        height: 24px;
-    }
 }
 
 @media (max-width: 900px) {

@@ -9,9 +9,9 @@ import type {
     Shift,
     TaskPriority,
     TaskStatus,
-} from './types'
-import type { IconName } from '../ui/iconPaths'
-import type { Tone } from '../ui/tone'
+} from './types.ts'
+import type { IconName } from '../ui/iconPaths.ts'
+import type { Tone } from '../ui/tone.ts'
 
 /**
  * The words and looks of the hotel vocabulary: every status label, tone and icon in one place.

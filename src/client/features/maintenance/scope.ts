@@ -1,8 +1,8 @@
-import type { Defect, Role, RoomView, Staff } from '../../shared/domain/types'
+import type { Defect, Role, RoomView, Staff } from '../../shared/domain/types.ts'
 
 /**
- * PROTOTYPE NOTE: the real server must only RETURN defects the user may see.
- * Filtering in the browser is cosmetic and must never be relied on.
+ * Which defects a role sees on the Maintenance page. The server has already limited the
+ * data to the role's rooms; this narrows it further for technicians (only their own defects).
  */
 
 export interface DefectRow {

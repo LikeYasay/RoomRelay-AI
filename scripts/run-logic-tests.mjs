@@ -4,8 +4,8 @@
  *   npm run test:logic        (or: node scripts/run-logic-tests.mjs)
  *
  * What it does:
- *   1. Compiles the pure logic files (readiness rules, validation, handoff, permissions, data)
- *      with the project's own TypeScript into a temporary folder, in strict mode.
+ *   1. Type-checks the pure logic files (readiness rules, validation, handoff, permissions, data) in strict mode,
+ *      then transpiles them with the project's own TypeScript into a temporary folder.
  *   2. Runs tests/logic.test.cjs against the compiled code with Node's built-in test runner.
  *   3. Deletes the temporary folder.
  *
@@ -13,7 +13,8 @@
  * They do not cover the screens; see docs/TEST_PLAN.md for the manual and browser checks.
  */
 import { spawnSync } from 'node:child_process'
-import { mkdtempSync, rmSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import ts from 'typescript'
 import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -54,29 +55,42 @@ function finish(code) {
     process.exit(code)
 }
 
-console.log('Compiling the logic files (strict mode)...')
-const compile = spawnSync(
+// 1. Type-check the logic files in strict mode (nothing is written).
+console.log('Type-checking the logic files (strict mode)...')
+const check = spawnSync(
     process.execPath,
     [
         tsc,
         ...sources,
-        '--outDir', outDir,
-        '--rootDir', path.join(root, 'src', 'client'),
-        '--module', 'commonjs',
-        '--moduleResolution', 'node10',
+        '--noEmit',
+        '--allowImportingTsExtensions', // server-module files import each other with explicit .ts (ServiceNow needs exact paths)
+        '--module', 'es2022',
+        '--moduleResolution', 'bundler',
         '--target', 'es2022',
         '--strict',
         '--skipLibCheck',
-        '--jsx', 'react-jsx', // some logic files import types from .tsx files, so the compiler must be able to read them
+        '--jsx', 'react-jsx',
         '--esModuleInterop',
     ],
     { cwd: root, encoding: 'utf8' }
 )
-
-if (compile.status !== 0) {
-    console.error(compile.stdout || compile.stderr)
-    console.error('\nThe logic files did not compile, so the tests were not run.')
+if (check.status !== 0) {
+    console.error(check.stdout || check.stderr)
+    console.error('\nThe logic files did not type-check, so the tests were not run.')
     finish(1)
+}
+
+// 2. Transpile every plain .ts file under src/client to CommonJS for Node, pointing the .ts imports at the .js output.
+const clientDir = path.join(root, 'src', 'client')
+const walk = (dir) => readdirSync(dir, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(path.join(dir, e.name)) : [path.join(dir, e.name)]))
+for (const file of walk(clientDir).filter((f) => f.endsWith('.ts') && !f.endsWith('.d.ts') && !f.endsWith('fontData.ts'))) {
+    const { outputText } = ts.transpileModule(readFileSync(file, 'utf8'), {
+        compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true },
+        fileName: file,
+    })
+    const out = path.join(outDir, path.relative(clientDir, file)).replace(/\.ts$/, '.js')
+    mkdirSync(path.dirname(out), { recursive: true })
+    writeFileSync(out, outputText.replace(/require\("(\.{1,2}\/[^"]+)\.ts"\)/g, 'require("$1.js")'))
 }
 
 const run = spawnSync(process.execPath, ['--test', path.join(root, 'tests', 'logic.test.cjs')], {

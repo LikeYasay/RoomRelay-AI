@@ -1,5 +1,5 @@
-import type { CommandFailureKind } from '../api/commands'
-import type { AuditEntry, Snapshot, Staff } from './types'
+import type { CommandFailureKind } from '../api/commands.ts'
+import type { AuditEntry, Snapshot, Staff } from './types.ts'
 
 /**
  * Small helpers shared by every feature's command rules (features/<slice>/*Commands.ts).

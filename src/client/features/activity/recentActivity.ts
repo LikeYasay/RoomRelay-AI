@@ -1,4 +1,4 @@
-import type { AuditEntry, RoomView } from '../../shared/domain/types'
+import type { AuditEntry, RoomView } from '../../shared/domain/types.ts'
 
 /**
  * Recent activity for the rooms in view, newest first. It reads the same audit log the

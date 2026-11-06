@@ -1,10 +1,10 @@
-import type { Command } from '../shared/api/commands'
-import type { CommandContext, RuleResult } from '../shared/domain/commandKit'
-import type { Snapshot } from '../shared/domain/types'
-import { recordBriefingGenerated } from '../features/handoff/handoffCommands'
-import { completeTask, markTaskCouldntComplete, reopenTask } from '../features/housekeeping/taskCommands'
-import { reportDefect, resolveDefect, startDefect, triageDefect } from '../features/maintenance/defectCommands'
-import { recordInspection, submitForInspection } from '../features/rooms/roomCommands'
+import type { Command } from '../shared/api/commands.ts'
+import type { CommandContext, RuleResult } from '../shared/domain/commandKit.ts'
+import type { Snapshot } from '../shared/domain/types.ts'
+import { recordBriefingGenerated } from '../features/handoff/handoffCommands.ts'
+import { completeTask, markTaskCouldntComplete, reopenTask } from '../features/housekeeping/taskCommands.ts'
+import { reportDefect, resolveDefect, startDefect, triageDefect } from '../features/maintenance/defectCommands.ts'
+import { recordInspection, submitForInspection } from '../features/rooms/roomCommands.ts'
 
 /**
  * Routes a command to the feature rule that handles it. Pure: data in, new data (or a safe

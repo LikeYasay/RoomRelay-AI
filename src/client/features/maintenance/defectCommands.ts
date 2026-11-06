@@ -1,8 +1,8 @@
-import { DEFECT_PRIORITY_META } from '../../shared/domain/labels'
-import type { Defect, DefectPriority, Snapshot } from '../../shared/domain/types'
-import { fail, notAvailable, staffName, withAudit } from '../../shared/domain/commandKit'
-import type { CommandContext, RuleResult } from '../../shared/domain/commandKit'
-import { validateDefectReport, validateResolution, validateTriage } from './defectValidation'
+import { DEFECT_PRIORITY_META } from '../../shared/domain/labels.ts'
+import type { Defect, DefectPriority, Snapshot } from '../../shared/domain/types.ts'
+import { fail, notAvailable, staffName, withAudit } from '../../shared/domain/commandKit.ts'
+import type { CommandContext, RuleResult } from '../../shared/domain/commandKit.ts'
+import { validateDefectReport, validateResolution, validateTriage } from './defectValidation.ts'
 
 /**
  * Defect rules: who may report, triage, start and resolve a defect, and what each step changes.
@@ -14,8 +14,8 @@ import { validateDefectReport, validateResolution, validateTriage } from './defe
  * Resolving a defect that came from a "Couldn't Complete: Needs maintenance" task puts that
  * task back to Pending, with the repair note, so the housekeeper re-checks the area.
  *
- * PROTOTYPE NOTE: these rules run in the browser against demo data only. The ServiceNow
- * server must enforce the same rules (ACLs and business rules) on every request.
+ * These run on the ServiceNow server for every request (src/server/api/handlers.ts), and in
+ * the browser for the local preview.
  */
 
 export function technicianIds(snapshot: Snapshot): string[] {
@@ -23,7 +23,7 @@ export function technicianIds(snapshot: Snapshot): string[] {
 }
 
 /** Rooms a role may report a defect against: a housekeeper's own rooms, or every room for a supervisor. */
-export function reportableRoomIds(snapshot: Snapshot, ctx: CommandContext): string[] {
+function reportableRoomIds(snapshot: Snapshot, ctx: CommandContext): string[] {
     if (ctx.actor.role === 'supervisor') return snapshot.rooms.map((r) => r.id)
     if (ctx.actor.role === 'housekeeping') return snapshot.rooms.filter((r) => r.assigneeId === ctx.actor.id).map((r) => r.id)
     return []

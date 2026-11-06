@@ -1,12 +1,12 @@
-import { DEFECT_PRIORITY_ORDER } from '../../shared/domain/labels'
-import type { DefectPriority } from '../../shared/domain/types'
-import { checkText } from '../../shared/lib/validation'
-import type { FieldErrors, ValidationResult } from '../../shared/lib/validation'
+import { DEFECT_PRIORITY_ORDER } from '../../shared/domain/labels.ts'
+import type { DefectPriority } from '../../shared/domain/types.ts'
+import { checkText } from '../../shared/lib/validation.ts'
+import type { FieldErrors, ValidationResult } from '../../shared/lib/validation.ts'
 
 /**
  * Defect report, triage and resolution form rules.
  *
- * PROTOTYPE NOTE: usability only. The server must repeat every check before saving.
+ * The server applies the same checks (through the command rules) before saving anything.
  */
 
 export const LIMITS = {
@@ -20,7 +20,7 @@ export const LIMITS = {
 
 export const DEFECT_PRIORITIES: DefectPriority[] = DEFECT_PRIORITY_ORDER
 
-export function isDefectPriority(value: string): value is DefectPriority {
+function isDefectPriority(value: string): value is DefectPriority {
     return (DEFECT_PRIORITIES as string[]).includes(value)
 }
 

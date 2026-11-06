@@ -26,6 +26,9 @@ replaced by a model call made securely on the ServiceNow server."*
 
 ## 3. Planned design (Phase 5)
 
+The RoomRelay REST API already exists (`src/fluent/api/roomrelay-api.now.ts`), so the AI call becomes one more route
+(for example `POST /handoff/briefings`) with the same ACL, plus a handler in `src/server/`.
+
 ```
 Supervisor's browser -- "Generate" --> ServiceNow Scripted REST API
                                           1. check the caller is a supervisor

@@ -1,7 +1,7 @@
-import { SHIFT_LABEL, SHIFT_ORDER } from '../../shared/domain/labels'
-import type { Shift, Snapshot } from '../../shared/domain/types'
-import { fail, withAudit } from '../../shared/domain/commandKit'
-import type { CommandContext, RuleResult } from '../../shared/domain/commandKit'
+import { SHIFT_LABEL, SHIFT_ORDER } from '../../shared/domain/labels.ts'
+import type { Shift, Snapshot } from '../../shared/domain/types.ts'
+import { fail, withAudit } from '../../shared/domain/commandKit.ts'
+import type { CommandContext, RuleResult } from '../../shared/domain/commandKit.ts'
 
 /**
  * Records that a shift briefing was generated, so the audit log shows who used the

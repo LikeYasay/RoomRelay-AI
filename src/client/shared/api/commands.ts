@@ -1,4 +1,4 @@
-import type { DefectPriority, IncompleteReason, InspectionStatus, Shift } from '../domain/types'
+import type { DefectPriority, IncompleteReason, InspectionStatus, Shift } from '../domain/types.ts'
 
 /**
  * Every change a user can make, as one typed list. This is the WRITE contract the backend

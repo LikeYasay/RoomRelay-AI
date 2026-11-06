@@ -1,11 +1,11 @@
-import type { Role } from '../../shared/domain/types'
+import type { Role } from '../../shared/domain/types.ts'
 
 /**
  * Role-permission matrix, for DISPLAY.
  *
- * It documents the intended design and matches what this prototype's screens show.
- * It is not enforcement: real permissions must be enforced by ServiceNow roles, ACLs and
- * server-side checks (Phase 4). Keep this table and those rules in step.
+ * It documents who may do what, for the Users and Access page. It is not enforcement: the
+ * ServiceNow roles, ACLs and the command rules (features/<slice>/*Commands.ts) enforce it.
+ * Keep this table and those rules in step.
  */
 export type Level = 'yes' | 'own' | 'read' | 'no'
 

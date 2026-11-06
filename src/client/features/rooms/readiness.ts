@@ -1,6 +1,6 @@
-import type { Blocker, Defect, HousekeepingTask, ReadinessResult, Room, RoomStatus } from '../../shared/domain/types'
-import { plural } from '../../shared/lib/format'
-import { isBlockingOpen } from '../maintenance/blockers'
+import type { Blocker, Defect, HousekeepingTask, ReadinessResult, Room, RoomStatus } from '../../shared/domain/types.ts'
+import { plural } from '../../shared/lib/format.ts'
+import { isBlockingOpen } from '../maintenance/blockers.ts'
 
 /**
  * Deterministic room-readiness rules.
@@ -17,10 +17,8 @@ import { isBlockingOpen } from '../maintenance/blockers'
  *   Pending Inspection all mandatory tasks Completed, inspection not passed yet
  *   Ready              all three rules met
  *
- * PROTOTYPE NOTE: this runs in the browser purely to explain status to the user.
- * It is NOT an enforcement point. In Phase 4 the same rules must be implemented
- * server-side (Business Rule + ACL) so they cannot be bypassed through direct API
- * calls. AI-generated text never feeds into this function.
+ * The same function runs in the browser (to explain status) and on the ServiceNow server
+ * (src/server/api/handlers.ts), where it decides. AI-generated text never feeds into it.
  */
 
 function joinReasons(reasons: string[]): string {

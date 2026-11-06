@@ -84,18 +84,6 @@
     text-align: right;
 }
 
-.form-field--check {
-    flex-direction: row;
-    align-items: flex-start;
-    gap: 10px;
-}
-
-.form-field--check input {
-    margin-top: 4px;
-    width: 18px;
-    height: 18px;
-}
-
 .error-summary {
     border: 1px solid #f6baba;
     background: var(--danger-bg);

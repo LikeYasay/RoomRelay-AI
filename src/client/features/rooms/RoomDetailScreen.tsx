@@ -13,7 +13,7 @@ import { DefectsPanel } from './DefectsPanel'
 import { ReadinessPanel } from './ReadinessPanel'
 
 /** Room ids are 3 or 4 digits. Anything else is rejected before any lookup. */
-export function isValidRoomId(value: string | undefined): value is string {
+function isValidRoomId(value: string | undefined): value is string {
     return value !== undefined && /^\d{3,4}$/.test(value)
 }
 

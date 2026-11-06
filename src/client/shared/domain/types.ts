@@ -1,10 +1,10 @@
 /**
  * Domain types for RoomRelay AI: the shapes the backend must return.
  *
- * PROTOTYPE NOTE: these shapes describe the synthetic dataset. In Phase 4 they will be
- * mapped from ServiceNow scoped-table records. Roles and statuses defined here are for
- * display only; real authorization is enforced by ServiceNow (roles, ACLs, Business
- * Rules), never by this client code. See docs/GLOSSARY.md for what every term means.
+ * The ServiceNow server builds these shapes from its tables (src/server/data/repository.ts);
+ * the local preview builds them from synthetic data (src/client/mock). Authorization is
+ * enforced by the server (roles, ACLs, the rule functions), never by the browser.
+ * See docs/GLOSSARY.md for what every term means.
  */
 
 export type Role = 'housekeeping' | 'maintenance' | 'supervisor' | 'admin'

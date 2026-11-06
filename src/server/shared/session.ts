@@ -1,6 +1,6 @@
 import { gs, GlideRecord } from '@servicenow/glide'
-import type { Role, Shift, Staff } from '../../client/shared/domain/types'
-import { ROLE_NAMES, TABLES } from './tables'
+import type { Role, Shift, Staff } from '../../client/shared/domain/types.ts'
+import { ROLE_NAMES, TABLES } from './tables.ts'
 
 /**
  * Who is calling, and who the staff are. Identity always comes from the ServiceNow session

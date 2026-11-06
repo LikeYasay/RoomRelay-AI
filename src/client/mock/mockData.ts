@@ -8,8 +8,8 @@ import type {
     Staff,
     TaskPriority,
     TaskStatus,
-} from '../shared/domain/types'
-import { DEFECT_PRIORITY_META } from '../shared/domain/labels'
+} from '../shared/domain/types.ts'
+import { DEFECT_PRIORITY_META } from '../shared/domain/labels.ts'
 
 /**
  * SYNTHETIC DEMO DATA, for the prototype only.

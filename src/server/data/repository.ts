@@ -12,9 +12,9 @@ import type {
     Staff,
     TaskPriority,
     TaskStatus,
-} from '../../client/shared/domain/types'
-import { TABLES } from '../shared/tables'
-import { fromGlide, nowIso, toGlide } from '../shared/time'
+} from '../../client/shared/domain/types.ts'
+import { TABLES } from '../shared/tables.ts'
+import { fromGlide, nowIso, toGlide } from '../shared/time.ts'
 
 /**
  * Reads the RoomRelay tables into the app's Snapshot shape, and writes back what a rule changed.

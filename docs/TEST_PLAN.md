@@ -1,9 +1,9 @@
 # Test plan and results
 
 **Honesty rule for this document:** a result is written only if the check was actually run. "Not run" means exactly that.
-Results below were observed on **2026-11-06** with the local preview (`npm run preview`) in a desktop browser, plus the
-commands named, plus a first run inside the ServiceNow PDI of the **earlier** version (section 4b).
-**No backend, ACL or real-data behavior has been tested yet.**
+Results below were observed on **2026-11-06 and 2026-11-07**: with the local preview (`npm run preview`) in a desktop
+browser, with the commands named, and inside the ServiceNow PDI `dev472716`, first for the earlier frontend-only version
+and then for the backend version (section 4b). All data is synthetic; nothing has been tested with real hotel data.
 
 For each test: objective, preconditions, steps, expected behavior, observed behavior, pass or fail, recommended correction.
 To keep the document readable, repeated preconditions are stated once per section.
@@ -124,10 +124,10 @@ run before the task and defect rework and cover screens it did not change; the r
 | R5 | Real phones and tablets | **Not run** | Only simulated sizes in a desktop browser |
 | R6 | Layout inside ServiceNow | **Passed on the desktop dashboard (earlier version)** | See section 4b |
 
-## 4b. First run inside the ServiceNow PDI (2026-11-06, earlier version)
+## 4b. Inside the ServiceNow PDI
 
-Instance `dev472716`, scope `x_2305075_roomrela`. This was the **prototype UI before the vertical-slice layout and the
-task and defect rework**: no tables, roles or ACLs exist yet. **The current version has not been installed.**
+Instance `dev472716`, scope `x_2305075_roomrela`. P1 to P7 ran on 2026-11-06 against the **earlier, frontend-only**
+version. P8 onwards ran on 2026-11-06 and 2026-11-07 against the **backend version** (tables, roles, ACLs, REST API).
 
 | ID | Check | Result | Observed |
 |---|---|---|---|
@@ -138,46 +138,62 @@ task and defect rework**: no tables, roles or ACLs exist yet. **The current vers
 | P5 | Hash routing inside the platform page (`#/dashboard`) | **Pass** | |
 | P6 | Menu, Back and Forward, refresh, direct room address, dialogs, sign out | **Reported working by the team lead, not itemised** | |
 | P7 | Console errors and Content Security Policy messages | **Not itemised** | The exact Console output was not captured |
-| P8 | `typeof window.g_ck` | **Not itemised** | Needed before the backend integration |
+| P8 | `typeof window.g_ck` | **Pass** | 2026-11-06: `"string"` (value not recorded) |
+| P9 | Install the backend version | **Pass** | 2026-11-06: `npx @servicenow/sdk install --auth roomrelay-pdi` exit code 0, "Installation completed", rollback link printed. Observed directly. |
+| P10 | Signed-out visit after the backend install | **Pass** | A browser with no ServiceNow session opening the UI Page was sent to the ServiceNow login. Observed directly. |
 
-After the next install, re-run P3 to P7 and the scenario F12 to F19 inside the PDI.
+| P11 | First call to the backend | **Fail, fixed** | 2026-11-06: `GET /me` returned 500: "No module with path .../src/client/app/applyCommand found". ServiceNow resolves module imports by exact path and module paths end in `.ts`. Fix: explicit `.ts` on the 93 imports in the 36 server-module files, plus a build-output check that every import matches a module (50 of 50). Reinstalled. |
+| P12 | Reinstall with the fix | **Pass** | Exit code 0, "Installation completed". |
+| P13 | `GET /me` and `GET /snapshot` as admin | **Pass** | 200; admin recognized; all 9 demo users listed with the right roles (so the demo users, role assignments and cross-scope reads installed and work). Tables empty before loading. |
+| P14 | Load demo data (Demo tools) | **Pass** | Dashboard after loading: 40 rooms, 16 Ready, 8 Needs Cleaning, 7 In Progress, 4 Pending Inspection, 5 Blocked; same as the local preview. |
+| P15 | Housekeeper scoping (impersonating Avery Collins) | **Pass** | Menu Dashboard, Rooms, Maintenance; no Demo tools. The server sent only rooms 101 to 108 and only audit entries about them. Room 305 by address: "Room unavailable". |
+| P16 | Full scenario, Room 102 (Avery, Morgan, Daniel, Avery, Morgan) | **Pass** | Complete; Couldn't Complete (Needs maintenance) created a New, Normal report; Morgan triaged it Blocking to Daniel (room Blocked); Daniel started and resolved it (task back to Pending with the repair note); Avery completed the rest and submitted; Morgan passed it: Ready. Changes survived a page reload. |
+| P17 | Server refuses forbidden requests | **Pass** | Avery completing Room 305's task: 404 "That task is not available."; a command carrying `role`: 400; Avery setting a defect priority: 403; Daniel triaging: 403; Avery passing her own room: 403. |
+| P18 | Direct Table API as a non-admin (Morgan) | **Pass** | Read `x_2305075_roomrela_room`: 403 "User Not Authorized"; insert into `x_2305075_roomrela_task`: 403 ACL exception. |
+| P19 | Audit log (impersonating Riley Chen) | **Pass** | 218 entries; the Room 102 trail lists each step under the person who did it. |
+| P20 | User with no RoomRelay role (abel.tuter) | **Pass after a fix** | First run: refused (403) only by the handler's own role check, because each route kept ServiceNow's default ACL "Scripted REST External Default", which overrides the API-level ACL. Fix: the RoomRelay ACL is now set on every route. |
+| P22 | No-role user after the ACL fix (reinstalled) | **Pass** | `/me`, `/snapshot` and `/commands` answer 403 "Failed API level ACL Validation" from ServiceNow itself, before the handler runs; the page shows "No access to RoomRelay". Avery, Daniel, Morgan and Riley still get 200 with 8, 3, 40 and 40 rooms. |
+| P21 | Console | **Pass** | No Content Security Policy messages and no uncaught errors. The only red entries were the deliberate 403, 404 and 409 test calls; the warnings concern a ServiceNow platform asset. |
 
-## 5. Backend and security tests (backend built 2026-11-06; run these after installing it)
+Checks P11 to P21 were run by Claude in the app's built-in browser, signed in as the team lead's admin user and switching roles with Impersonate User. Not yet done in the PDI: phone-width layout, the Shift Handoff screen, and section 5 items B11 (two requests at the same instant), B12, B13, B14 and B18.
 
-**Preconditions for all:** application installed in the PDI; four test users (one per role, never `admin`) with sample data
-that includes the scenarios used above; a second housekeeper and a second technician to test cross-user access. Observed
-and Result are **Not run** until the backend is built. Recommended correction for any failure: fix the server rule or ACL,
-not the screen.
+## 5. Backend and security tests
 
-| ID | Objective | Steps | Expected |
-|---|---|---|---|
-| B1 | Unauthenticated access | Open the UI Page and each API in a private window | Redirect to ServiceNow login or 401; no data |
-| B2 | Unauthorized page | Housekeeper opens the handoff page and its API | Page denied; API 403 |
-| B3 | Insufficient permission | Maintenance user tries to pass an inspection | 403, no change |
-| B4 | Another user's record (IDOR/BOLA) | Housekeeper A completes B's task; technician A resolves B's defect | 404 with the same message as a missing record |
-| B5 | Invalid input | Over-long, empty, wrong-type and unknown-field payloads to each write endpoint | 400 with a safe message; nothing saved |
-| B6 | XSS-safe rendering | Save `<script>`/`<img onerror>` in a defect, a task note and a resolution; view everywhere incl. the Audit Log | Shown as text |
-| B7 | Unauthorized status change | Call the Table API to set `readiness_status`, a task `status` or a defect `priority` as a non-admin | Rejected by ACL |
-| B8 | Mandatory task bypass | Pass inspection with one mandatory task Pending or Couldn't Complete (UI and direct API) | Rejected with the readiness message |
-| B9 | Inspection bypass | Pass with inspection not `pending`; fail with inspection not `pending` | Rejected |
-| B10 | Blocking defect | Pass with an open Blocking defect | Rejected; resolving or downgrading it then allows it (and the downgrade is audited) |
-| B11 | Duplicate requests | Send pass-inspection twice at once; resolve twice | One succeeds, one gets 409; one audit row |
-| B12 | Concurrent updates | Two supervisors triage the same defect | Stale update gets 409 |
-| B13 | Session expiry | Let the session expire, then click | "Session expired" state; no data leak |
-| B14 | API failure | Stop the API or force a 500 | Safe error screen with retry; no stack trace |
-| B15 | Exposed secrets | Search repo, bundle, network traffic and logs | None |
-| B16 | Prompt injection | See `AI_DESIGN.md` section 5 | All pass |
-| B17 | Frontend and backend permission agreement | For each cell of the role matrix, compare what the UI offers with what the API allows | Identical; the API is the stricter one |
-| B18 | Rate limiting | Hammer the briefing endpoint | Limited with a safe message |
-| B19 | Account request abuse | Submit many requests, invalid emails, attempt `role=admin` | Limited or rejected; no user or role created |
-| B20 | Housekeeper sets a priority | `POST /defects` with `priority` or `technicianId` as a housekeeper | 403 |
-| B21 | Reopen while waiting for maintenance | `POST /tasks/{id}/reopen` while the linked defect is open | 409 |
-| B22 | Resolve reopens the task | Resolve a defect raised from a task | Task back to `pending` with `repair_note`; not `completed` |
-| B23 | Audit log integrity | Try to update or delete an `audit_entry` as every role, including app_admin | Refused; every change above produced exactly one row with the real actor |
+**Preconditions for all:** application installed in the PDI; the demo users (one or more per role, never `admin`) and
+the demo data loaded. Many of these were covered by P15 to P22 (noted in the Status column); the rest are **Not run**.
+Recommended correction for any failure: fix the server rule or ACL, not the screen.
+
+| ID | Objective | Steps | Expected | Status |
+|---|---|---|---|---|
+| B1 | Unauthenticated access | Open the UI Page and each API in a private window | Redirect to ServiceNow login or 401; no data | Partly (P10: a signed-out visit to the page goes to the login; API calls while signed out not tried) |
+| B2 | Unauthorized page | Housekeeper opens the handoff page and its API | Page denied; API 403 | Not run (there is no handoff API yet) |
+| B3 | Insufficient permission | Maintenance user tries to pass an inspection | 403, no change | Partly (P17: a housekeeper passing an inspection got 403; a maintenance user not tried) |
+| B4 | Another user's record (IDOR/BOLA) | Housekeeper A completes B's task; technician A resolves B's defect | 404 with the same message as a missing record | Partly (P17: housekeeper case, 404 "not available"; the technician case is covered by automated tests only) |
+| B5 | Invalid input | Over-long, empty, wrong-type and unknown-field payloads to each write endpoint | 400 with a safe message; nothing saved | Partly (P17: a command with an extra field got 400) |
+| B6 | XSS-safe rendering | Save `<script>`/`<img onerror>` in a defect, a task note and a resolution; view everywhere incl. the Audit Log | Shown as text | Not run |
+| B7 | Unauthorized status change | Call the Table API to set `readiness_status`, a task `status` or a defect `priority` as a non-admin | Rejected by ACL | Partly (P18: non-admin read and insert through the Table API refused; updates not tried) |
+| B8 | Mandatory task bypass | Pass inspection with one mandatory task Pending or Couldn't Complete (UI and direct API) | Rejected with the readiness message | Not run in the PDI (automated tests 14 and 17 cover it) |
+| B9 | Inspection bypass | Pass with inspection not `pending`; fail with inspection not `pending` | Rejected | Not run |
+| B10 | Blocking defect | Pass with an open Blocking defect | Rejected; resolving or downgrading it then allows it (and the downgrade is audited) | Partly (P16: the room showed Blocked while the defect was open; a pass attempt was not tried) |
+| B11 | Duplicate requests | Send pass-inspection twice at once; resolve twice | One succeeds, one gets 409; one audit row | Not run |
+| B12 | Concurrent updates | Two supervisors triage the same defect | Stale update gets 409 | Not run |
+| B13 | Session expiry | Let the session expire, then click | "Session expired" state; no data leak | Not run |
+| B14 | API failure | Stop the API or force a 500 | Safe error screen with retry; no stack trace | Not run |
+| B15 | Exposed secrets | Search repo, bundle, network traffic and logs | None | Not re-run since the backend was added |
+| B16 | Prompt injection | See `AI_DESIGN.md` section 5 | All pass | Not run (needs the AI) |
+| B17 | Frontend and backend permission agreement | For each cell of the role matrix, compare what the UI offers with what the API allows | Identical; the API is the stricter one | Partly (P15 to P20: menus per role and the refused attempts in P17) |
+| B18 | Rate limiting | Hammer the briefing endpoint | Limited with a safe message | Not run (needs the AI) |
+| B19 | Account request abuse | Submit many requests, invalid emails, attempt `role=admin` | Limited or rejected; no user or role created | Not run (still simulated) |
+| B20 | Housekeeper sets a priority | `POST /defects` with `priority` or `technicianId` as a housekeeper | 403 | Pass (P17) |
+| B21 | Reopen while waiting for maintenance | `POST /tasks/{id}/reopen` while the linked defect is open | 409 | Not run |
+| B22 | Resolve reopens the task | Resolve a defect raised from a task | Task back to `pending` with `repair_note`; not `completed` | Pass (P16) |
+| B23 | Audit log integrity | Try to update or delete an `audit_entry` as every role, including app_admin | Refused; every change above produced exactly one row with the real actor | Not run |
 
 ## 6. Known gaps in testing
 
-- Inside ServiceNow only the earlier prototype UI has run, once (section 4b). Console output and `g_ck` were not captured.
-  The remaining unknowns are in `BACKEND_HANDOFF.md` section 12.
+- Inside ServiceNow: the phone-width layout, the Shift Handoff screen, Sign out (`/logout.do`) and the section 5 rows marked
+  Not run or Partly are still to do. The open items are listed in `BACKEND_HANDOFF.md` section 12.
+- The PDI checks were run by switching users with Impersonate User, not by separate people signing in with their own
+  accounts (the demo users have no password).
 - Screen readers, real devices, and the successful clipboard path are untested.
 - The browser checks were run by hand from scripts in a temporary test browser; there is no automated end-to-end suite.

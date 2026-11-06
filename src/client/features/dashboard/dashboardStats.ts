@@ -1,7 +1,7 @@
-import { SHIFT_ORDER } from '../../shared/domain/labels'
-import type { RoomStatus, RoomView, Shift, Staff } from '../../shared/domain/types'
-import { isBlockingOpen } from '../maintenance/blockers'
-import { countByStatus } from '../rooms/roomViews'
+import { SHIFT_ORDER } from '../../shared/domain/labels.ts'
+import type { RoomStatus, RoomView, Shift, Staff } from '../../shared/domain/types.ts'
+import { isBlockingOpen } from '../maintenance/blockers.ts'
+import { countByStatus } from '../rooms/roomViews.ts'
 
 /** Dashboard numbers. All of them are derived from the same room views, so they always agree. */
 

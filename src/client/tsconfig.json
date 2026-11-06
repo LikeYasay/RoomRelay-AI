@@ -8,6 +8,8 @@
             "DOM"
         ],
         "jsx": "preserve",
-        "strict": true
+        "strict": true,
+        "allowImportingTsExtensions": true,
+        "noEmit": true
     }
 }

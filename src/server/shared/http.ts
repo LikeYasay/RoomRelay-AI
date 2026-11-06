@@ -13,7 +13,7 @@ export interface RestResponse {
     setBody(body: object): void
 }
 
-export type ErrorCode = 'unauthenticated' | 'forbidden' | 'not_found' | 'invalid' | 'conflict' | 'server'
+type ErrorCode = 'unauthenticated' | 'forbidden' | 'not_found' | 'invalid' | 'conflict' | 'server'
 
 const STATUS: Record<ErrorCode, number> = {
     unauthenticated: 401,

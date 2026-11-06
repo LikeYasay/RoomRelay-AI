@@ -3,10 +3,9 @@
 **RoomRelay AI: Intelligent Hotel Room Readiness and Shift Handoff Management System**
 A ServiceNow capstone application (Hospitality, use case #35: Room Readiness Handoff Assistant).
 
-> **Status: the frontend is complete, and a first working version of the ServiceNow backend (tables, roles, ACLs,
-> REST API) is built but not yet installed or tested in the PDI. The real AI integration is not built.** Nothing in
-> this repository has been tested with real data or real permissions. The prototype UI itself was installed into the PDI
-> and renders there. See [Project status](#project-status).
+> **Status (2026-11-07):** the frontend and a first working version of the ServiceNow backend (tables, roles, ACLs,
+> REST API) are built, installed in the PDI and verified there for every role. All data is synthetic demo data.
+> The real AI integration is not built: the shift briefing is a labeled template. See [Project status](#project-status).
 
 ## What it does
 
@@ -19,10 +18,11 @@ at shift change. RoomRelay AI puts it in one place:
 - Runs defects from report to repair: supervisors triage (technician and priority: Blocking, Normal or Minor),
   technicians start and resolve, and the housekeeping task comes back to finish.
 - **Never lets a room count as Ready while a mandatory task, a required inspection or a Blocking defect is open.**
+  The ServiceNow server enforces this; the browser only explains it.
 - Keeps an audit log of who changed what, for the administrator.
-- Produces a shift handoff briefing for the incoming shift (simulated today; real AI is planned, see
+- Produces a shift handoff briefing for the incoming shift (a labeled template today; real AI is planned, see
   [docs/AI_DESIGN.md](docs/AI_DESIGN.md)).
-- Shows supervisors a dashboard, and shows each role only what it needs.
+- Shows each role only what it needs. Terms are explained in [docs/GLOSSARY.md](docs/GLOSSARY.md).
 
 ## Where things are
 
@@ -30,11 +30,26 @@ at shift change. RoomRelay AI puts it in one place:
 |---|---|
 | ServiceNow instance (PDI) | `dev472716` (`https://dev472716.service-now.com`), Brazil release |
 | Application / scope | RoomRelay AI / `x_2305075_roomrela` |
-| UI Page endpoint | `x_2305075_roomrela_incident_manager.do` (name kept from the starter app; renaming has deployment effects) |
+| App page | `https://dev472716.service-now.com/x_2305075_roomrela_incident_manager.do` (endpoint name kept from the starter app; renaming has deployment effects) |
+| REST API | `/api/x_2305075_roomrela/v1/roomrelay/` (`GET /me`, `GET /snapshot`, `POST /commands`, `POST /demo/reset`) |
 | Stack | ServiceNow Now SDK 4.14.0, React 19, TypeScript 5.5 |
 | Repository | `https://github.com/LikeYasay/RoomRelay-AI` (private) |
 
-## Run it on your computer (no ServiceNow needed)
+## Two ways to run it
+
+The same code runs in two modes; `src/client/shared/api/environment.ts` picks one from the page address.
+
+### Inside ServiceNow (the real app)
+
+1. Sign in to the PDI as admin and open the app page above. There is no RoomRelay sign-in page: ServiceNow has already
+   signed you in, and the server decides your role.
+2. First time only: open **Demo tools** (bottom-left) and press **Load demo data**.
+3. To see another role, use ServiceNow's **Impersonate User** (under your name, top right) and pick one of the demo
+   users below. They have no password, so this is the only way to act as them.
+
+Changes are saved to the RoomRelay tables and recorded in the audit log. **Load demo data** resets everything.
+
+### On your computer (local preview, no ServiceNow)
 
 You need Node.js 22 and `npm install` done once. Then, in the VS Code terminal:
 
@@ -42,46 +57,46 @@ You need Node.js 22 and `npm install` done once. Then, in the VS Code terminal:
 npm run preview
 ```
 
-It builds the app and serves it at `http://127.0.0.1:4173/`. Press Ctrl+C to stop. This shows the prototype with its
-synthetic data. It is **not** ServiceNow: there is no real sign-in and no server-side security.
+It builds the app and serves it at `http://127.0.0.1:4173/`. Press Ctrl+C to stop. Here a demo sign-in page lets you
+pick an account, and the data lives in the browser tab's memory: changes are seen by the next account you sign in as,
+and a reload (or **Prototype tools > Reset demo data**) starts over. There is no server-side security in this mode.
 
-Other commands:
+### Demo users
+
+| User | Role | Try this ([docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md) has the full walkthrough) |
+|---|---|---|
+| Avery Collins (`avery.collins`) | Housekeeping Staff | Room 102 checklist: complete a task, mark one Couldn't Complete (Needs maintenance) |
+| Morgan Ellis (`morgan.ellis`) | Housekeeping Supervisor | Maintenance > New reports: triage it; pass Room 102's inspection at the end; Shift Handoff |
+| Daniel Brooks (`daniel.brooks`) | Maintenance Staff | My queue: start and resolve the repair |
+| Riley Chen (`riley.chen`) | System Administrator | Audit Log, Users and Access, role-permission table |
+
+Five more housekeepers and technicians exist (Jordan Reyes, Priya Nair, Tomasz Kowalski, Lena Okafor, Sofia Marques).
+The demo users are defined in `src/fluent/auth/demo-users.now.ts`; remove that file before any real use.
+
+### Commands
 
 | Command | What it does |
 |---|---|
 | `npm run build` | Type-checks and builds the app with the ServiceNow SDK. Local only, deploys nothing. |
 | `npm run test:logic` | Runs the 29 automated tests for the readiness rules, every action rule, validation, permissions, the audit log, the handoff logic and the backend contract (request parsing, per-role data scoping). |
+| `npm run preview` | Builds and serves the local preview. |
 | `npm run deploy` | **Installs into the PDI** (`now-sdk install`). Read [docs/DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md) first. Never add `--reinstall` for normal updates. |
-
-## Demo accounts (prototype only)
-
-Sign-in lists these synthetic people. There is no password: the prototype never asks for one.
-
-**The demo data is live:** changes you make (completing a task, triaging a defect...) are kept in the browser tab's memory and
-seen by the next account you sign in as. Nothing is saved anywhere. Reload the page, or use **Prototype tools > Reset demo
-data**, to start over. The full walkthrough is in [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md).
-
-| Account | Role | Try this |
-|---|---|---|
-| Avery Collins | Housekeeping Staff | Room 102 checklist: complete a task, mark one Couldn't Complete (Needs maintenance) |
-| Morgan Ellis | Housekeeping Supervisor | Maintenance > New reports: triage it; pass Room 102's inspection at the end; Shift Handoff |
-| Daniel Brooks | Maintenance Staff | My queue: start and resolve the repair |
-| Riley Chen | System Administrator | Audit Log, Users and Access, role-permission table |
 
 ## Project layout
 
-The frontend uses a **vertical slice** layout: one folder per feature holds its screens, rules, validation and styles.
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full map, the dependency rules and "where do I find...".
+Both the frontend and the backend use **vertical slices**: one folder per feature (rooms, housekeeping, maintenance,
+...), with the same names in `src/client/features/`, `src/fluent/` and the REST API. The server reuses the frontend's
+rule files, so there is one copy of every rule. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ```
 src/client/                React + TypeScript frontend
-  app/                     wiring only: App, routes, menu, page layout, global styles
-  features/                one folder per feature (vertical slice):
+  app/                     wiring only: App, routes, menu, page layout, data provider, global styles
+  features/                one folder per feature: screens, rules, validation, styles
     auth/ rooms/ housekeeping/ maintenance/ dashboard/ activity/ handoff/ access/
-  shared/                  used by every feature: domain types and labels, data-source contract, UI building blocks
-  mock/                    all synthetic data and the mock data source (replace when the backend exists)
+  shared/                  used by every feature: domain types and labels, backend contract, UI building blocks
+  mock/                    synthetic data and the in-memory demo store (local preview; also the demo seed)
 src/fluent/                ServiceNow metadata by feature: roles, tables, ACLs, REST API, demo users, UI Page
-src/server/                ServiceNow server code: REST handlers, data access, session (reuses the rules in src/client)
+src/server/                ServiceNow server code: REST handlers, data access, session
 src/fluent/generated/      SDK-generated keys (do not edit by hand)
 scripts/                   local-preview.mjs, run-logic-tests.mjs
 tests/                     logic.test.cjs
@@ -93,12 +108,12 @@ docs/                      all project documentation (below)
 | Document | For |
 |---|---|
 | [docs/GLOSSARY.md](docs/GLOSSARY.md) | **Every term in one page** (task states, defect priority, room status) with a worked example. |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the frontend folders are organized (vertical slices) and how each slice maps to a backend module. |
-| [docs/BACKEND_HANDOFF.md](docs/BACKEND_HANDOFF.md) | **Start here if you are building the ServiceNow backend.** Data model, ACLs, business rules, REST contract, what to change in the frontend. |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the folders are organized, how a request flows, and the rules that keep the shared code working on the server. |
+| [docs/BACKEND_HANDOFF.md](docs/BACKEND_HANDOFF.md) | The ServiceNow backend: what is built (section 0), data model, ACLs, REST contract, what is still open. |
 | [docs/ROLE_PERMISSION_MATRIX.md](docs/ROLE_PERMISSION_MATRIX.md) | Who can do what, per page, record and action. |
-| [docs/API_SECURITY_CHECKLIST.md](docs/API_SECURITY_CHECKLIST.md) | Security controls marked implemented, verified or planned. |
+| [docs/API_SECURITY_CHECKLIST.md](docs/API_SECURITY_CHECKLIST.md) | Security controls marked verified, implemented or planned. |
 | [docs/AI_DESIGN.md](docs/AI_DESIGN.md) | How AI is (and will be) used, and how it is kept safe. |
-| [docs/TEST_PLAN.md](docs/TEST_PLAN.md) | Tests already run, with results, and tests still to run. |
+| [docs/TEST_PLAN.md](docs/TEST_PLAN.md) | Tests already run, with results (including the PDI checks), and tests still to run. |
 | [docs/DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md) | Step-by-step install into the PDI and how to verify it. |
 | [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md) | Presentation walkthrough and likely questions. |
 | [docs/licenses/](docs/licenses/) | Source Sans 3 font license (SIL OFL 1.1). |
@@ -107,19 +122,20 @@ docs/                      all project documentation (below)
 
 | Area | State |
 |---|---|
-| Frontend: dashboard, Rooms (three views), room details with checklist, maintenance with triage and a defect modal, shift handoff, users and access, audit log, sign-in and request-account pages | **Built.** Synthetic, live in-memory data. Responsive from 320px to wide desktops. |
-| Local checks: strict TypeScript, SDK build, 26 logic tests, accessibility and contrast checks, browser walkthrough of the full scenario | **Passed** (details in the test plan). |
-| Installed in the PDI and checked there | **Done once on 2026-11-06** for the earlier version of the UI: it renders and works, and signed-out visitors are sent to the ServiceNow login. Console details and `g_ck` were not itemised (see `docs/TEST_PLAN.md` section 4b). **The current version (task and defect rework) is not installed yet.** |
-| ServiceNow tables, roles, ACLs, REST API (Phase 4) | **Built, working version** (`docs/BACKEND_HANDOFF.md` section 0). Builds locally; **not installed or tested in the PDI yet.** |
-| Real AI summaries (Phase 5) | **Not started.** Designed in `docs/AI_DESIGN.md`. The handoff screen is clearly labeled "Simulated briefing (not AI)". |
-| Server-enforced security | **Built, not verified.** The server applies the same rules and scopes data per role; it must be tested with non-admin users in the PDI before it is claimed. |
+| Frontend: dashboard, Rooms (three views), room details with checklist, maintenance with triage and a defect modal, shift handoff, users and access, audit log | **Built.** Responsive from 320px to wide desktops. |
+| ServiceNow backend: 5 tables, 4 roles, ACLs, REST API, demo users and Load demo data | **Built, installed and verified in the PDI** on 2026-11-07 (`docs/TEST_PLAN.md` section 4b, P9 to P22): every role, the full Room 102 scenario, saved changes and the audit trail. |
+| Server-enforced security | **Verified for the tested cases**: each role receives only its own data; other people's records, wrong roles, extra fields, users without a role and direct table access are refused. Concurrent requests, rate limiting and a full security review are still open. |
+| Local checks | Strict TypeScript, SDK build, 29 logic tests, a check that every server-module import resolves, accessibility and contrast checks. All pass. |
+| Still simulated | Approving access requests, the Request an account page, and the AI briefing (a labeled template). |
+| Real AI summaries (Phase 5) | **Not started.** Designed in `docs/AI_DESIGN.md`. |
 
 ## Security notes
 
-- No passwords, API keys or tokens are in this repository. The frontend never handles a password.
+- No passwords, API keys or tokens are in this repository. The frontend never handles a password; inside ServiceNow the
+  server identifies the user from the session, and the browser never sends its own identity or role.
 - All user-written text is rendered as plain text. There is no `dangerouslySetInnerHTML`, `eval` or external script.
-- The browser app makes **no network requests** today. When the backend exists, ServiceNow must enforce every rule.
-- The live demo data is a stand-in for the server, **not** a security control: anyone can change browser memory.
+- The only network calls are to the RoomRelay REST API on the same instance, with the session's `X-UserToken`.
+- The local preview's in-memory demo is a stand-in for the server, **not** a security control.
 - Dependencies: `npm audit --omit=dev` reports 0 vulnerabilities. The full audit reports 20 findings, all in
   ServiceNow SDK build tooling (development only). The suggested fix is a downgrade of the SDK, so it was not applied.
 

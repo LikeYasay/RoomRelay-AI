@@ -1,12 +1,12 @@
-import { INCOMPLETE_REASONS } from '../../shared/domain/labels'
-import type { IncompleteReason } from '../../shared/domain/types'
-import { checkText } from '../../shared/lib/validation'
-import type { ValidationResult } from '../../shared/lib/validation'
+import { INCOMPLETE_REASONS } from '../../shared/domain/labels.ts'
+import type { IncompleteReason } from '../../shared/domain/types.ts'
+import { checkText } from '../../shared/lib/validation.ts'
+import type { ValidationResult } from '../../shared/lib/validation.ts'
 
 /**
  * "Couldn't Complete" form rules: a reason is required, and a note is required when the reason is "Other".
  *
- * PROTOTYPE NOTE: usability only. The server must repeat every check before saving.
+ * The server applies the same checks (through the command rules) before saving anything.
  */
 
 export const NOTE_LIMITS = { min: 3, max: 300 } as const
@@ -16,7 +16,7 @@ export interface IncompleteValue {
     note: string | undefined
 }
 
-export function isIncompleteReason(value: string): value is IncompleteReason {
+function isIncompleteReason(value: string): value is IncompleteReason {
     return (INCOMPLETE_REASONS as string[]).includes(value)
 }
 

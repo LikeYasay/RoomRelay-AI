@@ -1,9 +1,9 @@
-import { INCOMPLETE_REASON_LABEL } from '../../shared/domain/labels'
-import type { HousekeepingTask, IncompleteReason, Snapshot } from '../../shared/domain/types'
-import { fail, notAvailable, withAudit } from '../../shared/domain/commandKit'
-import type { CommandContext, RuleResult } from '../../shared/domain/commandKit'
-import { createDefectRecord } from '../maintenance/defectCommands'
-import { validateIncomplete } from './taskValidation'
+import { INCOMPLETE_REASON_LABEL } from '../../shared/domain/labels.ts'
+import type { HousekeepingTask, IncompleteReason, Snapshot } from '../../shared/domain/types.ts'
+import { fail, notAvailable, withAudit } from '../../shared/domain/commandKit.ts'
+import type { CommandContext, RuleResult } from '../../shared/domain/commandKit.ts'
+import { createDefectRecord } from '../maintenance/defectCommands.ts'
+import { validateIncomplete } from './taskValidation.ts'
 
 /**
  * Housekeeping task rules. A task is Pending, Completed or Couldn't Complete.
@@ -16,7 +16,8 @@ import { validateIncomplete } from './taskValidation'
  * There is no waiver: a mandatory task holds the room back until it is Completed.
  * Completed is final in this prototype (a failed inspection is how mistakes get caught).
  *
- * PROTOTYPE NOTE: the ServiceNow server must enforce the same rules on every request.
+ * These run on the ServiceNow server for every request (src/server/api/handlers.ts), and in
+ * the browser for the local preview.
  */
 
 function findTask(snapshot: Snapshot, ctx: CommandContext, taskId: string): HousekeepingTask | RuleResult {

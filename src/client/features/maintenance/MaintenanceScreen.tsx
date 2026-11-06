@@ -25,7 +25,7 @@ type ViewId = 'new' | 'open' | 'queue' | 'in_progress' | 'resolved'
 type PriorityFilter = 'all' | DefectPriority
 
 /** Defect ids look like D-305-1. Anything else in the address is ignored. */
-export function isValidDefectId(value: string | undefined): value is string {
+function isValidDefectId(value: string | undefined): value is string {
     return value !== undefined && /^D-\d{3,4}-\d{1,3}$/.test(value)
 }
 

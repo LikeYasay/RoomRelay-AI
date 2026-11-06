@@ -1,14 +1,14 @@
 # Backend handoff (Phase 4 and Phase 5)
 
-For whoever builds the ServiceNow backend. The frontend is finished as a prototype and talks to a single interface
-(`RoomRelayDataSource`: `getSnapshot` to read, `execute(command)` to change). Your job is to build the server side and
-replace the mock data source behind that interface.
+For whoever works on the ServiceNow backend. The frontend talks to a single interface (`RoomRelayDataSource`:
+`getSnapshot` to read, `execute(command)` to change), implemented by the RoomRelay REST API inside ServiceNow and by an
+in-memory demo in the local preview. Section 0 describes what is built; sections 1 to 10 are the design it follows.
 
 **Read this first, then [GLOSSARY.md](GLOSSARY.md), [ROLE_PERMISSION_MATRIX.md](ROLE_PERMISSION_MATRIX.md),
 [API_SECURITY_CHECKLIST.md](API_SECURITY_CHECKLIST.md) and [AI_DESIGN.md](AI_DESIGN.md).**
 
-> **Status (2026-11-06): a first working version of the backend is built** (section 0). It builds locally and its shared
-> rules pass the automated tests, but it has **not been installed in the PDI or tested there yet**. Sections 1 to 12 are the
+> **Status (2026-11-07): a first working version of the backend is built, installed in `dev472716` and verified there**
+> for every role and the full Room 102 scenario (`TEST_PLAN.md` section 4b, P11 to P21). Sections 1 to 12 are the
 > design it follows; where something differs from the design, section 0 says so. Where this document says "verify",
 > it could not be confirmed without the instance.
 
@@ -386,8 +386,8 @@ ServiceNow, and `ServerSessionProvider` gets the user from `GET /me`. The points
 
 3. **Session.** Done inside ServiceNow (`GET /me`). The demo sign-in, Prototype tools and the in-memory store are only used
    by the local preview. Before real use, remove the demo users and the Load demo data endpoint.
-4. **Scope filtering.** `features/rooms/scope.ts` and `features/maintenance/scope.ts` can stay as a convenience, but the
-   server must already have filtered the data.
+4. **Scope filtering.** Done on the server (`scopeSnapshotForRole`). The browser reuses `features/rooms/scope.ts` and
+   `features/maintenance/scope.ts` only to word the "Showing ..." notes and to narrow the Maintenance views.
 5. **Remove prototype labels** ("Live demo data", "Prototype" banners, "Simulation only" dialogs) only for flows that are
    really connected and tested. Leave them on anything still simulated.
 6. **Keep** the rule files listed in section 2 and the logic tests: they document the rules the server must match.
@@ -399,32 +399,33 @@ a credential, never in the browser; only authorized, minimized data is sent; the
 if anything fails, return the deterministic template briefing labeled as non-AI. The template logic to port is
 `src/client/features/handoff/briefing.ts`. It uses the Couldn't Complete **reason category** only, never the free-text note.
 
-## 11. Build order (steps 1 to 5 are built; none is verified in the PDI yet)
+## 11. Build order (steps 1 to 7 are done and verified in the PDI)
 
-1. Tables, roles, `staff_profile`, sample data matching the prototype's scenarios (see `src/client/mock/mockData.ts`).
-2. `ReadinessEvaluator` and the action Script Includes with the same tests as `tests/logic.test.cjs`.
-3. ACLs, then **test as non-admin users** for each role in the matrix.
-4. Business rules, `audit_entry` writes and the write endpoints with 403, 404, 409 and validation tests.
-5. `GET /me` and `GET /snapshot`; connect the frontend's data source (reads first).
-6. Commands one at a time, each followed by its tests from `TEST_PLAN.md` section 5.
-7. Install into the PDI, then run `DEPLOYMENT_GUIDE.md` checks and the security tests.
-8. AI integration last.
+1. Tables, roles, staff profiles and demo data matching the prototype's scenarios. **Done.**
+2. The rules, shared with the frontend and covered by `tests/logic.test.cjs`. **Done.**
+3. ACLs, tested as non-admin users for each role. **Done** (TEST_PLAN P15 to P22).
+4. Audit rows and the command endpoint with 400, 403, 404 and 409 answers. **Done** (P17, P19).
+5. `GET /me` and `GET /snapshot`, connected to the frontend. **Done** (P13).
+6. Every command, exercised by the Room 102 scenario. **Done** (P16).
+7. Installed into the PDI and checked with `DEPLOYMENT_GUIDE.md`. **Done** (P9 to P22).
+8. Remaining: the open items in section 12, the rest of `TEST_PLAN.md` section 5, then AI integration.
 
-## 12. Known unknowns (verify early)
+## 12. Known unknowns
 
-Resolved on 2026-11-06 (prototype installed in `dev472716`):
+Resolved:
 
-- **UI Page needs sign-in: verified.** A signed-out visit was redirected to ServiceNow's login. Still confirm it again after adding roles, and decide whether to restrict it to the four app roles.
-- **Hash routing works** inside the platform page (`#/dashboard` rendered; other routes reported working).
-- **The embedded font and inline styles render**; the team lead reported no problems. The Console output was not captured, so re-check for Content Security Policy messages.
+- **The UI Page needs a sign-in** (signed-out visits go to the ServiceNow login; P2, P10).
+- **Hash routing, the embedded font and the styles work** inside the platform page, with no Content Security Policy messages (P21).
+- **`window.g_ck` is a string** on the UI Page, so API calls can send `X-UserToken` (P8).
+- **Fluent API support on Brazil**: tables, roles, ACLs, cross-scope privileges, `Record` data (users, role assignments), the Scripted REST API and server modules all installed and work.
+- **Server modules built from `src/client/` load**, once every import between module files ends in `.ts`: ServiceNow finds a module by its exact path (P11).
+- **The REST API's role check applies** once the RoomRelay ACL is set on every route as well as on the API; otherwise each route keeps ServiceNow's default "Scripted REST External Default" ACL, which overrides the API-level one (P20, P22).
+- **Demo users and their roles install with the app**, and the cross-scope reads of `sys_user` and `sys_user_has_role` need no extra approval (P13).
+- **No second sign-in inside ServiceNow**: the app takes the signed-in user from `GET /me`; the demo sign-in page exists only in the local preview.
 
 Still open:
 
-- How `window.g_ck` behaves on this direct UI Page (run `typeof window.g_ck` in the Console; do not print the token).
-- Fluent API support for each metadata type on the Brazil release (tables, ACLs with scripts, business rules, scripted REST).
-- Exact logout path and how the signed-in user's roles are best read on the server.
-- How the prototype's own sign-in page should behave now that ServiceNow already signed the user in (it currently shows a second, demo sign-in).
-- The version installed in the PDI is the **earlier** frontend-only one. Install the backend version (without `--reinstall`) when the team lead approves, then follow `DEPLOYMENT_GUIDE.md`.
-- Whether the server modules built from `src/client/` load correctly at runtime (they build and their imports line up by path, but this has not run on the instance).
-- Whether installing `sys_user` and `sys_user_has_role` records with the app works on this PDI, and whether the cross-scope reads need approval.
-- Whether `/logout.do` is the right sign-out path.
+- Whether `/logout.do` is the right sign-out path (Sign out was not clicked during the PDI checks, to keep the admin session).
+- Concurrency: two requests in the same instant could both pass the state checks (no version check yet).
+- Rate limiting, needed before the AI briefing is connected.
+- Approving access requests and the Request an account page are still simulated.

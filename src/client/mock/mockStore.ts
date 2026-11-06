@@ -18,7 +18,7 @@ let state: Snapshot = buildMockSnapshot()
 let clockStartedAt = Date.now()
 
 /** Demo clock: starts at the dataset's fixed "now" and moves forward in real time. */
-export function mockNow(): string {
+function mockNow(): string {
     return new Date(MOCK_NOW_MS + (Date.now() - clockStartedAt)).toISOString()
 }
 

@@ -148,40 +148,6 @@ export function SelectInput({
     )
 }
 
-export function CheckboxInput({
-    id,
-    label,
-    hint,
-    checked,
-    onChange,
-}: {
-    id: string
-    label: string
-    hint?: string
-    checked: boolean
-    onChange: (v: boolean) => void
-}) {
-    return (
-        <div className="form-field form-field--check">
-            <input
-                id={id}
-                type="checkbox"
-                checked={checked}
-                aria-describedby={hint ? `${id}-hint` : undefined}
-                onChange={(e) => onChange(e.target.checked)}
-            />
-            <div>
-                <label htmlFor={id}>{label}</label>
-                {hint ? (
-                    <p id={`${id}-hint`} className="form-field__hint">
-                        {hint}
-                    </p>
-                ) : null}
-            </div>
-        </div>
-    )
-}
-
 /** Lists every error at the top of the form, each linking to its field. */
 export function ErrorSummary({ errors, fieldIds }: { errors: Record<string, string | undefined>; fieldIds: Record<string, string> }) {
     const entries = Object.entries(errors).filter((e): e is [string, string] => Boolean(e[1]))

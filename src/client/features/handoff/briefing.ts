@@ -1,7 +1,7 @@
-import type { RoomView, Shift } from '../../shared/domain/types'
-import { capitalizeFirst, plural } from '../../shared/lib/format'
-import { DEFECT_PRIORITY_META, DEFECT_STATUS_META, DEFECT_STATUS_ORDER, INCOMPLETE_REASON_LABEL, SHIFT_LABEL, SHIFT_ORDER } from '../../shared/domain/labels'
-import { isBlockingOpen } from '../maintenance/blockers'
+import type { RoomView, Shift } from '../../shared/domain/types.ts'
+import { capitalizeFirst, plural } from '../../shared/lib/format.ts'
+import { DEFECT_PRIORITY_META, DEFECT_STATUS_META, DEFECT_STATUS_ORDER, INCOMPLETE_REASON_LABEL, SHIFT_LABEL, SHIFT_ORDER } from '../../shared/domain/labels.ts'
+import { isBlockingOpen } from '../maintenance/blockers.ts'
 
 /**
  * SIMULATED shift briefing.

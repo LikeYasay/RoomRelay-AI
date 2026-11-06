@@ -2,8 +2,8 @@
 
 Who can see which page, which records, and which actions. This is the **design**. The prototype screens and its rule
 functions follow it (and automated tests check the menu, the permission table and every action rule), but the browser
-cannot enforce anything. **ServiceNow roles, ACLs and server-side validation must enforce every row** (see
-[BACKEND_HANDOFF.md](BACKEND_HANDOFF.md)). Terms are defined in [GLOSSARY.md](GLOSSARY.md).
+cannot enforce anything. **ServiceNow enforces every row**: the roles, ACLs and the same rule functions run on the
+server (see [BACKEND_HANDOFF.md](BACKEND_HANDOFF.md) section 0). Terms are defined in [GLOSSARY.md](GLOSSARY.md).
 
 A user should have exactly one of these four roles. Access is least privilege: anything not listed is denied.
 Guests and anonymous visitors have no access at all.
@@ -92,4 +92,4 @@ Full table in [BACKEND_HANDOFF.md](BACKEND_HANDOFF.md) section 5. Key points:
 | "Not yours" gives the same answer as "does not exist" | Passed (automated test, task and defect rules) |
 | A role's blocked page address shows "Access denied" | Passed (browser) |
 | A housekeeper opening another housekeeper's room gets "Room unavailable" | Passed in the prototype (browser) |
-| Server enforcement of the above | **Built, not tested in the PDI**: the REST API applies the same rule functions and sends each role only its own data |
+| Server enforcement of the above | **Passed in the PDI** (2026-11-07, TEST_PLAN P15 to P22): each role gets only its own data; wrong roles, other people's records, users without a role and direct table access are refused |

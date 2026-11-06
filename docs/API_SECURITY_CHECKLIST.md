@@ -5,11 +5,10 @@ Status words used:
 - **Verified**: built and tested in this project (how is stated).
 - **Implemented**: built, but not tested beyond a code read.
 - **Planned**: not built. Required before the application can be called secure.
-- **N/A now**: does not apply until the backend exists.
 
-> **The application is NOT verified end-to-end secure yet.** Server-side enforcement is built (section B) but has not
-> been tested in the PDI. Until the TEST_PLAN.md section 5 tests pass with non-admin users, do not claim it. The browser rules
-> are a convenience, not a defense. Do not claim security beyond what the Verified rows show.
+> **Server-side enforcement is built and verified in the PDI for the tested cases** (TEST_PLAN.md section 4b). It is not
+> a full security review: concurrency, rate limiting and the items still marked Planned are open. Do not claim more than
+> the Verified rows show. The browser checks are a convenience, not a defense.
 
 Loosely based on the OWASP Top 10 and OWASP API Security Top 10, kept practical for a capstone.
 
@@ -37,26 +36,26 @@ Loosely based on the OWASP Top 10 and OWASP API Security Top 10, kept practical 
 | A16 | CSRF token sent with API calls | **Planned** | Reuse the session token pattern (`X-UserToken` / `g_ck`) in the one place the data source calls the server. |
 | A17 | Content security policy compatible | **Partly verified** | In the PDI the page renders with the embedded font and styles and no problem was reported (2026-11-06). The Console output was not captured; re-check for Content Security Policy messages. |
 
-## B. Backend and API controls (built 2026-11-06, not yet tested in the PDI)
+## B. Backend and API controls (built 2026-11-06, tested in the PDI 2026-11-07)
 
 | # | Control | Status | Required behavior |
 |---|---|---|---|
-| B1 | Authentication on every endpoint | **Implemented** (UI Page **verified**) | The UI Page requires a ServiceNow sign-in (verified 2026-11-06). The REST API requires authentication (default) and one of the four roles (`rest_endpoint` ACL). Not yet run in the PDI. |
+| B1 | Authentication on every endpoint | **Verified** | The UI Page requires a ServiceNow sign-in (2026-11-06). The REST API requires one of the four roles through a `rest_endpoint` ACL set on every route; a user without a role gets 403 from ServiceNow before any code runs (2026-11-07, TEST_PLAN P22). |
 | B2 | Roles and role-based access | **Implemented** | Four app roles, no role inheritance (`src/fluent/auth/roles.now.ts`). Identity and role come from the session, never from the request. |
 | B3 | Table ACLs, deny by default | **Implemented** | Only the app admin can read the tables directly; nobody but the server code writes them (staff profiles: app admin). |
-| B4 | Object-level authorization (IDOR/BOLA) | **Implemented** | Rule functions check ownership and answer "not available" for both "not yours" and "does not exist" (tested); `scopeSnapshotForRole` sends only visible rooms (tested). |
+| B4 | Object-level authorization (IDOR/BOLA) | **Verified in the PDI** (P15, P17) | Rule functions check ownership and answer "not available" for both "not yours" and "does not exist" (tested); `scopeSnapshotForRole` sends only visible rooms (tested). |
 | B5 | Server-side readiness validation | **Implemented** | The server runs the same `readiness.ts` and rule files as the frontend (`applyCommand`); 29 automated tests cover them. |
 | B6 | Protected status transitions | **Implemented** | Status, inspection and priority change only through the command rules; readiness is derived, never written. |
-| B7 | Block direct Table API bypass | **Implemented** | `allowWebServiceAccess: false` on every table, and read-only ACLs. To verify: call `/api/now/table/x_2305075_roomrela_room` as a non-admin. |
+| B7 | Block direct Table API bypass | **Verified in the PDI** (P18) | `allowWebServiceAccess: false` on every table, and read-only ACLs. To verify: call `/api/now/table/x_2305075_roomrela_room` as a non-admin. |
 | B8 | Duplicate and concurrent request handling | **Partly implemented** | Every rule checks the current state (a second "complete" gets 409). No version check: two requests in the same instant could both pass. |
-| B9 | Input validation on every endpoint | **Implemented** | `parseCommand` rejects unknown types, unknown fields, wrong types and over-long values (tested); then the feature validation rules apply. |
+| B9 | Input validation on every endpoint | **Verified in the PDI** (P17) | `parseCommand` rejects unknown types, unknown fields, wrong types and over-long values (tested); then the feature validation rules apply. |
 | B10 | Injection prevention | **Implemented** | Queries use `GlideRecord.addQuery` and `get` with values, never encoded queries built from user input. |
 | B11 | Secure record access in scripts | **Implemented differently** | Plain `GlideRecord` behind closed tables; the handlers apply the role and ownership rules themselves (see `BACKEND_HANDOFF.md` section 0). |
 | B12 | Limited response data | **Implemented** | Snapshot scoped per role; the staff list has name, role and shift only (no email). Technicians still receive the tasks of their rooms. |
 | B13 | Safe errors | **Implemented** | One error envelope; rule messages only; unexpected errors are logged with `gs.error` and answered generically. |
 | B14 | Rate limiting | Planned | Needed for the AI briefing (cost) and any public request endpoint. |
 | B15 | CORS | **Implemented (default)** | No CORS rule is created, so the API is same-origin only. |
-| B16 | Audit trail | **Implemented** | `x_2305075_roomrela_audit` rows are written in the same request as each change, with the session user as actor; no role can write the table. |
+| B16 | Audit trail | **Verified in the PDI** (P19) | `x_2305075_roomrela_audit` rows are written in the same request as each change, with the session user as actor; no role can write the table. |
 | B17 | Secure logging | **Implemented** | Logs contain the error message only; no request bodies, tokens or prompts. |
 | B18 | Account requests | Planned | Still simulated; never create users or grant roles from a public form. |
 
@@ -84,8 +83,9 @@ Loosely based on the OWASP Top 10 and OWASP API Security Top 10, kept practical 
 
 ## E. Before you present or ship
 
-- [x] Confirm the UI Page requires sign-in (verified 2026-11-06: a signed-out visit was redirected to the ServiceNow login). Repeat after roles are added.
-- [ ] Run every test in `TEST_PLAN.md` section 5 with real non-admin users.
-- [ ] Confirm no demo accounts or "Prototype tools" remain in the production build, or that they are behind a switch.
+- [x] Confirm the UI Page requires sign-in (2026-11-06, and again after the backend install on 2026-11-07).
+- [x] Test each role as a non-admin user in the PDI (Impersonate User; TEST_PLAN P15 to P22).
+- [ ] Run the rest of `TEST_PLAN.md` section 5 (rows marked Not run).
+- [ ] Before any real use: remove the demo users (`src/fluent/auth/demo-users.now.ts`) and the Load demo data endpoint, and keep Prototype tools out of the production build.
 - [ ] Search the repo again for secrets and tokens before each push.
 - [ ] Take screenshots only after removing anything sensitive.

@@ -1,12 +1,11 @@
-import type { Role, RoomView, Snapshot, Staff } from '../../shared/domain/types'
-import { buildRoomViews } from './roomViews'
+import type { Role, RoomView, Snapshot, Staff } from '../../shared/domain/types.ts'
+import { buildRoomViews } from './roomViews.ts'
 
 /**
  * Narrows the rooms a role sees (least privilege, demo version).
  *
- * PROTOTYPE NOTE: in the real application the server must only RETURN records the
- * user may see (ACLs / GlideRecordSecure). Filtering in the browser is cosmetic and
- * must never be relied on, because a client can always call the API directly.
+ * The server already sends only what the role may see (scopeSnapshotForRole below); the
+ * browser applies the same rule again only to word the "Showing ..." note.
  */
 export function scopeViewsForRole(views: RoomView[], role: Role, user: Staff): { views: RoomView[]; note: string } {
     switch (role) {

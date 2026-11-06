@@ -2,9 +2,7 @@
  * Shared building blocks for form validation. Each feature keeps its own form rules
  * (for example features/maintenance/defectValidation.ts) and uses these helpers.
  *
- * PROTOTYPE NOTE: this improves usability and rejects obviously bad input early.
- * It is NOT a security boundary. Anyone can bypass the browser, so the server
- * must repeat every one of these checks (and more) before saving anything.
+ * These helpers run in the browser (to show errors early) and on the server (where they decide).
  */
 
 // Control characters other than tab and line breaks (never legitimate in these fields).

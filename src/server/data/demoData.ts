@@ -1,9 +1,9 @@
 import { GlideRecord } from '@servicenow/glide'
-import { buildMockSnapshot, MOCK_NOW_MS } from '../../client/mock/mockData'
-import { TABLES } from '../shared/tables'
-import { toGlide } from '../shared/time'
-import { insertAudit } from './repository'
-import type { RecordIds } from './repository'
+import { buildMockSnapshot, MOCK_NOW_MS } from '../../client/mock/mockData.ts'
+import { TABLES } from '../shared/tables.ts'
+import { toGlide } from '../shared/time.ts'
+import { insertAudit } from './repository.ts'
+import type { RecordIds } from './repository.ts'
 
 /**
  * DEMO ONLY: replaces all RoomRelay rooms, tasks, defects and audit entries with the same

@@ -1,11 +1,11 @@
-import type { Role, Shift } from '../../shared/domain/types'
-import { checkText } from '../../shared/lib/validation'
-import type { FieldErrors, ValidationResult } from '../../shared/lib/validation'
+import type { Role, Shift } from '../../shared/domain/types.ts'
+import { checkText } from '../../shared/lib/validation.ts'
+import type { FieldErrors, ValidationResult } from '../../shared/lib/validation.ts'
 
 /**
  * Account-request form rules.
  *
- * PROTOTYPE NOTE: usability only. The server must repeat every check before saving.
+ * The server applies the same checks (through the command rules) before saving anything.
  */
 
 export const ACCOUNT_LIMITS = {

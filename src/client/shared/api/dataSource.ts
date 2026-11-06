@@ -1,12 +1,12 @@
-import type { Snapshot } from '../domain/types'
-import type { Command, CommandOutcome } from './commands'
+import type { Snapshot } from '../domain/types.ts'
+import type { Command, CommandOutcome } from './commands.ts'
 
 /**
  * Data access boundary for the whole UI.
  *
- * Components never call fetch() directly. They depend on this interface, so in
- * Phase 4 a ServiceNow-backed implementation (authenticated REST calls with the
- * session token, server-side ACLs) can replace the mock without touching the UI.
+ * Components never call fetch() directly. They depend on this interface, which has two
+ * implementations: serviceNowDataSource.ts (the RoomRelay REST API) and the in-memory demo
+ * (mock/mockDataSource.ts) for the local preview. app/App.tsx picks one.
  */
 
 export type ApiErrorKind = 'unauthenticated' | 'expired' | 'forbidden' | 'not_found' | 'server' | 'network'

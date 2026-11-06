@@ -1,4 +1,4 @@
-import type { RoomView } from '../../shared/domain/types'
+import type { RoomView } from '../../shared/domain/types.ts'
 
 export type CleaningState = 'not_started' | 'in_progress' | 'complete'
 

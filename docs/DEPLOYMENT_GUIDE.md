@@ -2,7 +2,9 @@
 
 **Status (2026-11-06):** an earlier, frontend-only version was installed once into `dev472716` and rendered correctly
 (`TEST_PLAN.md` section 4b). **The current version, with the ServiceNow backend, has been built locally but not
-installed or tested in the PDI yet.**
+tested in the PDI yet.** It was **installed on 2026-11-06** (SDK exit code 0, "Installation completed", rollback link printed);
+the first call failed (server module paths, fixed and reinstalled), and after the fix the checks in sections 3 to 5 passed
+on 2026-11-07 (`TEST_PLAN.md` section 4b, P11 to P22, including a REST API ACL fix).
 
 **Installing writes to the PDI.** The team lead decides when. Do not use a different instance, and never add `--reinstall`.
 
@@ -43,6 +45,8 @@ npm run test:logic
 ```
 
 All three should finish without errors (build: "Build completed successfully"; tests: "pass 29, fail 0").
+Run the build from the project folder: if a terminal is sitting inside `dist/`, the build cannot replace that folder
+and fails with "EBUSY". **Only install after a successful build**; an install of a half-built package is rejected.
 
 Check which instance the SDK will use. This only lists saved logins and does not show passwords:
 
@@ -112,6 +116,8 @@ Then run the backend and security tests in `TEST_PLAN.md` section 5 and record t
 | Install error about the application or scope | Stop. Do not create a new application. Share the error text with the team lead. |
 | "No access to RoomRelay" for admin | Check the admin user has the `admin` role, or give it `x_2305075_roomrela.app_admin` |
 | "Something went wrong" on every page | System Logs > All, filter on "RoomRelay API error"; the message says what failed |
+| A REST call answers 500 "No module with path ..." | An import between server-module files is missing its `.ts` extension (see `ARCHITECTURE.md`); add it, rebuild and reinstall |
+| Users without a RoomRelay role get past the API | Check every route in `src/fluent/api/roomrelay-api.now.ts` has `enforceAcl: [apiAccess]` |
 | Load demo data says the demo users are missing | Check `x_2305075_roomrela_staff.list` has 9 rows with demo keys h1 to a1 |
 | Requests fail with 401 | `typeof window.g_ck` is not `"string"`: the page did not get a session token; record this in `BACKEND_HANDOFF.md` section 12 |
 | Blank page | F12, Console tab for red errors; Network tab for a failed request to `.../uxasset/externals/x_2305075_roomrela/main.jsdbx` |

@@ -1,12 +1,12 @@
-import type { Role, RoomView, Staff } from '../../shared/domain/types'
-import { plural } from '../../shared/lib/format'
+import type { Role, RoomView, Staff } from '../../shared/domain/types.ts'
+import { plural } from '../../shared/lib/format.ts'
 
 /**
  * Which readiness actions to PRESENT for a role and room, and why an action is unavailable.
  * The same checks are used by the command rules in roomCommands.ts, so the button and the rule
  * can never disagree. Unavailable actions are shown disabled WITH the reason, never as working buttons.
  *
- * PROTOTYPE NOTE: the server must re-check role, room ownership and every readiness rule.
+ * The server runs the same checks (through roomCommands.ts) before any change is saved.
  */
 
 export type RoomActionId = 'submit_inspection' | 'pass_inspection' | 'fail_inspection'

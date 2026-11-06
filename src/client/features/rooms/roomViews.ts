@@ -1,6 +1,6 @@
-import { TASK_PRIORITY_ORDER } from '../../shared/domain/labels'
-import type { HousekeepingTask, RoomStatus, RoomView, Snapshot, TaskPriority } from '../../shared/domain/types'
-import { evaluateReadiness } from './readiness'
+import { TASK_PRIORITY_ORDER } from '../../shared/domain/labels.ts'
+import type { HousekeepingTask, RoomStatus, RoomView, Snapshot, TaskPriority } from '../../shared/domain/types.ts'
+import { evaluateReadiness } from './readiness.ts'
 
 /**
  * Room priority = the highest priority among the room's open (not Completed) tasks.
