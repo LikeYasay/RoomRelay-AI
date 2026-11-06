@@ -1,0 +1,7 @@
+{
+    "scope": "x_2305075_roomrela",
+    "scopeId": "fc40740f1b9c13108029e3fb234bcb64",
+    "name": "RoomRelay AI",
+    "tsconfigPath": "./src/server/tsconfig.json",
+    "packageSourceCodeOnInstance": true
+}

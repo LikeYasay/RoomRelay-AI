@@ -1,0 +1,31 @@
+
+# System files
+.DS_Store
+
+# ServiceNow SDK generated files
+.now/
+dist/
+target/
+
+# Dependencies
+node_modules/
+
+# Build and test cache
+*.tsbuildinfo
+.jest_cache
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Local logs
+*.log
+npm-debug.log*
+
+# Local editor overrides
+.vscode/settings.local.json
