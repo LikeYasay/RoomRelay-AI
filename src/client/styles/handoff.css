@@ -1,0 +1,61 @@
+.handoff-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px 20px;
+}
+
+.handoff-controls__demo {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--muted);
+    margin-left: auto;
+}
+
+.copy-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.copy-row__failed {
+    color: var(--danger-fg);
+    font-weight: 600;
+}
+
+.briefing {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.briefing__badges {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.briefing__section h3 {
+    font-size: 15px;
+    margin-bottom: 6px;
+}
+
+.briefing__list,
+.briefing__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.briefing__list li {
+    overflow-wrap: anywhere;
+}
+
+.briefing__actions {
+    list-style: decimal;
+    padding-left: 22px;
+}

@@ -1,0 +1,45 @@
+:root {
+    /* Brand */
+    --navy-950: #081629;
+    --navy-900: #0b1f3a;
+    --navy-800: #12294a;
+    --navy-700: #1c3a63;
+    --teal-600: #0b7f74;
+    --teal-700: #096a61;
+    --teal-100: #d5f1ee;
+
+    /* Neutrals */
+    --bg: #f3f5f8;
+    --surface: #ffffff;
+    --border: #e1e6ee;
+    --text: #1b2635;
+    --muted: #556275;
+
+    /* Status tones: foreground on soft background, all at least 4.5:1 contrast */
+    --success-fg: #116632;
+    --success-bg: #dcf5e4;
+    --success-solid: #1e9b4f;
+    --warning-fg: #8a4a05;
+    --warning-bg: #fdf0cf;
+    --warning-solid: #e0950f;
+    --danger-fg: #a21c1c;
+    --danger-bg: #fde4e4;
+    --danger-solid: #d93a3a;
+    --info-fg: #1a4fb8;
+    --info-bg: #e0ebff;
+    --info-solid: #3b72e0;
+    --review-fg: #5b2ab8;
+    --review-bg: #ece6fd;
+    --review-solid: #7c4fdc;
+    --neutral-fg: #3d4a5c;
+    --neutral-bg: #e9edf3;
+    --neutral-solid: #8895a8;
+
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 1px 2px rgba(11, 31, 58, 0.06), 0 4px 14px rgba(11, 31, 58, 0.06);
+    --focus: 0 0 0 3px rgba(11, 127, 116, 0.45);
+    --sidebar-width: 256px;
+
+    --font: 'Inter', 'Segoe UI', system-ui, -apple-system, Roboto, 'Helvetica Neue', Arial, sans-serif;
+}

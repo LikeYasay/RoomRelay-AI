@@ -1,0 +1,143 @@
+.card__head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.card__head > h2 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.form-field > label {
+    font-weight: 600;
+    color: var(--navy-900);
+}
+
+.form-field__required {
+    font-weight: 400;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.form-field__hint {
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.form-field input[type='text'],
+.form-field textarea,
+.form-field select {
+    width: 100%;
+    padding: 9px 11px;
+    border: 1px solid #94a0b2;
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    font: inherit;
+}
+
+.form-field textarea {
+    resize: vertical;
+}
+
+.form-field--error input,
+.form-field--error textarea,
+.form-field--error select {
+    border-color: var(--danger-solid);
+    border-width: 2px;
+}
+
+.form-field__error {
+    color: var(--danger-fg);
+    font-size: 13.5px;
+    font-weight: 600;
+}
+
+.form-field__count {
+    font-size: 12px;
+    color: var(--muted);
+    text-align: right;
+}
+
+.form-field--check {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.form-field--check input {
+    margin-top: 4px;
+    width: 18px;
+    height: 18px;
+}
+
+.error-summary {
+    border: 1px solid #f6baba;
+    background: var(--danger-bg);
+    color: var(--danger-fg);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+}
+
+.error-summary ul {
+    margin: 6px 0 0 18px;
+    list-style: disc;
+}
+
+.linklike {
+    background: none;
+    border: 0;
+    padding: 0;
+    color: var(--danger-fg);
+    text-decoration: underline;
+    cursor: pointer;
+    text-align: left;
+}
+
+.review-list {
+    margin-top: 12px;
+}
+
+.preserve-lines {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.review-note {
+    margin-top: 10px;
+    padding: 10px 12px;
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+}
+
+.badge-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.table__notes {
+    min-width: 160px;
+    overflow-wrap: anywhere;
+}
+
+.dialog {
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+}
