@@ -1,14 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { DataGate } from '../../app/data'
-import type { ReadyData } from '../../app/data'
-import { briefingToText, buildSimulatedBriefing, nextShift } from '../../domain/handoff'
-import type { Briefing } from '../../domain/handoff'
-import { SHIFT_LABEL } from '../../domain/labels'
-import { SHIFT_ORDER } from '../../domain/selectors'
-import type { Shift } from '../../types/domain'
-import { Banner } from '../../components/ui/Banner'
-import { Icon } from '../../components/ui/Icon'
-import { LoadingState, StateScreen } from '../../components/ui/StateScreen'
+import { DataGate, useCommands } from '../../shared/api/DataContext'
+import type { ReadyData } from '../../shared/api/DataContext'
+import { briefingToText, buildSimulatedBriefing, nextShift } from './briefing'
+import type { Briefing } from './briefing'
+import { SHIFT_LABEL, SHIFT_ORDER } from '../../shared/domain/labels'
+import type { Shift } from '../../shared/domain/types'
+import { Banner } from '../../shared/ui/Banner'
+import { Icon } from '../../shared/ui/Icon'
+import { LoadingState, StateScreen } from '../../shared/ui/StateScreen'
 import { BriefingView } from './BriefingView'
 
 const SIMULATED_DELAY_MS = 1200
@@ -28,6 +27,7 @@ export function HandoffScreen() {
 }
 
 function Handoff({ data }: { data: ReadyData }) {
+    const { run } = useCommands()
     const [shift, setShift] = useState<Shift>('morning')
     const [simulateFailure, setSimulateFailure] = useState(false)
     const [generation, setGeneration] = useState<Generation>({ status: 'idle' })
@@ -61,8 +61,10 @@ function Handoff({ data }: { data: ReadyData }) {
             }
             setGeneration({
                 status: 'ready',
-                briefing: buildSimulatedBriefing(data.scoped.views, shift, new Date().toISOString()),
+                briefing: buildSimulatedBriefing(data.scoped.views, shift, data.snapshot.generatedAt),
             })
+            // Recorded in the audit log (who generated which briefing, when). The text itself is not stored.
+            void run({ type: 'handoff.briefingGenerated', shift })
         }, SIMULATED_DELAY_MS)
     }
 

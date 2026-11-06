@@ -1,16 +1,12 @@
 import React, { useMemo, useState } from 'react'
-import { DataGate } from '../../app/data'
-import type { ReadyData } from '../../app/data'
-import {
-    computeKpis,
-    floorBreakdown,
-    highPriorityBlockers,
-    recentActivity,
-    shiftOverview,
-} from '../../domain/selectors'
-import { KpiCard } from '../../components/ui/KpiCard'
-import { EmptyState } from '../../components/ui/StateScreen'
-import { ActivityFeed } from './ActivityFeed'
+import { DataGate } from '../../shared/api/DataContext'
+import type { ReadyData } from '../../shared/api/DataContext'
+import { recentActivity } from '../activity/recentActivity'
+import { blockingDefects } from '../maintenance/blockers'
+import { computeKpis, floorBreakdown, shiftOverview } from './dashboardStats'
+import { KpiCard } from '../../shared/ui/KpiCard'
+import { EmptyState } from '../../shared/ui/StateScreen'
+import { ActivityFeed } from '../activity/ActivityFeed'
 import { AttentionTable } from './AttentionTable'
 import { BlockersPanel } from './BlockersPanel'
 import { FloorBars } from './FloorBars'
@@ -39,8 +35,8 @@ function DashboardPage({ data }: { data: ReadyData }) {
     const kpis = useMemo(() => computeKpis(views), [views])
     const floorData = useMemo(() => floorBreakdown(views), [views])
     const shifts = useMemo(() => shiftOverview(views, snapshot.staff), [views, snapshot.staff])
-    const blockers = useMemo(() => highPriorityBlockers(views, snapshot.staff), [views, snapshot.staff])
-    const activity = useMemo(() => recentActivity(views, snapshot.staff), [views, snapshot.staff])
+    const blockers = useMemo(() => blockingDefects(views, snapshot.staff), [views, snapshot.staff])
+    const activity = useMemo(() => recentActivity(views, snapshot.audit), [views, snapshot.audit])
 
     if (scoped.views.length === 0) {
         return <EmptyState title="No rooms to show" message="No rooms are currently assigned to you." />
@@ -50,7 +46,7 @@ function DashboardPage({ data }: { data: ReadyData }) {
         <div className="dashboard">
             <div className="dashboard__filters">
                 <p className="muted">
-                    {scoped.note} Every number is calculated from one synthetic dataset; no ServiceNow records are read or changed.
+                    {scoped.note} Every number is calculated from one synthetic dataset kept in this browser tab; no ServiceNow records are read or changed.
                 </p>
                 <label className="field">
                     <span>Floor</span>
@@ -75,14 +71,19 @@ function DashboardPage({ data }: { data: ReadyData }) {
                 <KpiCard label="In progress" value={kpis.byStatus.in_progress} tone="info" />
                 <KpiCard label="Pending inspection" value={kpis.byStatus.pending_inspection} tone="review" />
                 <KpiCard label="Blocked" value={kpis.byStatus.blocked} tone="danger" />
-                <KpiCard label="Outstanding tasks" value={kpis.openTasks} hint={`${kpis.openMandatoryTasks} mandatory`} tone="warning" />
+                <KpiCard
+                    label="Outstanding tasks"
+                    value={kpis.openTasks}
+                    hint={`${kpis.openMandatoryTasks} mandatory · ${kpis.couldntComplete} couldn't complete`}
+                    tone="warning"
+                />
                 <KpiCard
                     label="Unresolved defects"
                     value={kpis.unresolvedDefects}
-                    hint={`${kpis.unresolvedBlockingDefects} blocking readiness`}
+                    hint={`${kpis.awaitingTriage} awaiting triage`}
                     tone="warning"
                 />
-                <KpiCard label="High-priority blockers" value={kpis.highPriorityBlockers} hint="High or critical severity" tone="danger" />
+                <KpiCard label="Blocking defects" value={kpis.blockingDefects} hint="Rooms cannot be Ready" tone="danger" />
             </section>
 
             <div className="dashboard__layout">
@@ -107,7 +108,7 @@ function DashboardPage({ data }: { data: ReadyData }) {
 
                 <div className="dashboard__rail">
                     <section className="card" aria-labelledby="h-blockers">
-                        <h2 id="h-blockers">High-priority blockers</h2>
+                        <h2 id="h-blockers">Blocking defects</h2>
                         <BlockersPanel blockers={blockers} nowIso={snapshot.generatedAt} />
                     </section>
                     <section className="card" aria-labelledby="h-shifts">

@@ -1,9 +1,9 @@
 import React from 'react'
-import { cleaningProgress, CLEANING_LABEL } from '../../domain/progress'
-import { INSPECTION_LABEL } from '../../domain/labels'
-import { percent, plural } from '../../domain/format'
-import type { RoomView } from '../../types/domain'
-import { RoomStatusBadge } from '../../components/ui/Badge'
+import { cleaningProgress, CLEANING_LABEL } from './progress'
+import { INSPECTION_LABEL } from '../../shared/domain/labels'
+import { percent, plural } from '../../shared/lib/format'
+import type { RoomView } from '../../shared/domain/types'
+import { RoomStatusBadge, TaskPriorityBadge, TaskStatusBadge } from '../../shared/domain/StatusBadges'
 
 /** Card view of one room. Cleaning progress and final readiness are shown separately on purpose. */
 export function RoomCard({ view }: { view: RoomView }) {
@@ -52,6 +52,12 @@ export function RoomCard({ view }: { view: RoomView }) {
             <p className="room-card__counts">
                 {plural(readiness.openTasks, 'open task')} · {plural(readiness.openBlockingDefects, 'blocking defect')}
             </p>
+            {view.priority === 'high' || readiness.mandatoryCouldntComplete > 0 ? (
+                <p className="badge-row">
+                    {view.priority === 'high' ? <TaskPriorityBadge priority="high" /> : null}
+                    {readiness.mandatoryCouldntComplete > 0 ? <TaskStatusBadge status="couldnt_complete" /> : null}
+                </p>
+            ) : null}
             <p className="muted room-card__assignee">{assignee?.name ?? 'Unassigned'}</p>
         </li>
     )

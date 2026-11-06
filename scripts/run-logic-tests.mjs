@@ -22,17 +22,29 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const outDir = mkdtempSync(path.join(os.tmpdir(), 'roomrelay-logic-'))
 const tsc = path.join(root, 'node_modules', 'typescript', 'bin', 'tsc')
 
+// The pure logic files of each feature (vertical slice). No screens.
 const sources = [
-    'domain/readiness.ts',
-    'domain/selectors.ts',
-    'domain/validation.ts',
-    'domain/handoff.ts',
-    'domain/actions.ts',
-    'domain/progress.ts',
-    'domain/scope.ts',
-    'domain/permissions.ts',
+    'features/rooms/readiness.ts',
+    'features/rooms/roomViews.ts',
+    'features/rooms/roomActions.ts',
+    'features/rooms/progress.ts',
+    'features/rooms/scope.ts',
+    'features/rooms/roomCommands.ts',
+    'features/housekeeping/taskCommands.ts',
+    'features/housekeeping/taskValidation.ts',
+    'features/dashboard/dashboardStats.ts',
+    'features/maintenance/blockers.ts',
+    'features/maintenance/defectValidation.ts',
+    'features/maintenance/defectCommands.ts',
+    'features/maintenance/scope.ts',
+    'features/auth/accountRequestValidation.ts',
+    'features/handoff/briefing.ts',
+    'features/handoff/handoffCommands.ts',
+    'features/access/permissions.ts',
+    'features/activity/recentActivity.ts',
     'app/routes.ts',
-    'data/mockData.ts',
+    'app/parseHash.ts',
+    'mock/mockData.ts',
 ].map((f) => path.join(root, 'src', 'client', f))
 
 function finish(code) {

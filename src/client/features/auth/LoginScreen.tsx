@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
-import { useAuth } from '../../app/session'
-import { STAFF } from '../../data/mockData'
-import { ROLE_LABEL } from '../../domain/labels'
-import type { Role } from '../../types/domain'
-import { Banner } from '../../components/ui/Banner'
-import { ErrorSummary, SelectInput } from '../../components/ui/FormFields'
+import { useAuth } from './session'
+import { STAFF } from '../../mock/mockData'
+import { ROLE_LABEL } from '../../shared/domain/labels'
+import type { Role } from '../../shared/domain/types'
+import { Banner } from '../../shared/ui/Banner'
+import { ErrorSummary, SelectInput } from '../../shared/ui/FormFields'
 import { AuthLayout } from './AuthLayout'
 
 const ROLE_ORDER: Role[] = ['supervisor', 'housekeeping', 'maintenance', 'admin']

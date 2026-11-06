@@ -1,9 +1,9 @@
 import React from 'react'
-import { formatDateTime } from '../../domain/format'
-import { SHIFT_LABEL } from '../../domain/labels'
-import type { Briefing, BriefingItem } from '../../domain/handoff'
-import { Badge } from '../../components/ui/Badge'
-import { Banner } from '../../components/ui/Banner'
+import { formatDateTime } from '../../shared/lib/format'
+import { SHIFT_LABEL } from '../../shared/domain/labels'
+import type { Briefing, BriefingItem } from './briefing'
+import { Badge } from '../../shared/ui/Badge'
+import { Banner } from '../../shared/ui/Banner'
 
 function Section({ id, title, items, empty }: { id: string; title: string; items: BriefingItem[]; empty: string }) {
     return (
@@ -47,10 +47,12 @@ export function BriefingView({ briefing }: { briefing: Briefing }) {
                 <p>{briefing.summary}</p>
             </section>
 
-            <Section id="b-priorities" title="Critical shift priorities" items={briefing.priorities} empty="No critical priorities for this shift." />
+            <Section id="b-priorities" title="Top priorities" items={briefing.priorities} empty="No urgent priorities for this shift." />
             <Section id="b-blocked" title="Blocked rooms" items={briefing.blockedRooms} empty="No blocked rooms." />
             <Section id="b-inspect" title="Pending inspections" items={briefing.pendingInspections} empty="No inspections are waiting." />
             <Section id="b-tasks" title="Outstanding tasks" items={briefing.outstandingTasks} empty="No outstanding mandatory tasks." />
+            <Section id="b-incomplete" title="Tasks that couldn't be completed" items={briefing.couldntComplete} empty="Every task could be completed." />
+            <Section id="b-triage" title="Reports awaiting triage" items={briefing.awaitingTriage} empty="No reports are waiting for a supervisor." />
             <Section id="b-defects" title="Unresolved defects" items={briefing.unresolvedDefects} empty="No unresolved defects." />
 
             <section aria-labelledby="b-actions" className="briefing__section">

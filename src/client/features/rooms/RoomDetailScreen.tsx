@@ -1,14 +1,14 @@
 import React, { useMemo } from 'react'
-import { DataGate } from '../../app/data'
-import type { ReadyData } from '../../app/data'
-import { useSession } from '../../app/session'
-import { formatDateTime } from '../../domain/format'
-import { INSPECTION_LABEL, SHIFT_LABEL } from '../../domain/labels'
-import { recentActivity } from '../../domain/selectors'
-import { Icon } from '../../components/ui/Icon'
-import { StateScreen } from '../../components/ui/StateScreen'
-import { ActivityFeed } from '../dashboard/ActivityFeed'
-import { ChecklistPanel } from './ChecklistPanel'
+import { DataGate } from '../../shared/api/DataContext'
+import type { ReadyData } from '../../shared/api/DataContext'
+import { useSession } from '../auth/session'
+import { formatDateTime } from '../../shared/lib/format'
+import { INSPECTION_LABEL, SHIFT_LABEL } from '../../shared/domain/labels'
+import { recentActivity } from '../activity/recentActivity'
+import { Icon } from '../../shared/ui/Icon'
+import { StateScreen } from '../../shared/ui/StateScreen'
+import { ActivityFeed } from '../activity/ActivityFeed'
+import { ChecklistPanel } from '../housekeeping/ChecklistPanel'
 import { DefectsPanel } from './DefectsPanel'
 import { ReadinessPanel } from './ReadinessPanel'
 
@@ -24,7 +24,7 @@ export function RoomDetailScreen({ roomId }: { roomId: string | undefined }) {
 function BackLink() {
     return (
         <a className="back-link" href="#/rooms">
-            <Icon name="arrow-left" size={16} /> Back to room board
+            <Icon name="arrow-left" size={16} /> Back to rooms
         </a>
     )
 }
@@ -35,13 +35,13 @@ function RoomDetail({ data, roomId }: { data: ReadyData; roomId: string | undefi
 
     const staffNames = useMemo(() => new Map(snapshot.staff.map((s) => [s.id, s.name])), [snapshot.staff])
     const view = isValidRoomId(roomId) ? scoped.views.find((v) => v.room.id === roomId) : undefined
-    const timeline = useMemo(() => (view ? recentActivity([view], snapshot.staff, 30) : []), [view, snapshot.staff])
+    const timeline = useMemo(() => (view ? recentActivity([view], snapshot.audit, 30) : []), [view, snapshot.audit])
 
     if (!isValidRoomId(roomId)) {
         return (
             <StateScreen icon="search" tone="warning" title="Room not found" message="That is not a valid room number.">
                 <a className="btn btn--primary" href="#/rooms">
-                    Back to room board
+                    Back to rooms
                 </a>
             </StateScreen>
         )
@@ -59,7 +59,7 @@ function RoomDetail({ data, roomId }: { data: ReadyData; roomId: string | undefi
                 message="This room does not exist or you do not have permission to view it."
             >
                 <a className="btn btn--primary" href="#/rooms">
-                    Back to room board
+                    Back to rooms
                 </a>
             </StateScreen>
         )
@@ -74,8 +74,8 @@ function RoomDetail({ data, roomId }: { data: ReadyData; roomId: string | undefi
             <div className="detail-grid">
                 <div className="stack">
                     <ReadinessPanel view={view} role={role} user={user} />
-                    <ChecklistPanel tasks={tasks} assignees={staffNames} />
-                    <DefectsPanel defects={defects} technicians={staffNames} nowIso={snapshot.generatedAt} />
+                    <ChecklistPanel room={room} tasks={tasks} defects={defects} assignees={staffNames} />
+                    <DefectsPanel view={view} data={data} />
                 </div>
 
                 <div className="stack">

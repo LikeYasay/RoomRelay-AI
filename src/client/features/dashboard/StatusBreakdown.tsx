@@ -1,9 +1,9 @@
 import React from 'react'
-import { ROOM_STATUS_META } from '../../domain/labels'
-import { percent } from '../../domain/format'
-import { STATUS_ORDER } from '../../domain/selectors'
-import type { Kpis } from '../../domain/selectors'
-import { RoomStatusBadge } from '../../components/ui/Badge'
+import { ROOM_STATUS_META } from '../../shared/domain/labels'
+import { percent } from '../../shared/lib/format'
+import { STATUS_ORDER } from '../rooms/roomViews'
+import type { Kpis } from './dashboardStats'
+import { RoomStatusBadge } from '../../shared/domain/StatusBadges'
 
 /** One proportional bar plus a plain table. Counts are always shown as numbers, never only as color. */
 export function StatusBreakdown({ kpis }: { kpis: Kpis }) {

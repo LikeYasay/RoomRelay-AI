@@ -1,13 +1,15 @@
 import React, { useState } from 'react'
-import { availableActions } from '../../domain/actions'
-import type { RoomAction } from '../../domain/actions'
-import { capitalizeFirst } from '../../domain/format'
-import { CLEANING_LABEL, cleaningProgress } from '../../domain/progress'
-import type { Role, RoomView, Staff } from '../../types/domain'
-import { RoomStatusBadge } from '../../components/ui/Badge'
-import { Banner } from '../../components/ui/Banner'
-import { SimulationDialog } from '../../components/ui/SimulationDialog'
-import { Icon } from '../../components/ui/Icon'
+import { useCommands } from '../../shared/api/DataContext'
+import type { Command } from '../../shared/api/commands'
+import { RoomStatusBadge } from '../../shared/domain/StatusBadges'
+import type { Role, RoomView, Staff } from '../../shared/domain/types'
+import { capitalizeFirst } from '../../shared/lib/format'
+import { Banner } from '../../shared/ui/Banner'
+import { ConfirmDialog } from '../../shared/ui/ConfirmDialog'
+import { Icon } from '../../shared/ui/Icon'
+import { CLEANING_LABEL, cleaningProgress } from './progress'
+import { availableActions } from './roomActions'
+import type { RoomAction } from './roomActions'
 
 interface Props {
     view: RoomView
@@ -15,16 +17,23 @@ interface Props {
     user: Staff
 }
 
+function commandFor(action: RoomAction, roomId: string): Command {
+    if (action.id === 'submit_inspection') return { type: 'room.submitInspection', roomId }
+    return { type: 'room.recordInspection', roomId, result: action.id === 'pass_inspection' ? 'passed' : 'failed' }
+}
+
 /**
- * Shows why a room is or is not Ready and which actions the role may attempt.
- * Actions here are SIMULATIONS: they never change a ServiceNow record. Incomplete
- * actions are shown disabled with the reason, not as working buttons.
+ * Shows why a room is or is not Ready and which actions the role may take. Unavailable actions
+ * are shown disabled with the reason, not as working buttons. The rule behind each button is
+ * checked again when the action runs (and must be checked again by the server).
  */
 export function ReadinessPanel({ view, role, user }: Props) {
     const { readiness, room } = view
+    const { run } = useCommands()
     const cleaning = cleaningProgress(view)
     const actions = availableActions(view, role, user)
     const [active, setActive] = useState<RoomAction | null>(null)
+    const [done, setDone] = useState<string | null>(null)
 
     return (
         <section className="card" aria-labelledby="h-readiness">
@@ -44,6 +53,12 @@ export function ReadinessPanel({ view, role, user }: Props) {
                     </dd>
                 </div>
             </dl>
+
+            {done ? (
+                <div role="status">
+                    <Banner tone="info">{done}</Banner>
+                </div>
+            ) : null}
 
             {readiness.isReady ? (
                 <Banner tone="info">{readiness.summary}</Banner>
@@ -68,15 +83,19 @@ export function ReadinessPanel({ view, role, user }: Props) {
                             <div key={a.id} className="actions__item">
                                 <button
                                     type="button"
-                                    className={`btn btn--primary${a.enabled ? '' : ' btn--disabled'}`}
+                                    className={`btn ${a.secondary ? 'btn--ghost btn--flat' : 'btn--primary'}${a.enabled ? '' : ' btn--disabled'}`}
                                     aria-disabled={!a.enabled}
                                     aria-describedby={a.enabled ? undefined : reasonId}
-                                    onClick={() => a.enabled && setActive(a)}
+                                    onClick={() => {
+                                        if (!a.enabled) return
+                                        setDone(null)
+                                        setActive(a)
+                                    }}
                                 >
                                     {a.label}
                                 </button>
                                 {a.enabled ? (
-                                    <p className="muted actions__note">{a.description} (simulation only)</p>
+                                    <p className="muted actions__note">{a.description}</p>
                                 ) : (
                                     <p id={reasonId} className="actions__note actions__note--blocked">
                                         <Icon name="lock" size={14} /> Not available: {a.reason}
@@ -91,10 +110,22 @@ export function ReadinessPanel({ view, role, user }: Props) {
             )}
 
             {active ? (
-                <SimulationDialog
+                <ConfirmDialog
                     title={`${active.label}: Room ${room.id}`}
-                    intro={`${active.description} Run the simulation to see what the screen would do.`}
-                    result={`Simulated result: the request for Room ${room.id} would be accepted by this screen. In the live application the server re-checks your role, the room and every readiness rule, and may still refuse.`}
+                    message={active.description}
+                    confirmLabel={active.label}
+                    onConfirm={async () => {
+                        const outcome = await run(commandFor(active, room.id))
+                        if (!outcome.ok) return outcome.message
+                        setDone(
+                            active.id === 'submit_inspection'
+                                ? `Room ${room.id} was submitted for inspection.`
+                                : active.id === 'pass_inspection'
+                                  ? `Inspection passed. Room ${room.id} is Ready.`
+                                  : `Inspection failed. Room ${room.id} is Blocked until it is re-cleaned and resubmitted.`
+                        )
+                        return undefined
+                    }}
                     onClose={() => setActive(null)}
                 />
             ) : null}

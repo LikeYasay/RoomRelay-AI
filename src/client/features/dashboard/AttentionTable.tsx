@@ -1,10 +1,10 @@
 import React, { useMemo, useState } from 'react'
-import { capitalizeFirst } from '../../domain/format'
-import { ROOM_STATUS_META } from '../../domain/labels'
-import type { RoomStatus, RoomView } from '../../types/domain'
-import { RoomStatusBadge } from '../../components/ui/Badge'
-import { EmptyState } from '../../components/ui/StateScreen'
-import { Icon } from '../../components/ui/Icon'
+import { capitalizeFirst } from '../../shared/lib/format'
+import { ROOM_STATUS_META } from '../../shared/domain/labels'
+import type { RoomStatus, RoomView } from '../../shared/domain/types'
+import { RoomStatusBadge } from '../../shared/domain/StatusBadges'
+import { EmptyState } from '../../shared/ui/StateScreen'
+import { Icon } from '../../shared/ui/Icon'
 
 const PAGE_SIZE = 10
 const MAX_SEARCH_LENGTH = 30

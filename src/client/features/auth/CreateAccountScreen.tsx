@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
-import { ROLE_LABEL, SHIFT_LABEL } from '../../domain/labels'
-import { ACCOUNT_LIMITS, REQUESTABLE_ROLES, SHIFTS, validateAccountRequest } from '../../domain/validation'
-import type { AccountRequestValue } from '../../domain/validation'
-import { Banner } from '../../components/ui/Banner'
-import { ErrorSummary, SelectInput, TextArea, TextInput } from '../../components/ui/FormFields'
+import { ROLE_LABEL, SHIFT_LABEL } from '../../shared/domain/labels'
+import { ACCOUNT_LIMITS, REQUESTABLE_ROLES, SHIFTS, validateAccountRequest } from './accountRequestValidation'
+import type { AccountRequestValue } from './accountRequestValidation'
+import { Banner } from '../../shared/ui/Banner'
+import { ErrorSummary, SelectInput, TextArea, TextInput } from '../../shared/ui/FormFields'
 import { AuthLayout } from './AuthLayout'
 
 const FIELD_IDS = {

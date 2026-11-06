@@ -1,241 +1,299 @@
 import React, { useMemo, useState } from 'react'
-import { DataGate } from '../../app/data'
-import type { ReadyData } from '../../app/data'
-import { useSession } from '../../app/session'
-import { formatAgo } from '../../domain/format'
-import { DEFECT_STATUS_LABEL, SEVERITY_META } from '../../domain/labels'
-import { scopeDefectsForRole } from '../../domain/scope'
-import { SEVERITIES } from '../../domain/validation'
-import type { Defect, DefectStatus, Severity } from '../../types/domain'
-import { Badge, DefectStatusBadge, SeverityBadge } from '../../components/ui/Badge'
-import { Banner } from '../../components/ui/Banner'
-import { Icon } from '../../components/ui/Icon'
-import { KpiCard } from '../../components/ui/KpiCard'
-import { EmptyState } from '../../components/ui/StateScreen'
+import { useSession } from '../auth/session'
+import { DataGate } from '../../shared/api/DataContext'
+import type { ReadyData } from '../../shared/api/DataContext'
+import { DEFECT_PRIORITY_META, DEFECT_PRIORITY_ORDER, DEFECT_STATUS_ORDER } from '../../shared/domain/labels'
+import { DefectPriorityBadge, DefectStatusBadge } from '../../shared/domain/StatusBadges'
+import type { Defect, DefectPriority, Role } from '../../shared/domain/types'
+import { formatAgo } from '../../shared/lib/format'
+import { Banner } from '../../shared/ui/Banner'
+import { Icon } from '../../shared/ui/Icon'
+import { KpiCard } from '../../shared/ui/KpiCard'
+import { EmptyState } from '../../shared/ui/StateScreen'
+import { tabPanelProps, ViewTabs } from '../../shared/ui/ViewTabs'
+import { isBlockingOpen } from './blockers'
+import { DefectModal } from './DefectModal'
 import { ReportDefectDialog } from './ReportDefectDialog'
-import { ResolutionDialog } from './ResolutionDialog'
+import { scopeDefectsForRole } from './scope'
+import type { DefectRow } from './scope'
 
 const PAGE_SIZE = 15
 const MAX_SEARCH_LENGTH = 30
-const SEVERITY_RANK: Record<Severity, number> = { critical: 0, high: 1, medium: 2, low: 3 }
-const STATUS_RANK: Record<DefectStatus, number> = { open: 0, in_progress: 1, resolved: 2 }
 
-type StatusFilter = 'unresolved' | 'all' | DefectStatus
-type SeverityFilter = 'all' | Severity
-type BlockingFilter = 'all' | 'blocking' | 'non_blocking'
+type ViewId = 'new' | 'open' | 'queue' | 'in_progress' | 'resolved'
+type PriorityFilter = 'all' | DefectPriority
 
-const STATUS_OPTIONS: Array<{ value: StatusFilter; label: string }> = [
-    { value: 'unresolved', label: 'Unresolved' },
-    { value: 'all', label: 'All' },
-    { value: 'open', label: DEFECT_STATUS_LABEL.open },
-    { value: 'in_progress', label: DEFECT_STATUS_LABEL.in_progress },
-    { value: 'resolved', label: DEFECT_STATUS_LABEL.resolved },
-]
-
-const isStatus = (v: string): v is StatusFilter => STATUS_OPTIONS.some((o) => o.value === v)
-const isSeverity = (v: string): v is SeverityFilter => v === 'all' || (SEVERITIES as string[]).includes(v)
-const isBlocking = (v: string): v is BlockingFilter => v === 'all' || v === 'blocking' || v === 'non_blocking'
-
-export function MaintenanceScreen() {
-    return <DataGate loadingLabel="Loading defects">{(data) => <Maintenance data={data} />}</DataGate>
+/** Defect ids look like D-305-1. Anything else in the address is ignored. */
+export function isValidDefectId(value: string | undefined): value is string {
+    return value !== undefined && /^D-\d{3,4}-\d{1,3}$/.test(value)
 }
 
-function Maintenance({ data }: { data: ReadyData }) {
+const VIEW_LABEL: Record<ViewId, string> = {
+    new: 'New reports',
+    open: 'All open',
+    queue: 'My queue',
+    in_progress: 'In progress',
+    resolved: 'Resolved',
+}
+
+/** Pre-built views per role: supervisors start with the triage queue, technicians with their own queue. */
+const VIEWS_BY_ROLE: Record<Role, ViewId[]> = {
+    supervisor: ['new', 'open', 'resolved'],
+    maintenance: ['queue', 'in_progress', 'resolved'],
+    housekeeping: ['open', 'resolved'],
+    admin: ['open', 'new', 'resolved'],
+}
+
+function inView(view: ViewId, d: Defect): boolean {
+    switch (view) {
+        case 'new':
+            return d.status === 'new'
+        case 'open':
+            return d.status !== 'resolved'
+        case 'queue':
+            return d.status === 'assigned' || d.status === 'in_progress'
+        case 'in_progress':
+            return d.status === 'in_progress'
+        case 'resolved':
+            return d.status === 'resolved'
+    }
+}
+
+/** Blocking first, then by status, then oldest first. Resolved: most recent first. */
+function compare(view: ViewId, a: Defect, b: Defect): number {
+    if (view === 'resolved') return (b.resolvedAt ?? '').localeCompare(a.resolvedAt ?? '')
+    return (
+        DEFECT_PRIORITY_ORDER.indexOf(a.priority) - DEFECT_PRIORITY_ORDER.indexOf(b.priority) ||
+        DEFECT_STATUS_ORDER.indexOf(a.status) - DEFECT_STATUS_ORDER.indexOf(b.status) ||
+        a.reportedAt.localeCompare(b.reportedAt)
+    )
+}
+
+export function MaintenanceScreen({ defectId }: { defectId?: string }) {
+    return <DataGate loadingLabel="Loading defects">{(data) => <Maintenance data={data} initialDefectId={defectId} />}</DataGate>
+}
+
+function Maintenance({ data, initialDefectId }: { data: ReadyData; initialDefectId?: string }) {
     const { role, user } = useSession()
     const { snapshot, scoped } = data
+    const views = VIEWS_BY_ROLE[role]
 
+    const [view, setView] = useState<ViewId>(views[0] ?? 'open')
     const [query, setQuery] = useState('')
-    const [status, setStatus] = useState<StatusFilter>('unresolved')
-    const [severity, setSeverity] = useState<SeverityFilter>('all')
-    const [blocking, setBlocking] = useState<BlockingFilter>('all')
+    const [priority, setPriority] = useState<PriorityFilter>('all')
     const [showAll, setShowAll] = useState(false)
     const [reporting, setReporting] = useState(false)
-    const [resolving, setResolving] = useState<Defect | null>(null)
+    const [openId, setOpenId] = useState<string | undefined>(isValidDefectId(initialDefectId) ? initialDefectId : undefined)
+    const [notice, setNotice] = useState<string | null>(null)
 
-    const staffNames = useMemo(() => new Map(snapshot.staff.map((s) => [s.id, s.name])), [snapshot.staff])
+    const staffName = useMemo(() => new Map(snapshot.staff.map((s) => [s.id, s.name])), [snapshot.staff])
     const { rows: allRows, note } = useMemo(() => scopeDefectsForRole(scoped.views, role, user), [scoped, role, user])
 
-    // Only housekeeping staff and supervisors report defects; only maintenance staff record resolutions.
+    // Only housekeeping staff and supervisors report defects.
     const canReport = role === 'housekeeping' || role === 'supervisor'
-    const canResolve = role === 'maintenance'
 
     const kpis = useMemo(() => {
-        const unresolved = allRows.filter((r) => r.defect.status !== 'resolved')
+        const all = allRows.map((r) => r.defect)
         return {
-            open: allRows.filter((r) => r.defect.status === 'open').length,
-            inProgress: allRows.filter((r) => r.defect.status === 'in_progress').length,
-            resolved: allRows.filter((r) => r.defect.status === 'resolved').length,
-            blocking: unresolved.filter((r) => r.defect.blocking).length,
+            new: all.filter((d) => d.status === 'new').length,
+            assigned: all.filter((d) => d.status === 'assigned').length,
+            inProgress: all.filter((d) => d.status === 'in_progress').length,
+            blocking: all.filter(isBlockingOpen).length,
         }
     }, [allRows])
 
-    const rows = useMemo(() => {
+    const counts = useMemo(() => {
+        const c = {} as Record<ViewId, number>
+        for (const v of views) c[v] = allRows.filter((r) => inView(v, r.defect)).length
+        return c
+    }, [allRows, views])
+
+    const rows = useMemo<DefectRow[]>(() => {
         // Search text is only compared against data. It is never rendered as HTML or evaluated.
         const q = query.trim().toLowerCase()
         return allRows
-            .filter(({ defect }) => (status === 'all' ? true : status === 'unresolved' ? defect.status !== 'resolved' : defect.status === status))
-            .filter(({ defect }) => severity === 'all' || defect.severity === severity)
-            .filter(({ defect }) => blocking === 'all' || (blocking === 'blocking') === defect.blocking)
-            .filter(({ defect }) => q === '' || defect.roomId.includes(q) || defect.title.toLowerCase().includes(q))
-            .sort(
-                (a, b) =>
-                    STATUS_RANK[a.defect.status] - STATUS_RANK[b.defect.status] ||
-                    Number(b.defect.blocking) - Number(a.defect.blocking) ||
-                    SEVERITY_RANK[a.defect.severity] - SEVERITY_RANK[b.defect.severity] ||
-                    a.defect.roomId.localeCompare(b.defect.roomId, undefined, { numeric: true })
-            )
-    }, [allRows, query, status, severity, blocking])
+            .filter((r) => inView(view, r.defect))
+            .filter((r) => priority === 'all' || r.defect.priority === priority)
+            .filter((r) => q === '' || r.defect.roomId.includes(q) || r.defect.title.toLowerCase().includes(q))
+            .sort((a, b) => compare(view, a.defect, b.defect))
+    }, [allRows, view, priority, query])
 
     const visible = showAll ? rows : rows.slice(0, PAGE_SIZE)
+
+    const closeModal = () => {
+        setOpenId(undefined)
+        if (initialDefectId) window.location.hash = '#/maintenance'
+    }
+
+    const actionLabel = (d: Defect) => {
+        if (role === 'supervisor' && d.status === 'new') return 'Triage'
+        if (role === 'maintenance' && d.technicianId === user.id && d.status !== 'resolved') return 'Work on it'
+        return 'View'
+    }
 
     return (
         <div className="stack">
             <Banner tone="info">
-                <strong>Prototype.</strong> Defects are synthetic and read-only. Reports and resolutions are checked by the
-                form but not saved until the ServiceNow backend exists.
+                <strong>Live demo data.</strong> Changes are kept in this browser tab only and are not saved to ServiceNow.
+                Reload the page or use Prototype tools to reset.
             </Banner>
 
+            {notice ? (
+                <div role="status">
+                    <Banner tone="info">{notice}</Banner>
+                </div>
+            ) : null}
+
             <section aria-label="Defect summary" className="kpis kpis--4">
-                <KpiCard label="Open" value={kpis.open} tone="warning" />
+                <KpiCard label="New reports" value={kpis.new} hint="Waiting for a supervisor" tone="warning" />
+                <KpiCard label="Assigned" value={kpis.assigned} tone="info" />
                 <KpiCard label="In progress" value={kpis.inProgress} tone="info" />
-                <KpiCard label="Resolved" value={kpis.resolved} tone="success" />
-                <KpiCard label="Unresolved and blocking" value={kpis.blocking} hint="Prevent rooms from being Ready" tone="danger" />
+                <KpiCard label="Blocking" value={kpis.blocking} hint="Rooms cannot be Ready" tone="danger" />
             </section>
 
             <section className="card" aria-labelledby="h-defect-list">
                 <div className="card__head">
                     <h2 id="h-defect-list">Defects</h2>
                     {canReport ? (
-                        <button type="button" className="btn btn--primary" onClick={() => setReporting(true)}>
+                        <button
+                            type="button"
+                            className="btn btn--primary"
+                            onClick={() => {
+                                setNotice(null)
+                                setReporting(true)
+                            }}
+                        >
                             <Icon name="wrench" size={16} /> Report a defect
                         </button>
                     ) : null}
                 </div>
 
-                <div className="toolbar">
-                    <label className="field field--search">
-                        <span className="sr-only">Search by room number or problem</span>
-                        <Icon name="search" size={16} />
-                        <input
-                            type="search"
-                            placeholder="Search room or problem"
-                            value={query}
-                            maxLength={MAX_SEARCH_LENGTH}
-                            onChange={(e) => setQuery(e.target.value)}
+                <ViewTabs
+                    label="Defect views"
+                    idPrefix="defect-view"
+                    tabs={views.map((v) => ({ id: v, label: VIEW_LABEL[v], count: counts[v] }))}
+                    active={view}
+                    onChange={(v) => {
+                        setView(v)
+                        setShowAll(false)
+                    }}
+                />
+
+                <div {...tabPanelProps('defect-view', view)}>
+                    <div className="toolbar">
+                        <label className="field field--search">
+                            <span className="sr-only">Search by room number or problem</span>
+                            <Icon name="search" size={16} />
+                            <input
+                                type="search"
+                                placeholder="Search room or problem"
+                                value={query}
+                                maxLength={MAX_SEARCH_LENGTH}
+                                onChange={(e) => setQuery(e.target.value)}
+                            />
+                        </label>
+                        <label className="field">
+                            <span>Priority</span>
+                            <select
+                                value={priority}
+                                onChange={(e) => {
+                                    const v = e.target.value
+                                    if (v === 'all' || (DEFECT_PRIORITY_ORDER as string[]).includes(v)) setPriority(v as PriorityFilter)
+                                }}
+                            >
+                                <option value="all">All</option>
+                                {DEFECT_PRIORITY_ORDER.map((p) => (
+                                    <option key={p} value={p}>
+                                        {DEFECT_PRIORITY_META[p].label}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
+                    </div>
+
+                    <p className="muted" role="status">
+                        {note} Showing {visible.length} of {rows.length} defects.
+                    </p>
+
+                    {rows.length === 0 ? (
+                        <EmptyState
+                            title={allRows.length === 0 ? 'No defects to show' : 'Nothing here'}
+                            message={allRows.length === 0 ? 'No defects are currently visible to your role.' : 'No defects match this view and filter.'}
                         />
-                    </label>
-                    <label className="field">
-                        <span>Status</span>
-                        <select value={status} onChange={(e) => isStatus(e.target.value) && setStatus(e.target.value)}>
-                            {STATUS_OPTIONS.map((o) => (
-                                <option key={o.value} value={o.value}>
-                                    {o.label}
-                                </option>
-                            ))}
-                        </select>
-                    </label>
-                    <label className="field">
-                        <span>Severity</span>
-                        <select value={severity} onChange={(e) => isSeverity(e.target.value) && setSeverity(e.target.value)}>
-                            <option value="all">All</option>
-                            {SEVERITIES.map((s) => (
-                                <option key={s} value={s}>
-                                    {SEVERITY_META[s].label}
-                                </option>
-                            ))}
-                        </select>
-                    </label>
-                    <label className="field">
-                        <span>Readiness</span>
-                        <select value={blocking} onChange={(e) => isBlocking(e.target.value) && setBlocking(e.target.value)}>
-                            <option value="all">All</option>
-                            <option value="blocking">Blocking only</option>
-                            <option value="non_blocking">Non-blocking only</option>
-                        </select>
-                    </label>
-                </div>
-
-                <p className="muted" role="status">
-                    {note} Showing {visible.length} of {rows.length} matching defects.
-                </p>
-
-                {allRows.length === 0 ? (
-                    <EmptyState title="No defects to show" message="No defects are currently visible to your role." />
-                ) : rows.length === 0 ? (
-                    <EmptyState title="No matching defects" message="Try a different search or filter." />
-                ) : (
-                    <>
-                        <div className="table-wrap">
-                            <table className="table table--stack">
-                                <caption className="sr-only">Maintenance defects, most urgent first</caption>
-                                <thead>
-                                    <tr>
-                                        <th scope="col">Room</th>
-                                        <th scope="col">Problem</th>
-                                        <th scope="col">Severity</th>
-                                        <th scope="col">Readiness impact</th>
-                                        <th scope="col">Status</th>
-                                        <th scope="col">Technician</th>
-                                        <th scope="col">Resolution notes</th>
-                                        {canResolve ? <th scope="col">Action</th> : null}
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {visible.map(({ defect }) => (
-                                        <tr key={defect.id}>
-                                            <th scope="row">
-                                                <a className="link" href={`#/rooms/${encodeURIComponent(defect.roomId)}`}>
-                                                    {defect.roomId}
-                                                </a>
+                    ) : (
+                        <>
+                            <div className="table-wrap">
+                                <table className="table table--stack">
+                                    <caption className="sr-only">{VIEW_LABEL[view]}: defects, most urgent first</caption>
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Room</th>
+                                            <th scope="col">Problem</th>
+                                            <th scope="col">Priority</th>
+                                            <th scope="col">Status</th>
+                                            <th scope="col">Technician</th>
+                                            <th scope="col">
+                                                <span className="sr-only">Action</span>
                                             </th>
-                                            <td className="table__task" data-label="Problem">
-                                                {/* Defect text is untrusted input; React renders it as plain text. */}
-                                                <span className="table__task-title">{defect.title}</span>
-                                                <span className="muted table__sub">{defect.description}</span>
-                                                <span className="muted table__sub">Reported {formatAgo(defect.reportedAt, snapshot.generatedAt)}</span>
-                                            </td>
-                                            <td data-label="Severity">
-                                                <SeverityBadge severity={defect.severity} />
-                                            </td>
-                                            <td data-label="Readiness impact">
-                                                {defect.blocking ? (
-                                                    <Badge tone="danger" label="Blocks readiness" icon="lock" />
-                                                ) : (
-                                                    <Badge tone="neutral" label="Does not block" />
-                                                )}
-                                            </td>
-                                            <td data-label="Status">
-                                                <DefectStatusBadge status={defect.status} />
-                                            </td>
-                                            <td data-label="Technician">{defect.technicianId ? (staffNames.get(defect.technicianId) ?? 'Unknown') : 'Unassigned'}</td>
-                                            <td className="table__notes" data-label="Resolution notes">{defect.resolutionNotes ?? <span className="muted">None</span>}</td>
-                                            {canResolve ? (
-                                                <td data-label="Action">
-                                                    {defect.technicianId === user.id && defect.status !== 'resolved' ? (
-                                                        <button type="button" className="btn btn--ghost btn--flat" onClick={() => setResolving(defect)}>
-                                                            Record resolution
-                                                        </button>
-                                                    ) : (
-                                                        <span className="muted">None available</span>
-                                                    )}
-                                                </td>
-                                            ) : null}
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                        {rows.length > PAGE_SIZE ? (
-                            <button type="button" className="btn btn--ghost" onClick={() => setShowAll((s) => !s)}>
-                                {showAll ? 'Show fewer' : `Show all ${rows.length} defects`}
-                            </button>
-                        ) : null}
-                    </>
-                )}
+                                    </thead>
+                                    <tbody>
+                                        {visible.map(({ defect }) => (
+                                            <tr key={defect.id}>
+                                                <th scope="row">{defect.roomId}</th>
+                                                <td className="table__task" data-label="Problem">
+                                                    {/* Defect text is untrusted input; React renders it as plain text. */}
+                                                    <span className="table__task-title">{defect.title}</span>
+                                                    <span className="muted table__sub">
+                                                        Reported by {staffName.get(defect.reportedById) ?? 'Unknown'}, {formatAgo(defect.reportedAt, snapshot.generatedAt)}
+                                                    </span>
+                                                </td>
+                                                <td data-label="Priority">
+                                                    <DefectPriorityBadge priority={defect.priority} />
+                                                </td>
+                                                <td data-label="Status">
+                                                    <DefectStatusBadge status={defect.status} />
+                                                </td>
+                                                <td data-label="Technician">
+                                                    {defect.technicianId ? (staffName.get(defect.technicianId) ?? 'Unknown') : <span className="muted">Unassigned</span>}
+                                                </td>
+                                                <td data-label="Action">
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn--ghost btn--small btn--flat"
+                                                        aria-label={`${actionLabel(defect)}: ${defect.title}, Room ${defect.roomId}`}
+                                                        onClick={() => setOpenId(defect.id)}
+                                                    >
+                                                        {actionLabel(defect)}
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {rows.length > PAGE_SIZE ? (
+                                <button type="button" className="btn btn--ghost" onClick={() => setShowAll((s) => !s)}>
+                                    {showAll ? 'Show fewer' : `Show all ${rows.length} defects`}
+                                </button>
+                            ) : null}
+                        </>
+                    )}
+                </div>
             </section>
 
-            {reporting ? <ReportDefectDialog rooms={scoped.views} onClose={() => setReporting(false)} /> : null}
-            {resolving ? <ResolutionDialog defect={resolving} onClose={() => setResolving(null)} /> : null}
+            {reporting ? (
+                <ReportDefectDialog
+                    rooms={role === 'supervisor' ? data.allViews : scoped.views}
+                    staff={snapshot.staff}
+                    onClose={() => setReporting(false)}
+                    onDone={(message) => {
+                        setReporting(false)
+                        setNotice(message)
+                    }}
+                />
+            ) : null}
+            {openId ? <DefectModal defectId={openId} data={data} onClose={closeModal} /> : null}
         </div>
     )
 }

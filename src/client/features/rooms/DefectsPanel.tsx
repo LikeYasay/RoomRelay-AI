@@ -1,52 +1,95 @@
-import React from 'react'
-import { formatAgo } from '../../domain/format'
-import type { Defect } from '../../types/domain'
-import { Badge, DefectStatusBadge, SeverityBadge } from '../../components/ui/Badge'
+import React, { useState } from 'react'
+import { useSession } from '../auth/session'
+import type { ReadyData } from '../../shared/api/DataContext'
+import { DefectPriorityBadge, DefectStatusBadge } from '../../shared/domain/StatusBadges'
+import type { Defect, RoomView } from '../../shared/domain/types'
+import { formatAgo } from '../../shared/lib/format'
+import { Banner } from '../../shared/ui/Banner'
+import { Icon } from '../../shared/ui/Icon'
+import { DefectModal } from '../maintenance/DefectModal'
+import { ReportDefectDialog } from '../maintenance/ReportDefectDialog'
 
 interface Props {
-    defects: Defect[]
-    technicians: Map<string, string>
-    nowIso: string
+    view: RoomView
+    data: ReadyData
 }
 
-export function DefectsPanel({ defects, technicians, nowIso }: Props) {
+/** The room's defects. "Details" opens the same defect modal as the Maintenance page. */
+export function DefectsPanel({ view, data }: Props) {
+    const { role, user } = useSession()
+    const [openId, setOpenId] = useState<string | null>(null)
+    const [reporting, setReporting] = useState(false)
+    const [notice, setNotice] = useState<string | null>(null)
+    const { defects, room } = view
+    const now = data.snapshot.generatedAt
+    const name = (id: string | undefined) => (id ? (data.snapshot.staff.find((s) => s.id === id)?.name ?? 'Unknown') : 'Unassigned')
+
+    const canReport = role === 'supervisor' || (role === 'housekeeping' && room.assigneeId === user.id)
+    const sorted: Defect[] = [...defects].sort((a, b) => Number(a.status === 'resolved') - Number(b.status === 'resolved') || b.reportedAt.localeCompare(a.reportedAt))
+
     return (
         <section className="card" aria-labelledby="h-defects">
-            <h2 id="h-defects">Maintenance defects</h2>
-            {defects.length === 0 ? (
+            <div className="card__head">
+                <h2 id="h-defects">Maintenance defects</h2>
+                {canReport ? (
+                    <button
+                        type="button"
+                        className="btn btn--ghost btn--small btn--flat"
+                        onClick={() => {
+                            setNotice(null)
+                            setReporting(true)
+                        }}
+                    >
+                        <Icon name="wrench" size={16} /> Report a defect
+                    </button>
+                ) : null}
+            </div>
+
+            {notice ? (
+                <div role="status">
+                    <Banner tone="info">{notice}</Banner>
+                </div>
+            ) : null}
+
+            {sorted.length === 0 ? (
                 <p className="panel-empty">No defects recorded for this room.</p>
             ) : (
                 <ul className="defects">
-                    {defects.map((d) => (
+                    {sorted.map((d) => (
                         <li key={d.id} className="defect">
                             <div className="defect__head">
                                 {/* Defect text is untrusted input; React renders it as plain text. */}
                                 <p className="defect__title">{d.title}</p>
                                 <div className="defect__badges">
-                                    <SeverityBadge severity={d.severity} />
-                                    {d.blocking ? (
-                                        <Badge tone="danger" label="Blocks readiness" icon="lock" />
-                                    ) : (
-                                        <Badge tone="neutral" label="Does not block readiness" />
-                                    )}
+                                    <DefectPriorityBadge priority={d.priority} />
                                     <DefectStatusBadge status={d.status} />
                                 </div>
                             </div>
-                            <p className="muted">{d.description}</p>
                             <p className="muted defect__meta">
-                                Technician: {d.technicianId ? (technicians.get(d.technicianId) ?? 'Unknown') : 'Unassigned'} · reported{' '}
-                                {formatAgo(d.reportedAt, nowIso)}
-                                {d.resolvedAt ? ` · resolved ${formatAgo(d.resolvedAt, nowIso)}` : ''}
+                                Technician: {name(d.technicianId)} · reported {formatAgo(d.reportedAt, now)}
+                                {d.resolvedAt ? ` · resolved ${formatAgo(d.resolvedAt, now)}` : ''}
                             </p>
-                            {d.resolutionNotes ? (
-                                <p className="defect__resolution">
-                                    <strong>Resolution:</strong> {d.resolutionNotes}
-                                </p>
-                            ) : null}
+                            <button type="button" className="link-button defect__open" onClick={() => setOpenId(d.id)}>
+                                Details<span className="sr-only">: {d.title}</span>
+                            </button>
                         </li>
                     ))}
                 </ul>
             )}
+
+            {openId ? <DefectModal defectId={openId} data={data} onClose={() => setOpenId(null)} /> : null}
+            {reporting ? (
+                <ReportDefectDialog
+                    rooms={[view]}
+                    staff={data.snapshot.staff}
+                    roomId={room.id}
+                    onClose={() => setReporting(false)}
+                    onDone={(message) => {
+                        setReporting(false)
+                        setNotice(message)
+                    }}
+                />
+            ) : null}
         </section>
     )
 }

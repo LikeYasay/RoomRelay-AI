@@ -1,20 +1,23 @@
 import React from 'react'
-import { DEFECT_STATUS_LABEL } from '../../domain/labels'
-import { formatAgo } from '../../domain/format'
-import type { PriorityBlocker } from '../../domain/selectors'
-import { SeverityBadge } from '../../components/ui/Badge'
-import { Icon } from '../../components/ui/Icon'
+import { useSession } from '../auth/session'
+import { DefectStatusBadge } from '../../shared/domain/StatusBadges'
+import { formatAgo } from '../../shared/lib/format'
+import { Icon } from '../../shared/ui/Icon'
+import type { BlockingDefect } from '../maintenance/blockers'
 
 interface Props {
-    blockers: PriorityBlocker[]
+    blockers: BlockingDefect[]
     nowIso: string
 }
 
+/** Unresolved Blocking defects: the only defects that stop a room from being Ready. */
 export function BlockersPanel({ blockers, nowIso }: Props) {
+    const { role } = useSession()
+
     if (blockers.length === 0) {
         return (
             <p className="panel-empty">
-                <Icon name="check-circle" size={18} /> No high-priority blockers in this view.
+                <Icon name="check-circle" size={18} /> No blocking defects in this view.
             </p>
         )
     }
@@ -24,16 +27,23 @@ export function BlockersPanel({ blockers, nowIso }: Props) {
             {blockers.map(({ defect, roomId, technician }) => (
                 <li key={defect.id} className="blockers__item">
                     <div className="blockers__head">
-                        <a className="link" href={`#/rooms/${encodeURIComponent(roomId)}`}>
-                            Room {roomId}
-                        </a>
-                        <SeverityBadge severity={defect.severity} />
+                        {role === 'maintenance' ? (
+                            <span>Room {roomId}</span>
+                        ) : (
+                            <a className="link" href={`#/rooms/${encodeURIComponent(roomId)}`}>
+                                Room {roomId}
+                            </a>
+                        )}
+                        <DefectStatusBadge status={defect.status} />
                     </div>
                     {/* Defect text is untrusted user input; React renders it as plain text. */}
-                    <p className="blockers__title">{defect.title}</p>
+                    <p className="blockers__title">
+                        <a className="link" href={`#/maintenance/${encodeURIComponent(defect.id)}`}>
+                            {defect.title}
+                        </a>
+                    </p>
                     <p className="blockers__meta muted">
-                        {DEFECT_STATUS_LABEL[defect.status]} · {technician ? technician.name : 'Unassigned'} · reported{' '}
-                        {formatAgo(defect.reportedAt, nowIso)}
+                        {technician ? technician.name : 'Unassigned'} · reported {formatAgo(defect.reportedAt, nowIso)}
                     </p>
                 </li>
             ))}

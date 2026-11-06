@@ -1,5 +1,5 @@
-import type { IconName } from '../components/ui/Icon'
-import type { Role } from '../types/domain'
+import type { IconName } from '../shared/ui/Icon'
+import type { Role } from '../shared/domain/types'
 
 /**
  * Route table. `roles` controls which navigation items are enabled and which screen
@@ -7,7 +7,7 @@ import type { Role } from '../types/domain'
  * ServiceNow roles, ACLs and server-side validation.
  */
 
-export type RouteId = 'dashboard' | 'rooms' | 'housekeeping' | 'maintenance' | 'handoff' | 'access'
+export type RouteId = 'dashboard' | 'rooms' | 'maintenance' | 'handoff' | 'access' | 'audit'
 
 export interface RouteDef {
     id: RouteId
@@ -33,19 +33,10 @@ export const ROUTES: RouteDef[] = [
     },
     {
         id: 'rooms',
-        label: 'Room Readiness',
-        title: 'Room Readiness Board',
-        description: 'Every room with its housekeeping, inspection and readiness status.',
+        label: 'Rooms',
+        title: 'Rooms',
+        description: 'Cleaning, inspection and readiness for every room, with its housekeeping checklist.',
         icon: 'bed',
-        roles: ['housekeeping', 'supervisor', 'admin'],
-        live: true,
-    },
-    {
-        id: 'housekeeping',
-        label: 'Housekeeping',
-        title: 'Housekeeping Management',
-        description: 'Assigned tasks, priorities, progress and supervisor review.',
-        icon: 'clipboard-check',
         roles: ['housekeeping', 'supervisor', 'admin'],
         live: true,
     },
@@ -53,7 +44,7 @@ export const ROUTES: RouteDef[] = [
         id: 'maintenance',
         label: 'Maintenance',
         title: 'Maintenance and Defects',
-        description: 'Defect reports, severity, blocking status and resolutions.',
+        description: 'Defect reports, triage, priority and repairs.',
         icon: 'wrench',
         roles: ['housekeeping', 'maintenance', 'supervisor', 'admin'],
         live: true,
@@ -73,6 +64,15 @@ export const ROUTES: RouteDef[] = [
         title: 'Users and Access',
         description: 'Staff accounts, access requests and role permissions.',
         icon: 'users',
+        roles: ['admin'],
+        live: true,
+    },
+    {
+        id: 'audit',
+        label: 'Audit Log',
+        title: 'Audit Log',
+        description: 'Who changed what, and when. Read-only.',
+        icon: 'list',
         roles: ['admin'],
         live: true,
     },

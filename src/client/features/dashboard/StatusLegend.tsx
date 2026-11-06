@@ -1,7 +1,7 @@
 import React from 'react'
-import { ROOM_STATUS_META } from '../../domain/labels'
-import { STATUS_ORDER } from '../../domain/selectors'
-import { Icon } from '../../components/ui/Icon'
+import { ROOM_STATUS_META } from '../../shared/domain/labels'
+import { STATUS_ORDER } from '../rooms/roomViews'
+import { Icon } from '../../shared/ui/Icon'
 
 /** Shared legend: icon + text label for each status, so color is never the only cue. */
 export function StatusLegend() {

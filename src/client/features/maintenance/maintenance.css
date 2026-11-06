@@ -1,0 +1,73 @@
+/* Maintenance: defect details modal and defect lists */
+.dialog--wide {
+    width: min(660px, calc(100vw - 32px));
+}
+
+.defect-modal {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.defect-modal__title {
+    font-size: 17px;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.defect-modal__impact {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--danger-fg);
+    font-weight: 600;
+}
+
+.defect-modal__heading {
+    font-size: 15px;
+    margin-bottom: 6px;
+}
+
+.defect-modal__form {
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface-alt);
+}
+
+.defect-modal__form .dialog__actions {
+    margin-top: 10px;
+}
+
+.defect-modal__others,
+.defect-modal__history {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-left: 18px;
+    font-size: 14px;
+    overflow-wrap: anywhere;
+}
+
+.defect-modal__readonly {
+    font-size: 14px;
+}
+
+.link-button {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--teal-700);
+    font: inherit;
+    font-weight: 600;
+    text-align: left;
+    text-decoration: underline;
+    cursor: pointer;
+    overflow-wrap: anywhere;
+}
+
+.link-button:focus-visible {
+    outline: none;
+    box-shadow: var(--focus);
+    border-radius: var(--radius-sm);
+}

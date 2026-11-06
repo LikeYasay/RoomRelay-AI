@@ -1,7 +1,7 @@
 import React from 'react'
-import { SHIFT_LABEL } from '../../domain/labels'
-import { percent, plural } from '../../domain/format'
-import type { ShiftSummary } from '../../domain/selectors'
+import { SHIFT_LABEL } from '../../shared/domain/labels'
+import { percent, plural } from '../../shared/lib/format'
+import type { ShiftSummary } from './dashboardStats'
 
 export function ShiftOverview({ shifts }: { shifts: ShiftSummary[] }) {
     return (

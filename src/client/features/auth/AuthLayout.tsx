@@ -1,14 +1,14 @@
 import React from 'react'
 import type { ReactNode } from 'react'
-import { ROLE_LABEL } from '../../domain/labels'
-import type { Role } from '../../types/domain'
-import { PixelBackground } from '../../components/ui/PixelBackground'
+import { ROLE_LABEL } from '../../shared/domain/labels'
+import type { Role } from '../../shared/domain/types'
+import { PixelBackground } from './PixelBackground'
 
 const ROLE_DESCRIPTION: Record<Role, string> = {
-    housekeeping: 'Cleans assigned rooms, completes task checklists, reports defects and submits rooms for inspection.',
-    maintenance: 'Works on assigned repair issues and records how they were resolved.',
-    supervisor: 'Monitors all rooms, inspects and confirms readiness, and runs shift handoffs.',
-    admin: 'Manages staff accounts, roles and access requests. Accounts of this type are created by IT.',
+    housekeeping: "Cleans assigned rooms, ticks off the checklist (or marks a task Couldn't Complete with a reason), reports defects and submits rooms for inspection.",
+    maintenance: 'Works through the repairs assigned to them and records how each was resolved.',
+    supervisor: 'Triages defect reports, inspects rooms and confirms them Ready, and runs shift handoffs.',
+    admin: 'Manages staff accounts, roles and access requests, and reviews the audit log. Accounts of this type are created by IT.',
 }
 
 const ROLES: Role[] = ['housekeeping', 'maintenance', 'supervisor', 'admin']

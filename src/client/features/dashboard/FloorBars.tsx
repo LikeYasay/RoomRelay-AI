@@ -1,7 +1,7 @@
 import React from 'react'
-import { ROOM_STATUS_META } from '../../domain/labels'
-import { STATUS_ORDER } from '../../domain/selectors'
-import type { FloorBreakdown } from '../../domain/selectors'
+import { ROOM_STATUS_META } from '../../shared/domain/labels'
+import { STATUS_ORDER } from '../rooms/roomViews'
+import type { FloorBreakdown } from './dashboardStats'
 
 export function FloorBars({ floors }: { floors: FloorBreakdown[] }) {
     return (

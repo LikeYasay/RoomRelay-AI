@@ -1,10 +1,11 @@
 # Backend handoff (Phase 4 and Phase 5)
 
 For whoever builds the ServiceNow backend. The frontend is finished as a prototype and talks to a single interface
-(`RoomRelayDataSource`). Your job is to build the server side and replace the mock data source behind that interface.
+(`RoomRelayDataSource`: `getSnapshot` to read, `execute(command)` to change). Your job is to build the server side and
+replace the mock data source behind that interface.
 
-**Read this first, then [ROLE_PERMISSION_MATRIX.md](ROLE_PERMISSION_MATRIX.md), [API_SECURITY_CHECKLIST.md](API_SECURITY_CHECKLIST.md)
-and [AI_DESIGN.md](AI_DESIGN.md).**
+**Read this first, then [GLOSSARY.md](GLOSSARY.md), [ROLE_PERMISSION_MATRIX.md](ROLE_PERMISSION_MATRIX.md),
+[API_SECURITY_CHECKLIST.md](API_SECURITY_CHECKLIST.md) and [AI_DESIGN.md](AI_DESIGN.md).**
 
 > Everything below is a **design proposal** based on the working prototype. Nothing here has been created in
 > the PDI or tested against it. Where this document says "verify", the author could not confirm it without access to
@@ -15,8 +16,8 @@ and [AI_DESIGN.md](AI_DESIGN.md).**
 1. **The server is the only place that decides anything.** The browser hides buttons and filters lists, but anyone can
    call your APIs directly. Every rule in the frontend must be repeated on the server.
 2. **Room readiness is deterministic.** A room is Ready only when all three are true:
-   (a) every mandatory task is done, (b) no blocking defect is unresolved, (c) the required inspection has passed.
-   AI text never influences this.
+   (a) every mandatory task is **Completed**, (b) no defect with priority **Blocking** is unresolved, (c) the required
+   inspection has passed. AI text never influences this.
 3. Keep the existing application scope `x_2305075_roomrela`, the package name and the UI Page endpoint
    `x_2305075_roomrela_incident_manager.do`. Do not recreate the app and never install with `--reinstall` for normal updates.
 4. Use the SDK's Fluent API for metadata where it covers it. The installed SDK 4.14.0 docs
@@ -25,27 +26,39 @@ and [AI_DESIGN.md](AI_DESIGN.md).**
    release before relying on it.
 5. Do not touch the `incident` table. The starter's incident code was deleted on purpose.
 6. Test with real non-admin users, never only as `admin`.
+7. **One backend module per frontend feature folder** (rooms, housekeeping, maintenance, handoff, access, activity, auth).
+   See [ARCHITECTURE.md](ARCHITECTURE.md).
 
-## 2. Readiness rules (the source of truth)
+## 2. The rules (the source of truth)
 
-The reference implementation is `src/client/domain/readiness.ts`. Port it to a server Script Include and test it with
-the same cases as `tests/logic.test.cjs`.
+Every rule has a reference implementation in TypeScript, written as a pure function and covered by
+`tests/logic.test.cjs`. Port each one to a server Script Include and test it with the same cases.
 
-Inputs for one room: its tasks, its defects, and its inspection state.
+| Rule | Reference file |
+|---|---|
+| Readiness (status, blockers, the user-facing sentence) | `src/client/features/rooms/readiness.ts` |
+| What counts as a blocking defect | `src/client/features/maintenance/blockers.ts` (`isBlockingOpen`) |
+| Inspections: submit, pass, fail | `src/client/features/rooms/roomCommands.ts`, `roomActions.ts` |
+| Tasks: complete, Couldn't Complete, set back to Pending | `src/client/features/housekeeping/taskCommands.ts` |
+| Defects: report, triage, start, resolve | `src/client/features/maintenance/defectCommands.ts` |
+| Audit entries | `src/client/shared/domain/commandKit.ts` (`withAudit`) |
+| Form validation | `features/maintenance/defectValidation.ts`, `features/housekeeping/taskValidation.ts`, `features/auth/accountRequestValidation.ts` |
+
+### 2.1 Readiness
 
 | Condition | Result |
 |---|---|
-| Any **mandatory** task not `done` | Not ready |
-| Any defect with `blocking = true` and status not `resolved` | Not ready, status **Blocked** |
+| Any **mandatory** task not `completed` (`pending` or `couldnt_complete`) | Not ready |
+| Any defect with `priority = blocking` and status not `resolved` | Not ready, status **Blocked** |
 | Inspection not `passed` | Not ready |
 | Inspection `failed` | Status **Blocked** |
-| Optional tasks open, non-blocking defects open, resolved defects | **Do not** block |
+| Optional tasks open, `normal` or `minor` defects open, resolved defects | **Do not** block |
 | All three satisfied | **Ready** |
 
 Status derivation, in this order:
 
-1. Open blocking defect, or inspection `failed` -> `blocked`
-2. Any mandatory task not done -> `in_progress` if any task has started (status not `todo`), else `needs_cleaning`
+1. Open Blocking defect, or inspection `failed` -> `blocked`
+2. Any mandatory task not completed -> `in_progress` if any mandatory task is `completed` or `couldnt_complete`, else `needs_cleaning`
 3. Inspection not `passed` -> `pending_inspection`
 4. Otherwise -> `ready`
 
@@ -55,10 +68,33 @@ User-facing sentence (keep exact wording, the frontend and tests expect it):
 `Room 305 cannot be marked Ready because 2 mandatory tasks remain incomplete.` Multiple reasons are joined with
 ", " and " and ".
 
+**Room priority** is not stored: it is the highest `priority` among the room's tasks that are not `completed`, used only
+for sorting (`features/rooms/roomViews.ts`, `roomPriority`).
+
+### 2.2 Task and defect life cycles
+
+```
+Task:    pending --complete--> completed            (assigned housekeeper only; final)
+         pending --couldn't complete (reason)--> couldnt_complete
+         couldnt_complete --set back--> pending      (housekeeper or supervisor; NOT while waiting for maintenance)
+
+Defect:  new --triage (technician + priority)--> assigned --start--> in_progress --resolve (notes)--> resolved
+         assigned/in_progress --resolve--> resolved
+         any open state --triage again--> new technician resets to assigned; priority change is recorded
+```
+
+- **Couldn't Complete with reason "Needs maintenance"** creates a defect: status `new`, priority `normal`, no technician,
+  `source_task` = the task. The task stores the defect in `linked_defect`.
+- **Resolving that defect** puts the task back to `pending` and copies the resolution note into the task's `repair_note`.
+  It does not complete the task: the housekeeper re-checks the area and completes it.
+- There is **no waiver**: a mandatory task holds the room back until it is Completed.
+- A **housekeeper's** report always starts as `new`/`normal`; only a **supervisor** may set priority or a technician
+  (at report time or by triage). A supervisor can lower a Blocking defect to Normal or Minor; that change is audited.
+
 ## 3. Proposed data model
 
 Table names use the scope prefix `x_2305075_roomrela_`. Fields marked **server** must be written only by server code and be
-read-only to clients through ACLs.
+read-only to clients through ACLs. The exact JSON shapes are in `src/client/shared/domain/types.ts`.
 
 ### 3.1 `room`
 
@@ -68,22 +104,43 @@ read-only to clients through ACLs.
 | `floor` | Integer | |
 | `room_type` | String or choice | e.g. Standard Queen, Deluxe King |
 | `assigned_to` | Reference to `sys_user` | The housekeeper |
-| `inspection_status` | Choice: `not_requested`, `pending`, `passed`, `failed` | Changed only by server logic |
-| `inspection_at` | Date/time | |
+| `inspection_status` | Choice: `not_requested`, `pending`, `passed`, `failed` | **server**: changed only by the inspection actions |
+| `inspection_at` | Date/time | **server** |
 | `readiness_status` | Choice: `needs_cleaning`, `in_progress`, `pending_inspection`, `blocked`, `ready` | **server**. Derived by the evaluator. Stored so lists can filter fast. |
-| `ready_confirmed_by`, `ready_confirmed_at` | Reference, date/time | **server**, audit |
 
 ### 3.2 `housekeeping_task`
 
-`room` (reference, mandatory), `title`, `description`, `mandatory` (boolean), `priority` (`low`, `normal`, `high`, `urgent`),
-`status` (`todo`, `in_progress`, `done`), `assigned_to` (reference to `sys_user`), `supervisor_review`
-(`not_required`, `pending`, `approved`; **server**), `completed_at` (**server**).
+| Field | Type | Notes |
+|---|---|---|
+| `room` | Reference, mandatory | |
+| `title`, `description` | String | |
+| `mandatory` | Boolean | |
+| `priority` | Choice: `high`, `normal`, `low` | Sort order only |
+| `status` | Choice: `pending`, `completed`, `couldnt_complete` | Changed only through the task actions |
+| `assigned_to` | Reference to `sys_user` | |
+| `completed_at` | Date/time | **server** |
+| `incomplete_reason` | Choice: `supplies_missing`, `needs_maintenance`, `other` | Set with `couldnt_complete` |
+| `incomplete_note` | String (300) | Required for `other`. Untrusted free text. **Never send to the AI.** |
+| `incomplete_at` | Date/time | **server** |
+| `linked_defect` | Reference to `defect` | **server** |
+| `repair_note` | String (500) | **server**, copied from the resolved defect |
 
 ### 3.3 `defect`
 
-`room` (reference, mandatory), `title`, `description`, `severity` (`low`, `medium`, `high`, `critical`),
-`blocking` (boolean), `status` (`open`, `in_progress`, `resolved`), `technician` (reference to `sys_user`),
-`resolution_notes`, `resolved_at` (**server**). Use `sys_created_on` and `sys_created_by` for reported-at and reported-by.
+| Field | Type | Notes |
+|---|---|---|
+| `room` | Reference, mandatory | |
+| `title`, `description` | String (100), String (1000) | Untrusted free text |
+| `priority` | Choice: `blocking`, `normal`, `minor` | Supervisor only. Only `blocking` affects readiness. |
+| `status` | Choice: `new`, `assigned`, `in_progress`, `resolved` | Changed only through the defect actions |
+| `technician` | Reference to `sys_user` (maintenance role) | Supervisor only |
+| `assigned_by`, `assigned_at` | Reference, date/time | **server** |
+| `started_at`, `resolved_at` | Date/time | **server** |
+| `resolution_notes` | String (500) | Assigned technician, required to resolve |
+| `source_task` | Reference to `housekeeping_task` | **server** |
+
+Use `sys_created_on` and `sys_created_by` for reported-at and reported-by (the frontend calls them `reportedAt` and
+`reportedById`).
 
 ### 3.4 `staff_profile`
 
@@ -95,12 +152,20 @@ handoff. Alternatively extend `sys_user`; a separate table avoids changing a pla
 `full_name`, `email`, `requested_role`, `shift`, `reason`, `status` (`pending`, `approved`, `declined`),
 `decided_by`, `decided_at`. The requester can never set `status` or any role. See section 8 for the sign-in caveat.
 
-### 3.6 `activity` (audit and the room timeline)
+### 3.6 `audit_entry` (the Audit Log page and every activity feed)
 
-`room`, `actor` (reference to `sys_user`), `event` (task completed, defect reported, defect resolved, inspection
-passed or failed, ready confirmed, briefing generated), `text`, `at`. Written by business rules. The frontend currently
-derives the timeline from timestamps; either approach works, but a real audit table is better for the capstone's
-"audit important changes" requirement.
+| Field | Type | Notes |
+|---|---|---|
+| `at` | Date/time | **server** |
+| `actor` | Reference to `sys_user` | **server**: the session user, never a value from the client |
+| `action` | Choice | The `AuditAction` list in `types.ts`: task completed, couldn't complete, reopened, defect reported, assigned, priority changed, started, resolved, inspection requested, passed, failed, briefing generated, access request approved, declined |
+| `room` | Reference, optional | |
+| `target` | String (sys_id or record number) | The task, defect, room or request |
+| `summary` | String (300) | Built by the server; may quote titles typed by staff (render as text) |
+
+Written **only** by business rules, in the same transaction as the change. Nobody (including `app_admin`) can update or
+delete rows. ServiceNow's own `sys_audit` and login history still record field changes and sign-ins; this table is the
+readable business log the admin page shows.
 
 ### 3.7 `handoff_briefing` (Phase 5)
 
@@ -119,28 +184,29 @@ Create four application roles (suggested names, scoped):
 | System Administrator (app) | `x_2305075_roomrela.app_admin` |
 
 Do **not** make roles contain each other. The prototype assumes one role per person; if a person can hold several,
-decide how the frontend picks a view and update `Role` handling (see section 7).
+decide how the frontend picks a view and update `Role` handling.
 
 ## 5. Access control (ACLs)
 
 Deny by default. "Own" means the record's `assigned_to` (or `technician`) equals the signed-in user. Use row-level
-conditions or scripts; test each cell with a non-admin user.
+conditions or scripts; test each cell with a non-admin user. Writes go through the actions in section 7.2, so most direct
+table writes can stay denied.
 
 | Table | Operation | housekeeper | maintenance | supervisor | app_admin |
 |---|---|---|---|---|---|
 | room | read | own rooms | rooms that have a defect assigned to them | all | all (read only) |
-| room | write | no | no | only through the server logic (inspection, confirm) | no |
-| room fields `readiness_status`, `ready_confirmed_*`, `inspection_*` | write | no | no | no direct write; server code only | no |
+| room | write | no (submit action only) | no | no (inspection actions only) | no |
+| room fields `readiness_status`, `inspection_*` | write | no | no | no direct write; server code only | no |
 | housekeeping_task | read | tasks of own rooms | no | all | all |
-| housekeeping_task | write | `status` of own tasks only | no | `supervisor_review`, reassign | no |
+| housekeeping_task | write | own tasks: `status`, `incomplete_reason`, `incomplete_note` (through the task actions) | no | set `couldnt_complete` back to `pending` | no |
 | defect | read | defects in own rooms | assigned to them | all | all |
-| defect | create | yes, own rooms | no | yes | no |
-| defect | write | no | assigned only: `status`, `resolution_notes` | `technician`, `blocking`, `severity` | no |
+| defect | create | yes, own rooms, priority forced to `normal`, no technician | no | yes, any room | no |
+| defect | write | no | assigned only: `status` (start, resolve), `resolution_notes` | `technician`, `priority` | no |
 | access_request | read | no | no | no | all |
 | access_request | create | see section 8 | | | |
 | access_request | write | no | no | no | `status` (approve or decline) |
-| activity, handoff_briefing | read | no | no | all | all |
-| activity, handoff_briefing | write | server only | server only | server only | server only |
+| audit_entry | read | no | no | no (activity feeds come through `GET /snapshot`, scoped to visible rooms) | all |
+| audit_entry, handoff_briefing | write | server only | server only | server only | server only |
 
 Also protect the **UI Page**: confirm in the PDI whether the page is reachable without sign-in and restrict it to
 authenticated users with one of the four roles. The SDK `UiPage` docs show no roles property, so restricting to the four
@@ -152,24 +218,30 @@ fields the caller should not see.
 
 ## 6. Business rules and server logic
 
-Put the rules in one **Script Include** (`ReadinessEvaluator`) used by every rule and REST endpoint, so there is a single
-implementation.
+Put the rules in Script Includes (`ReadinessEvaluator`, and one per module for the actions) used by every rule and REST
+endpoint, so there is a single implementation of each.
 
 | # | Trigger | What it must do |
 |---|---|---|
-| 1 | `room` before update | If `readiness_status` or inspection moves toward Ready, run the evaluator. If it fails, **abort** with a safe message (the "cannot be marked Ready because..." sentence). |
-| 2 | Confirm-ready action | Only role `supervisor`. Re-run the evaluator **inside the same transaction** that sets the status. Require `inspection_status = pending` before pass. |
-| 3 | `housekeeping_task` after insert/update/delete | Recompute and store the room's `readiness_status`. Set `completed_at` and `supervisor_review = pending` when a task becomes `done`. Prevent changing a task that belongs to someone else's room. |
-| 4 | `defect` after insert/update | Recompute the room's status. Resolving requires non-empty `resolution_notes`. Only the assigned technician or a supervisor may resolve. |
-| 5 | Submit-for-inspection action | Only the room's assigned housekeeper. Requires all mandatory tasks done and no open blocking defect. Sets `inspection_status = pending`. |
-| 6 | All of the above | Write an `activity` row. |
+| 1 | Any change to a task, defect or room inspection | Recompute and store the room's `readiness_status` with the evaluator. |
+| 2 | Pass inspection | Only `supervisor`. Requires `inspection_status = pending`, all mandatory tasks `completed` and no open Blocking defect, checked **inside the same transaction** that sets `passed`. |
+| 3 | Fail inspection | Only `supervisor`. Requires `inspection_status = pending`. |
+| 4 | Submit for inspection | Only the room's assigned housekeeper. Requires all mandatory tasks completed, no open Blocking defect, inspection not already pending. Allowed again after a failed inspection. |
+| 5 | Task actions | Only the task's housekeeper may complete or mark Couldn't Complete (from `pending` only; not while the room awaits inspection). "Needs maintenance" creates the defect in the same transaction. Set back to `pending` is refused while the linked defect is unresolved. |
+| 6 | Defect actions | Report: housekeeper (own rooms) or supervisor. Triage: supervisor; technician must hold the maintenance role. Start and resolve: only the assigned technician; resolve needs notes and reopens the source task (rule in section 2.2). |
+| 7 | All of the above | Write an `audit_entry` row in the same transaction. |
+
+**Same answer for "not found" and "not yours".** A housekeeper completing someone else's task, or a technician opening a
+defect assigned to someone else, must get the same 404 as for a record that does not exist (the frontend rules already
+behave this way and the tests check it).
 
 **Duplicate and concurrent requests.** Make state changes conditional on the current state ("only if still `pending`"). A second
 identical request should find the state already changed and return HTTP 409, not apply twice. Compare a version
 (for example `sys_mod_count` or `sys_updated_on`) sent by the client for edits.
 
 **Protect against direct API bypass.** Table API writes to protected fields must be blocked by ACLs, not by hoping
-nobody calls them. Test by calling `/api/now/table/<your table>` as a non-admin and trying to set `readiness_status`.
+nobody calls them. Test by calling `/api/now/table/<your table>` as a non-admin and trying to set `readiness_status`,
+`priority` or `status`.
 
 ## 7. REST API contract the frontend expects
 
@@ -185,35 +257,48 @@ The browser must send the session CSRF token with every request (the starter app
 `GET /me` -> `{ id, name, role, shift }` where `role` is one of `housekeeping`, `maintenance`, `supervisor`, `admin`.
 The server decides the role; the client never sends it.
 
-`GET /snapshot` -> exactly the `Snapshot` shape in `src/client/types/domain.ts`:
+`GET /snapshot` -> exactly the `Snapshot` shape in `src/client/shared/domain/types.ts`:
 
 ```ts
 {
-  rooms:   Room[]                // id (room number), floor, type, assigneeId, inspection, inspectionAt?
-  tasks:   HousekeepingTask[]    // id, roomId, title, description, mandatory, priority, status, assigneeId, supervisorReview, completedAt?
-  defects: Defect[]              // id, roomId, title, description, severity, blocking, status, technicianId?, reportedAt, resolvedAt?, resolutionNotes?
-  staff:   Staff[]               // id, name, role, shift  (only people the caller may see; avoid extra personal data)
-  generatedAt: string            // ISO time
+  rooms:   Room[]              // id (room number), floor, type, assigneeId, inspection, inspectionAt?
+  tasks:   HousekeepingTask[]  // id, roomId, title, description, mandatory, priority, status, assigneeId, completedAt?,
+                               // incompleteReason?, incompleteNote?, incompleteAt?, linkedDefectId?, repairNote?
+  defects: Defect[]            // id, roomId, title, description, priority, status, reportedById, reportedAt, technicianId?,
+                               // assignedById?, assignedAt?, startedAt?, resolvedAt?, resolutionNotes?, sourceTaskId?
+  staff:   Staff[]             // id, name, role, shift (only people the caller may see; avoid extra personal data)
+  audit:   AuditEntry[]        // admin: everything; others: entries for rooms they may see (or none)
+  generatedAt: string          // ISO time
   source: 'servicenow'
 }
 ```
 
-The server must return **only records the caller may see** (the frontend's `scope.ts` only simulates this). The
+The server must return **only records the caller may see** (the frontend's `scope.ts` files only simulate this). The
 frontend computes readiness from this data for display; consider also returning `readinessStatus` from the server and
 having the UI show the server value, so the two can never disagree.
 
-### 7.2 Write
+### 7.2 Write: one endpoint per command
 
-| Method and path | Who | Body | Success | Notes |
+Every change in the app is one `Command` (`src/client/shared/api/commands.ts`). The frontend sends it through
+`RoomRelayDataSource.execute(command)`, which resolves to `{ ok: true }` or `{ ok: false, kind, message, fieldErrors? }`.
+Commands never carry the actor or role.
+
+| Command | Method and path | Who | Body | Rule |
 |---|---|---|---|---|
-| `PATCH /tasks/{id}` | housekeeper (own) | `{ status }` | updated task | Allowed transitions only |
-| `POST /rooms/{number}/submit-inspection` | housekeeper (own) | none | updated room | Rule 5 |
-| `POST /rooms/{number}/confirm-ready` | supervisor | `{ version }` | updated room | Rules 1 and 2. 409 if state changed. |
-| `POST /defects` | housekeeper, supervisor | `{ roomId, title, description, severity, blocking }` | new defect | Validate with the limits in `domain/validation.ts` |
-| `POST /defects/{id}/resolve` | maintenance (assigned), supervisor | `{ notes }` | updated defect | Rule 4 |
-| `POST /handoff/briefings` | supervisor | `{ shift }` | briefing | See `AI_DESIGN.md`; returns `source: 'ai'` or `'fallback'` |
-| `POST /access-requests` | see section 8 | the request form | `{ received: true }` | |
-| `POST /access-requests/{id}/decision` | app_admin | `{ decision }` | updated request | Approving also needs a person to grant roles in ServiceNow |
+| `task.complete` | `POST /tasks/{id}/complete` | housekeeper (own) | none | 5 |
+| `task.couldntComplete` | `POST /tasks/{id}/couldnt-complete` | housekeeper (own) | `{ reason, note? }` | 5 |
+| `task.reopen` | `POST /tasks/{id}/reopen` | housekeeper (own), supervisor | none | 5 |
+| `defect.report` | `POST /defects` | housekeeper (own rooms), supervisor | `{ roomId, title, description, priority?, technicianId? }` | 6 |
+| `defect.triage` | `POST /defects/{id}/triage` | supervisor | `{ technicianId, priority }` | 6 |
+| `defect.start` | `POST /defects/{id}/start` | maintenance (assigned) | none | 6 |
+| `defect.resolve` | `POST /defects/{id}/resolve` | maintenance (assigned) | `{ notes }` | 6 |
+| `room.submitInspection` | `POST /rooms/{number}/submit-inspection` | housekeeper (own) | none | 4 |
+| `room.recordInspection` | `POST /rooms/{number}/inspection` | supervisor | `{ result: 'passed' or 'failed', version }` | 2, 3 |
+| `handoff.briefingGenerated` | part of `POST /handoff/briefings` | supervisor | `{ shift }` | See `AI_DESIGN.md`; returns `source: 'ai'` or `'fallback'` |
+| (not yet a command) | `POST /access-requests` | see section 8 | the request form | |
+| (not yet a command) | `POST /access-requests/{id}/decision` | app_admin | `{ decision }` | Approving also needs a person to grant roles in ServiceNow |
+
+Validate with the limits in the validation files listed in section 2. Reject unknown fields.
 
 ### 7.3 Errors
 
@@ -223,14 +308,16 @@ Return the same envelope for every failure and **never** include stack traces, t
 { "error": { "code": "forbidden", "message": "You do not have permission to view this information." } }
 ```
 
-Map status codes to the frontend's `ApiError` kinds (`src/client/services/dataSource.ts`):
+Map status codes to the frontend's kinds (`ApiErrorKind` in `src/client/shared/api/dataSource.ts` for reads,
+`CommandFailureKind` in `commands.ts` for writes):
 
-| HTTP | `ApiErrorKind` |
+| HTTP | Kind |
 |---|---|
 | 401 | `unauthenticated` (or `expired` when the session timed out) |
 | 403 | `forbidden` |
 | 404 | `not_found` (also use 404 for records the caller may not know exist) |
-| 409 | conflict: add a kind, show "this changed, reload" |
+| 400 / 422 | `invalid`, with `fieldErrors` keyed by field name |
+| 409 | `conflict` ("this changed, reload") |
 | 5xx | `server` |
 | network failure | `network` |
 
@@ -250,47 +337,45 @@ In the prototype, `#/login` lets you choose a demo account, and `#/signup` is a 
 
 ## 9. What to change in the frontend
 
-All change points are small because components use interfaces, not `fetch`.
+All change points are small because screens use interfaces, not `fetch`. Each feature folder matches one backend module;
+see [ARCHITECTURE.md](ARCHITECTURE.md).
 
-1. **Data source.** Add `src/client/services/serviceNowDataSource.ts` implementing `RoomRelayDataSource` (`getSnapshot`).
-   In `src/client/app.tsx` replace `new MockDataSource()`. Map API errors to `ApiError` (never show raw server text).
-2. **Mutations.** The interface has only `getSnapshot` today. Add methods (`submitInspection`, `confirmReady`,
-   `reportDefect`, `resolveDefect`, `updateTask`, `generateBriefing`, `requestAccess`, `decideAccessRequest`) and call them from
-   the places that currently only simulate:
+1. **Data source.** Add `src/client/shared/api/serviceNowDataSource.ts` implementing `RoomRelayDataSource`
+   (`getSnapshot` and `execute`). In `src/client/app/App.tsx` replace `new MockDataSource(account)`. Map API errors to
+   `ApiError` and command failures to `CommandOutcome` (never show raw server text).
+2. **Writes already go through one place.** Every screen calls `run(command)` (`shared/api/DataContext.tsx`), which calls
+   `execute` and then quietly reloads the snapshot. Nothing else in the UI needs to change. Two flows are still pure
+   simulations and need commands added:
 
-   | Screen | File | Simulated today |
+   | Screen | File | Today |
    |---|---|---|
-   | Room details actions | `features/rooms/ReadinessPanel.tsx` | `SimulationDialog` |
-   | Report defect | `features/maintenance/ReportDefectDialog.tsx` | validates, shows preview |
-   | Record resolution | `features/maintenance/ResolutionDialog.tsx` | validates, shows preview |
-   | Shift handoff | `features/handoff/HandoffScreen.tsx` | `buildSimulatedBriefing` |
-   | Approve or decline | `features/access/AccessScreen.tsx` | `SimulationDialog` |
+   | Approve or decline access | `features/access/AccessScreen.tsx` | `SimulationDialog` |
    | Request account | `features/auth/CreateAccountScreen.tsx` | validates only |
+   | Shift handoff text | `features/handoff/HandoffScreen.tsx` | `buildSimulatedBriefing` (template, not AI) |
 
-   After a successful write, reload the snapshot (`useSnapshot` already supports `reload`). Show the server's decision;
-   do not assume success.
-3. **Session.** Replace the demo accounts in `app/session.tsx` with `GET /me`. Remove `PrototypeTools`, `LoginScreen`
-   and `data/mockAccess.ts` from the production path (or hide them behind the demo switch).
-4. **Scope filtering.** `domain/scope.ts` can stay as a convenience, but the server must already have filtered the data.
-5. **Remove prototype labels** ("Prototype: synthetic data" banners, "Simulation only" dialogs) only for flows that are
+3. **Session.** Replace the demo accounts in `features/auth/session.tsx` with `GET /me`. Remove `PrototypeTools`, `LoginScreen`
+   and the `mock/` folder (including the in-memory `mockStore.ts`) from the production path, or hide them behind the demo switch.
+4. **Scope filtering.** `features/rooms/scope.ts` and `features/maintenance/scope.ts` can stay as a convenience, but the
+   server must already have filtered the data.
+5. **Remove prototype labels** ("Live demo data", "Prototype" banners, "Simulation only" dialogs) only for flows that are
    really connected and tested. Leave them on anything still simulated.
-6. **Keep** `domain/readiness.ts`, `domain/validation.ts` and the logic tests: they now document the rules the server must match.
+6. **Keep** the rule files listed in section 2 and the logic tests: they document the rules the server must match.
 
 ## 10. Phase 5: real AI
 
 See [AI_DESIGN.md](AI_DESIGN.md). In short: the call to the AI provider is made by ServiceNow server code with the key held in
 a credential, never in the browser; only authorized, minimized data is sent; the reply is validated and shown as plain text;
 if anything fails, return the deterministic template briefing labeled as non-AI. The template logic to port is
-`src/client/domain/handoff.ts`.
+`src/client/features/handoff/briefing.ts`. It uses the Couldn't Complete **reason category** only, never the free-text note.
 
 ## 11. Suggested build order
 
-1. Tables, roles, `staff_profile`, sample data matching the prototype's scenarios (see `src/client/data/mockData.ts`).
-2. `ReadinessEvaluator` Script Include with the same tests as `tests/logic.test.cjs`.
+1. Tables, roles, `staff_profile`, sample data matching the prototype's scenarios (see `src/client/mock/mockData.ts`).
+2. `ReadinessEvaluator` and the action Script Includes with the same tests as `tests/logic.test.cjs`.
 3. ACLs, then **test as non-admin users** for each role in the matrix.
-4. Business rules and the write endpoints with 403, 409 and validation tests.
+4. Business rules, `audit_entry` writes and the write endpoints with 403, 404, 409 and validation tests.
 5. `GET /me` and `GET /snapshot`; connect the frontend's data source (reads first).
-6. Mutations one at a time, each followed by its tests from `TEST_PLAN.md` section 5.
+6. Commands one at a time, each followed by its tests from `TEST_PLAN.md` section 5.
 7. Install into the PDI, then run `DEPLOYMENT_GUIDE.md` checks and the security tests.
 8. AI integration last.
 
@@ -308,3 +393,4 @@ Still open:
 - Fluent API support for each metadata type on the Brazil release (tables, ACLs with scripts, business rules, scripted REST).
 - Exact logout path and how the signed-in user's roles are best read on the server.
 - How the prototype's own sign-in page should behave now that ServiceNow already signed the user in (it currently shows a second, demo sign-in).
+- The version of the UI installed in the PDI is the **earlier** one (before the vertical-slice layout and the task and defect rework). Reinstall (without `--reinstall`) when the team lead approves.
