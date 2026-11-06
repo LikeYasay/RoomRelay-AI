@@ -1,45 +1,46 @@
 :root {
-    /* Brand */
-    --navy-950: #081629;
-    --navy-900: #0b1f3a;
-    --navy-800: #12294a;
-    --navy-700: #1c3a63;
-    --teal-600: #0b7f74;
-    --teal-700: #096a61;
-    --teal-100: #d5f1ee;
-
-    /* Neutrals */
-    --bg: #f3f5f8;
+    /* Surfaces and text */
+    --bg: #f4f5f7;
     --surface: #ffffff;
-    --border: #e1e6ee;
-    --text: #1b2635;
-    --muted: #556275;
+    --surface-alt: #f8f9fb;
+    --border: #d9dde4;
+    --border-strong: #8e99a9;
+    --text: #1f2933;
+    --muted: #5b6676;
 
-    /* Status tones: foreground on soft background, all at least 4.5:1 contrast */
-    --success-fg: #116632;
-    --success-bg: #dcf5e4;
-    --success-solid: #1e9b4f;
-    --warning-fg: #8a4a05;
-    --warning-bg: #fdf0cf;
-    --warning-solid: #e0950f;
-    --danger-fg: #a21c1c;
-    --danger-bg: #fde4e4;
-    --danger-solid: #d93a3a;
-    --info-fg: #1a4fb8;
-    --info-bg: #e0ebff;
-    --info-solid: #3b72e0;
-    --review-fg: #5b2ab8;
-    --review-bg: #ece6fd;
-    --review-solid: #7c4fdc;
-    --neutral-fg: #3d4a5c;
-    --neutral-bg: #e9edf3;
+    /* Brand: deep slate-navy for structure, one restrained teal for primary actions */
+    --navy-900: #1b2a3d;
+    --navy-800: #25374e;
+    --navy-700: #324861;
+    --teal-600: #0e6f68;
+    --teal-700: #0a5a54;
+
+    /* Status tones: dark text on a pale tint, each at least 4.5:1 contrast */
+    --success-fg: #14612f;
+    --success-bg: #e1f3e7;
+    --success-solid: #2f9150;
+    --warning-fg: #86480a;
+    --warning-bg: #fbf0d6;
+    --warning-solid: #d49213;
+    --danger-fg: #9c1f1f;
+    --danger-bg: #fbe5e3;
+    --danger-solid: #c8423d;
+    --info-fg: #1c4a9e;
+    --info-bg: #e3ecfb;
+    --info-solid: #4a78cc;
+    --review-fg: #55309f;
+    --review-bg: #ece7f8;
+    --review-solid: #7857c2;
+    --neutral-fg: #3b4757;
+    --neutral-bg: #eaedf1;
     --neutral-solid: #8895a8;
 
-    --radius: 12px;
-    --radius-sm: 8px;
-    --shadow: 0 1px 2px rgba(11, 31, 58, 0.06), 0 4px 14px rgba(11, 31, 58, 0.06);
-    --focus: 0 0 0 3px rgba(11, 127, 116, 0.45);
-    --sidebar-width: 256px;
+    /* Square-ish and flat: small radii, hairline borders, no shadows */
+    --radius: 4px;
+    --radius-sm: 3px;
+    --shadow: none;
+    --focus: 0 0 0 3px rgba(14, 111, 104, 0.4);
+    --sidebar-width: 224px;
 
-    --font: 'Inter', 'Segoe UI', system-ui, -apple-system, Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font: 'Source Sans 3', 'Segoe UI', system-ui, -apple-system, Roboto, 'Helvetica Neue', Arial, sans-serif;
 }

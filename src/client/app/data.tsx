@@ -52,7 +52,13 @@ function useData(): DataValue {
 /** Renders loading and error states, and the screen only once data is ready. */
 export function DataGate({ loadingLabel = 'Loading', children }: { loadingLabel?: string; children: (data: ReadyData) => ReactNode }) {
     const { state, reload } = useData()
+    const { signOut } = useSession()
     if (state.status === 'loading') return <LoadingState label={loadingLabel} />
-    if (state.status === 'error') return <ErrorState kind={state.kind} message={state.message} onRetry={reload} />
+    if (state.status === 'error') return <ErrorState
+                kind={state.kind}
+                message={state.message}
+                onRetry={reload}
+                onSignIn={() => signOut(state.message)}
+            />
     return <>{children(state.data)}</>
 }

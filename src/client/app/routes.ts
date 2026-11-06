@@ -7,7 +7,7 @@ import type { Role } from '../types/domain'
  * ServiceNow roles, ACLs and server-side validation.
  */
 
-export type RouteId = 'dashboard' | 'rooms' | 'housekeeping' | 'maintenance' | 'handoff'
+export type RouteId = 'dashboard' | 'rooms' | 'housekeeping' | 'maintenance' | 'handoff' | 'access'
 
 export interface RouteDef {
     id: RouteId
@@ -65,6 +65,15 @@ export const ROUTES: RouteDef[] = [
         description: 'Generate a briefing for the incoming shift.',
         icon: 'sparkles',
         roles: ['supervisor'],
+        live: true,
+    },
+    {
+        id: 'access',
+        label: 'Users and Access',
+        title: 'Users and Access',
+        description: 'Staff accounts, access requests and role permissions.',
+        icon: 'users',
+        roles: ['admin'],
         live: true,
     },
 ]

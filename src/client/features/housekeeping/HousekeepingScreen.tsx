@@ -107,10 +107,10 @@ function Housekeeping({ data }: { data: ReadyData }) {
             </Banner>
 
             <section aria-label="Task summary" className="kpis kpis--4">
-                <KpiCard label="To do" value={summary.open} tone="warning" icon="list" />
-                <KpiCard label="In progress" value={summary.inProgress} tone="info" icon="clock" />
-                <KpiCard label="Completed" value={summary.done} tone="success" icon="check-circle" />
-                <KpiCard label="Awaiting supervisor review" value={summary.review} tone="review" icon="clipboard-check" />
+                <KpiCard label="To do" value={summary.open} tone="warning" />
+                <KpiCard label="In progress" value={summary.inProgress} tone="info" />
+                <KpiCard label="Completed" value={summary.done} tone="success" />
+                <KpiCard label="Awaiting supervisor review" value={summary.review} tone="review" />
             </section>
 
             <section className="card" aria-labelledby="h-staff">

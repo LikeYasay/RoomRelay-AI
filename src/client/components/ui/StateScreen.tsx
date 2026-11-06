@@ -43,6 +43,8 @@ interface ErrorStateProps {
     kind: ApiErrorKind
     message: string
     onRetry?: () => void
+    /** Called by the "Sign in again" button for expired or missing sessions. */
+    onSignIn?: () => void
 }
 
 const ERROR_PRESENTATION: Record<ApiErrorKind, { icon: IconName; title: string; tone: 'danger' | 'warning' }> = {
@@ -58,7 +60,7 @@ const ERROR_PRESENTATION: Record<ApiErrorKind, { icon: IconName; title: string; 
  * Maps a safe ApiError kind to the right screen. In the real app, "Sign in" would
  * send the user to the ServiceNow login page. Authentication stays with ServiceNow.
  */
-export function ErrorState({ kind, message, onRetry }: ErrorStateProps) {
+export function ErrorState({ kind, message, onRetry, onSignIn }: ErrorStateProps) {
     const p = ERROR_PRESENTATION[kind]
     const canRetry = kind === 'server' || kind === 'network'
     return (
@@ -68,10 +70,10 @@ export function ErrorState({ kind, message, onRetry }: ErrorStateProps) {
                     <Icon name="refresh" size={16} /> Try again
                 </button>
             ) : null}
-            {kind === 'unauthenticated' || kind === 'expired' ? (
-                <p className="state-screen__note">
-                    Prototype: in the live app this would redirect to the ServiceNow sign-in page.
-                </p>
+            {(kind === 'unauthenticated' || kind === 'expired') && onSignIn ? (
+                <button type="button" className="btn btn--primary" onClick={onSignIn}>
+                    <Icon name="lock" size={16} /> Sign in again
+                </button>
             ) : null}
         </StateScreen>
     )

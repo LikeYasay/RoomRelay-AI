@@ -1,14 +1,23 @@
+/* Panel header row that also holds an action button */
 .card__head {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
     gap: 12px;
-    margin-bottom: 14px;
+    margin: 0 -16px 14px;
+    padding: 6px 16px;
+    min-height: 46px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-alt);
+    border-radius: var(--radius) var(--radius) 0 0;
 }
 
 .card__head > h2 {
     margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
     font-size: 16px;
 }
 
@@ -46,7 +55,7 @@
 .form-field select {
     width: 100%;
     padding: 9px 11px;
-    border: 1px solid #94a0b2;
+    border: 1px solid var(--border-strong);
     border-radius: var(--radius-sm);
     background: var(--surface);
     font: inherit;

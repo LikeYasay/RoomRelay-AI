@@ -10,8 +10,8 @@ body {
     background: var(--bg);
     color: var(--text);
     font-family: var(--font);
-    font-size: 15px;
-    line-height: 1.5;
+    font-size: 16px;
+    line-height: 1.45;
     -webkit-font-smoothing: antialiased;
 }
 
@@ -21,6 +21,7 @@ h3 {
     color: var(--navy-900);
     margin: 0;
     line-height: 1.25;
+    font-weight: 600;
 }
 
 p {
@@ -40,7 +41,8 @@ a {
 
 button,
 input,
-select {
+select,
+textarea {
     font: inherit;
     color: inherit;
 }
@@ -48,11 +50,16 @@ select {
 :focus-visible {
     outline: none;
     box-shadow: var(--focus);
-    border-radius: 6px;
+    border-radius: 3px;
 }
 
 .muted {
     color: var(--muted);
+}
+
+.num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
 }
 
 .sr-only {
@@ -80,6 +87,12 @@ select {
 
 .skip-link:focus {
     top: 8px;
+}
+
+.brand {
+    font-weight: 700;
+    font-size: 19px;
+    letter-spacing: -0.01em;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -6,7 +6,7 @@ import { CLEANING_LABEL, cleaningProgress } from '../../domain/progress'
 import type { Role, RoomView, Staff } from '../../types/domain'
 import { RoomStatusBadge } from '../../components/ui/Badge'
 import { Banner } from '../../components/ui/Banner'
-import { Dialog } from '../../components/ui/Dialog'
+import { SimulationDialog } from '../../components/ui/SimulationDialog'
 import { Icon } from '../../components/ui/Icon'
 
 interface Props {
@@ -90,39 +90,14 @@ export function ReadinessPanel({ view, role, user }: Props) {
                 <p className="muted">Your role cannot change this room&apos;s readiness.</p>
             )}
 
-            {active ? <SimulationDialog action={active} roomId={room.id} onClose={() => setActive(null)} /> : null}
+            {active ? (
+                <SimulationDialog
+                    title={`${active.label}: Room ${room.id}`}
+                    intro={`${active.description} Run the simulation to see what the screen would do.`}
+                    result={`Simulated result: the request for Room ${room.id} would be accepted by this screen. In the live application the server re-checks your role, the room and every readiness rule, and may still refuse.`}
+                    onClose={() => setActive(null)}
+                />
+            ) : null}
         </section>
-    )
-}
-
-function SimulationDialog({ action, roomId, onClose }: { action: RoomAction; roomId: string; onClose: () => void }) {
-    const [ran, setRan] = useState(false)
-
-    return (
-        <Dialog title={`${action.label}: Room ${roomId}`} onClose={onClose}>
-            <Banner tone="warning">
-                <strong>Simulation only.</strong> No ServiceNow record is read or changed.
-            </Banner>
-            {ran ? (
-                <p className="dialog__body">
-                    Simulated result: the request for Room {roomId} would be accepted by this screen. In the live
-                    application the server re-checks your role, the room and every readiness rule, and may still refuse.
-                </p>
-            ) : (
-                <p className="dialog__body">
-                    {action.description} Run the simulation to see what the screen would do.
-                </p>
-            )}
-            <div className="dialog__actions">
-                {ran ? null : (
-                    <button type="button" className="btn btn--primary" onClick={() => setRan(true)}>
-                        Run simulation
-                    </button>
-                )}
-                <button type="button" className="btn btn--ghost btn--flat" onClick={onClose}>
-                    {ran ? 'Close' : 'Cancel'}
-                </button>
-            </div>
-        </Dialog>
     )
 }

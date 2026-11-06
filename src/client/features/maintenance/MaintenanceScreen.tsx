@@ -96,10 +96,10 @@ function Maintenance({ data }: { data: ReadyData }) {
             </Banner>
 
             <section aria-label="Defect summary" className="kpis kpis--4">
-                <KpiCard label="Open" value={kpis.open} tone="warning" icon="alert-small" />
-                <KpiCard label="In progress" value={kpis.inProgress} tone="info" icon="clock" />
-                <KpiCard label="Resolved" value={kpis.resolved} tone="success" icon="check-circle" />
-                <KpiCard label="Unresolved and blocking" value={kpis.blocking} hint="Prevent rooms from being Ready" tone="danger" icon="lock" />
+                <KpiCard label="Open" value={kpis.open} tone="warning" />
+                <KpiCard label="In progress" value={kpis.inProgress} tone="info" />
+                <KpiCard label="Resolved" value={kpis.resolved} tone="success" />
+                <KpiCard label="Unresolved and blocking" value={kpis.blocking} hint="Prevent rooms from being Ready" tone="danger" />
             </section>
 
             <section className="card" aria-labelledby="h-defect-list">

@@ -3,6 +3,7 @@ import { ROUTES, canViewRoute } from '../../app/routes'
 import type { RouteId } from '../../app/routes'
 import type { Role } from '../../types/domain'
 import { Icon } from '../ui/Icon'
+import { PrototypeTools } from './PrototypeTools'
 
 interface SidebarProps {
     activeRoute: RouteId | undefined
@@ -12,36 +13,21 @@ interface SidebarProps {
 }
 
 export function Sidebar({ activeRoute, role, open, onNavigate }: SidebarProps) {
+    // Pages this role cannot use are not listed at all. (Typing the address still shows "Access denied",
+    // and the server must refuse the data regardless of what the menu shows.)
+    const items = ROUTES.filter((route) => canViewRoute(route, role))
+
     return (
         <aside id="app-sidebar" className={`sidebar${open ? ' sidebar--open' : ''}`}>
             <div className="sidebar__brand">
-                <span className="sidebar__logo" aria-hidden="true">
-                    <Icon name="building" size={22} />
-                </span>
-                <div>
-                    <p className="sidebar__name">RoomRelay AI</p>
-                    <p className="sidebar__tagline">Room readiness and shift handoff</p>
-                </div>
+                <span className="brand">RoomRelay AI</span>
+                <span className="sidebar__tagline">Room readiness and shift handoff</span>
             </div>
 
             <nav aria-label="Main navigation">
                 <ul className="nav">
-                    {ROUTES.map((route) => {
-                        const allowed = canViewRoute(route, role)
+                    {items.map((route) => {
                         const active = route.id === activeRoute
-                        if (!allowed) {
-                            return (
-                                <li key={route.id}>
-                                    <span className="nav__item nav__item--disabled" aria-disabled="true">
-                                        <Icon name={route.icon} />
-                                        <span className="nav__label">{route.label}</span>
-                                        <span className="nav__tag">
-                                            <Icon name="lock" size={12} /> Restricted
-                                        </span>
-                                    </span>
-                                </li>
-                            )
-                        }
                         return (
                             <li key={route.id}>
                                 <a
@@ -50,9 +36,8 @@ export function Sidebar({ activeRoute, role, open, onNavigate }: SidebarProps) {
                                     aria-current={active ? 'page' : undefined}
                                     onClick={onNavigate}
                                 >
-                                    <Icon name={route.icon} />
-                                    <span className="nav__label">{route.label}</span>
-                                    {route.live ? null : <span className="nav__tag">Planned</span>}
+                                    <Icon name={route.icon} size={18} />
+                                    <span>{route.label}</span>
                                 </a>
                             </li>
                         )
@@ -60,7 +45,10 @@ export function Sidebar({ activeRoute, role, open, onNavigate }: SidebarProps) {
                 </ul>
             </nav>
 
-            <p className="sidebar__footer">Prototype build. Synthetic data only.</p>
+            <div className="sidebar__footer">
+                <PrototypeTools />
+                <p>Prototype build. Synthetic data only.</p>
+            </div>
         </aside>
     )
 }

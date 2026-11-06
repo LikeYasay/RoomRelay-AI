@@ -13,6 +13,16 @@ declare global {
                         table: 'sys_module'
                         id: '9c6102d8f0c745428a1f93de71b273d1'
                     }
+                    'styles/fonts.css': {
+                        table: 'sys_ux_theme_asset'
+                        id: '3647d5063bc248bfb11a629d66825357'
+                        deleted: true
+                    }
+                    'styles\\fonts.css': {
+                        table: 'sys_ux_theme_asset'
+                        id: '5f6bc4d9381c48ee86a7c25637a043f9'
+                        deleted: true
+                    }
                 }
                 composite: [
                     {

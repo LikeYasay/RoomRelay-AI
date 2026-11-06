@@ -27,7 +27,7 @@ function RoomBoard({ data }: { data: ReadyData }) {
     const [query, setQuery] = useState('')
     const [status, setStatus] = useState<StatusFilter>('all')
     const [floor, setFloor] = useState<'all' | number>('all')
-    const [mode, setMode] = useState<ViewMode>('cards')
+    const [mode, setMode] = useState<ViewMode>('table')
 
     const floors = useMemo(() => [...new Set(scoped.views.map((v) => v.room.floor))].sort((a, b) => a - b), [scoped])
 

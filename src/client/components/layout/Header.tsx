@@ -2,7 +2,6 @@ import React from 'react'
 import { useSession } from '../../app/session'
 import { ROLE_LABEL } from '../../domain/labels'
 import { Icon } from '../ui/Icon'
-import { DemoControls } from './DemoControls'
 
 interface HeaderProps {
     title: string
@@ -12,38 +11,38 @@ interface HeaderProps {
 }
 
 export function Header({ title, description, menuOpen, onToggleMenu }: HeaderProps) {
-    const { role, user } = useSession()
+    const { role, user, signOut } = useSession()
 
     return (
         <header className="header">
-            <div className="header__top">
-                <button
-                    type="button"
-                    className="icon-btn header__menu"
-                    onClick={onToggleMenu}
-                    aria-expanded={menuOpen}
-                    aria-controls="app-sidebar"
-                    aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}
-                >
-                    <Icon name={menuOpen ? 'close' : 'menu'} />
-                </button>
+            <button
+                type="button"
+                className="icon-btn header__menu"
+                onClick={onToggleMenu}
+                aria-expanded={menuOpen}
+                aria-controls="app-sidebar"
+                aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+            >
+                <Icon name={menuOpen ? 'close' : 'menu'} />
+            </button>
 
-                <div className="header__titles">
-                    <h1>{title}</h1>
-                    <p>{description}</p>
-                </div>
+            <div className="header__titles">
+                <h1>{title}</h1>
+                <p>{description}</p>
+            </div>
 
-                <div className="header__user">
-                    <span className="chip chip--prototype">Prototype: synthetic data</span>
-                    <span className="header__who">
-                        <Icon name="user" size={16} />
-                        <span>
-                            {user.name} <span className="muted">({ROLE_LABEL[role]})</span>
-                        </span>
-                    </span>
+            <div className="header__user">
+                <span className="chip chip--prototype">Prototype: synthetic data</span>
+                <div className="header__who">
+                    <div>
+                        <p className="header__name">{user.name}</p>
+                        <p className="header__role">{ROLE_LABEL[role]}</p>
+                    </div>
+                    <button type="button" className="btn btn--ghost btn--flat btn--small" onClick={() => signOut()}>
+                        <Icon name="logout" size={16} /> Sign out
+                    </button>
                 </div>
             </div>
-            <DemoControls />
         </header>
     )
 }

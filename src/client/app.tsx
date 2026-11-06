@@ -1,11 +1,14 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { DataProvider } from './app/data'
 import { useHashRoute } from './app/useHashRoute'
 import { canViewRoute } from './app/routes'
-import { SessionProvider, useSession } from './app/session'
+import { SessionProvider, useAuth, useSession } from './app/session'
 import { AppShell } from './components/layout/AppShell'
 import { ErrorBoundary } from './components/ui/ErrorBoundary'
 import { StateScreen } from './components/ui/StateScreen'
+import { AccessScreen } from './features/access/AccessScreen'
+import { CreateAccountScreen } from './features/auth/CreateAccountScreen'
+import { LoginScreen } from './features/auth/LoginScreen'
 import { DashboardScreen } from './features/dashboard/DashboardScreen'
 import { HandoffScreen } from './features/handoff/HandoffScreen'
 import { HousekeepingScreen } from './features/housekeeping/HousekeepingScreen'
@@ -13,6 +16,7 @@ import { MaintenanceScreen } from './features/maintenance/MaintenanceScreen'
 import { RoomBoardScreen } from './features/rooms/RoomBoardScreen'
 import { RoomDetailScreen } from './features/rooms/RoomDetailScreen'
 import { MockDataSource } from './services/mockDataSource'
+import { loadBrandFont } from './styles/loadFonts'
 import './styles/tokens.css'
 import './styles/base.css'
 import './styles/layout.css'
@@ -21,8 +25,11 @@ import './styles/dashboard.css'
 import './styles/rooms.css'
 import './styles/forms.css'
 import './styles/handoff.css'
+import './styles/auth.css'
 
-// Phases 1 and 2 use the synthetic mock source. Phase 4 swaps in a ServiceNow-backed source.
+loadBrandFont()
+
+// The prototype uses the synthetic mock source. Phase 4 swaps in a ServiceNow-backed source.
 const dataSource = new MockDataSource()
 
 function Routes() {
@@ -32,12 +39,7 @@ function Routes() {
     if (!route) {
         return (
             <AppShell routeKey="not-found" activeRoute={undefined} title="Page not found" description="That page does not exist.">
-                <StateScreen
-                    icon="search"
-                    title="Page not found"
-                    message="The page you asked for does not exist."
-                    tone="warning"
-                >
+                <StateScreen icon="search" title="Page not found" message="The page you asked for does not exist." tone="warning">
                     <a className="btn btn--primary" href="#/dashboard">
                         Go to dashboard
                     </a>
@@ -53,12 +55,7 @@ function Routes() {
     if (!canViewRoute(route, role)) {
         // UI courtesy only. The server must still deny the underlying data and actions.
         body = (
-            <StateScreen
-                icon="lock"
-                tone="danger"
-                title="Access denied"
-                message="Your role does not include access to this page."
-            >
+            <StateScreen icon="lock" tone="danger" title="Access denied" message="Your role does not include access to this page.">
                 <a className="btn btn--primary" href="#/dashboard">
                     Back to dashboard
                 </a>
@@ -79,17 +76,7 @@ function Routes() {
     } else if (route.id === 'handoff') {
         body = <HandoffScreen />
     } else {
-        body = (
-            <StateScreen
-                icon="clock"
-                title={`${route.title} is planned`}
-                message={`This screen is scheduled for ${route.plannedPhase ?? 'a later phase'} and is not built yet.`}
-            >
-                <a className="btn btn--primary" href="#/dashboard">
-                    Back to dashboard
-                </a>
-            </StateScreen>
-        )
+        body = <AccessScreen />
     }
 
     return (
@@ -99,13 +86,32 @@ function Routes() {
     )
 }
 
+/** Signed out: only the sign-in and create-account pages exist. Signed in: the app. */
+function Root() {
+    const { account } = useAuth()
+    const { page } = useHashRoute()
+
+    // A signed-in person who opens the sign-in or sign-up address is sent to the dashboard.
+    useEffect(() => {
+        if (account && page) window.location.hash = '#/dashboard'
+    }, [account, page])
+
+    if (!account) return page === 'signup' ? <CreateAccountScreen /> : <LoginScreen />
+    if (page) return null
+
+    // Keyed by account so nothing loaded for one person is ever reused for the next.
+    return (
+        <DataProvider key={account.id} source={dataSource}>
+            <Routes />
+        </DataProvider>
+    )
+}
+
 export default function App() {
     return (
         <ErrorBoundary>
             <SessionProvider>
-                <DataProvider source={dataSource}>
-                    <Routes />
-                </DataProvider>
+                <Root />
             </SessionProvider>
         </ErrorBoundary>
     )
