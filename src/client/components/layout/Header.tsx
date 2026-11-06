@@ -11,7 +11,7 @@ interface HeaderProps {
 }
 
 export function Header({ title, description, menuOpen, onToggleMenu }: HeaderProps) {
-    const { role, user, signOut } = useSession()
+    const { role, user } = useSession()
 
     return (
         <header className="header">
@@ -34,13 +34,8 @@ export function Header({ title, description, menuOpen, onToggleMenu }: HeaderPro
             <div className="header__user">
                 <span className="chip chip--prototype">Prototype: synthetic data</span>
                 <div className="header__who">
-                    <div>
-                        <p className="header__name">{user.name}</p>
-                        <p className="header__role">{ROLE_LABEL[role]}</p>
-                    </div>
-                    <button type="button" className="btn btn--ghost btn--flat btn--small" onClick={() => signOut()}>
-                        <Icon name="logout" size={16} /> Sign out
-                    </button>
+                    <p className="header__name">{user.name}</p>
+                    <p className="header__role">{ROLE_LABEL[role]}</p>
                 </div>
             </div>
         </header>

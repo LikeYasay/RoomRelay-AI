@@ -7,7 +7,6 @@
     background:
         radial-gradient(ellipse 60% 50% at 12% 0%, rgba(14, 111, 104, 0.28), transparent 70%),
         linear-gradient(180deg, #172536 0%, #111d2b 100%);
-    color: #d3dbe6;
 }
 
 /* Pixel-grid backdrop (see PixelBackground.tsx) */
@@ -47,31 +46,30 @@
     outline: none;
 }
 
-/* The whole group (form + info) is centered on the page, both ways. */
-.auth__wrap {
+/* One white panel holds the form and the information, centered on the page both ways. */
+.auth__panel {
     width: 100%;
-    max-width: 1080px;
+    max-width: 1040px;
     margin: auto;
     display: grid;
-    grid-template-columns: minmax(340px, 520px) minmax(0, 1fr);
-    gap: 56px;
-    align-items: start;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    background: var(--surface);
+    color: var(--text);
+    border-radius: var(--radius);
+    border-top: 3px solid var(--teal-600);
+    box-shadow: 0 24px 60px rgba(4, 10, 18, 0.5);
+    overflow: hidden;
 }
 
 .auth__form {
-    background: var(--surface);
-    color: var(--text);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: var(--radius);
-    padding: 28px;
+    padding: 36px 40px;
     display: flex;
     flex-direction: column;
     gap: 14px;
-    box-shadow: 0 10px 30px rgba(5, 12, 22, 0.35);
 }
 
 .auth__form h1 {
-    font-size: 26px;
+    font-size: 27px;
 }
 
 .auth__form h2 {
@@ -87,44 +85,42 @@
     border-top: 1px solid var(--border);
 }
 
+/* The information side: a soft tint so the two halves read as one panel with two areas. */
 .auth__info {
+    padding: 36px 40px;
+    background: #eef3f5;
+    border-left: 1px solid var(--border);
     display: flex;
     flex-direction: column;
     gap: 12px;
-    padding-top: 6px;
 }
 
 .auth__info h2 {
     font-size: 21px;
-    color: #fff;
-}
-
-.auth__info p {
-    color: #d3dbe6;
 }
 
 .auth__roles {
     margin: 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.16);
+    border-top: 1px solid var(--border);
 }
 
 .auth__roles > div {
     padding: 10px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+    border-bottom: 1px solid var(--border);
 }
 
 .auth__roles dt {
     font-weight: 600;
-    color: #fff;
+    color: var(--navy-900);
 }
 
 .auth__roles dd {
     margin: 2px 0 0;
-    color: #b4c1d4;
+    color: var(--muted);
 }
 
 .auth__info .auth__note {
-    color: #b4c1d4;
+    color: var(--muted);
 }
 
 .form__actions {
@@ -134,13 +130,16 @@
     flex-wrap: wrap;
 }
 
-/* Tablet and phone: the form first, the info panel below it, still centered. */
+/* Tablet and phone: one column inside the same panel, information below the form. */
 @media (max-width: 900px) {
-    .auth__wrap {
-        grid-template-columns: minmax(0, 520px);
-        justify-content: center;
-        gap: 28px;
-        margin: 0 auto;
+    .auth__panel {
+        grid-template-columns: minmax(0, 1fr);
+        max-width: 560px;
+    }
+
+    .auth__info {
+        border-left: 0;
+        border-top: 1px solid var(--border);
     }
 
     .auth__main {
@@ -153,12 +152,13 @@
 }
 
 @media (max-width: 560px) {
-    .auth__form {
-        padding: 18px 16px;
+    .auth__form,
+    .auth__info {
+        padding: 22px 18px;
     }
 
     .auth__form h1 {
-        font-size: 23px;
+        font-size: 24px;
     }
 
     .auth__main {

@@ -14,8 +14,9 @@ const ROLE_DESCRIPTION: Record<Role, string> = {
 const ROLES: Role[] = ['housekeeping', 'maintenance', 'supervisor', 'admin']
 
 /**
- * Signed-out page frame. The form and the "who can use this" panel sit side by side as ONE
- * group that is centered on the page (stacked on narrow screens), over a pixel-grid backdrop.
+ * Signed-out page frame. The form and the "who can use this" information share ONE white
+ * panel (form on the left, information on the right), centered on the page over a
+ * pixel-grid backdrop. On narrow screens the information stacks under the form.
  */
 export function AuthLayout({ children }: { children: ReactNode }) {
     return (
@@ -26,7 +27,7 @@ export function AuthLayout({ children }: { children: ReactNode }) {
                 <span className="chip chip--prototype">Prototype: synthetic data</span>
             </header>
             <main className="auth__main" id="main-content">
-                <div className="auth__wrap">
+                <div className="auth__panel">
                     <div className="auth__form">{children}</div>
                     <aside className="auth__info" aria-labelledby="who-heading">
                         <h2 id="who-heading">Who can use RoomRelay AI</h2>

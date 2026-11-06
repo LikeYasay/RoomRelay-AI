@@ -1,6 +1,7 @@
 import React from 'react'
 import { ROUTES, canViewRoute } from '../../app/routes'
 import type { RouteId } from '../../app/routes'
+import { useSession } from '../../app/session'
 import type { Role } from '../../types/domain'
 import { Icon } from '../ui/Icon'
 import { PrototypeTools } from './PrototypeTools'
@@ -13,6 +14,8 @@ interface SidebarProps {
 }
 
 export function Sidebar({ activeRoute, role, open, onNavigate }: SidebarProps) {
+    const { signOut } = useSession()
+
     // Pages this role cannot use are not listed at all. (Typing the address still shows "Access denied",
     // and the server must refuse the data regardless of what the menu shows.)
     const items = ROUTES.filter((route) => canViewRoute(route, role))
@@ -47,7 +50,11 @@ export function Sidebar({ activeRoute, role, open, onNavigate }: SidebarProps) {
 
             <div className="sidebar__footer">
                 <PrototypeTools />
-                <p>Prototype build. Synthetic data only.</p>
+                <p className="sidebar__note">Prototype build. Synthetic data only.</p>
+                <button type="button" className="sidebar__signout" onClick={() => signOut()}>
+                    <Icon name="logout" size={18} />
+                    <span>Sign out</span>
+                </button>
             </div>
         </aside>
     )
