@@ -57,7 +57,7 @@
     padding: 9px 11px;
     border: 1px solid var(--border-strong);
     border-radius: var(--radius-sm);
-    background: var(--surface);
+    background-color: var(--surface);
     font: inherit;
 }
 
@@ -149,4 +149,8 @@
 .dialog {
     max-height: calc(100vh - 32px);
     overflow-y: auto;
+}
+
+.form-field select {
+    padding-right: 38px;
 }
