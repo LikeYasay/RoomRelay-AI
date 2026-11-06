@@ -1,7 +1,10 @@
 # Deployment guide: installing into the PDI and checking it
 
-**Status: this has not been done yet.** Everything so far was tested locally. Installing is the first time the app runs
-inside real ServiceNow, and it can reveal problems the local preview cannot.
+**Status (2026-11-06): done once for the prototype UI.** The build was installed into `dev472716` (SDK exit code 0) and the
+team lead confirmed the app renders and works inside the PDI; see `TEST_PLAN.md` section 4b. Repeat sections 1 to 4
+every time the app changes, and again after the backend is added. The checks below are still the right ones.
+
+The first install is the first time the app ran inside real ServiceNow, which can reveal problems the local preview cannot.
 
 **Installing writes to the PDI.** The team lead decides when. Do not use a different instance, and never add `--reinstall`.
 

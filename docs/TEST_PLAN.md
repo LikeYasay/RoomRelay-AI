@@ -2,7 +2,7 @@
 
 **Honesty rule for this document:** a result is written only if the check was actually run. "Not run" means exactly that.
 Results below were observed on **2026-11-06** with the local preview (`npm run preview`) in a desktop browser, plus the
-commands named. **Nothing has been tested inside the ServiceNow PDI yet.**
+commands named, plus a first run inside the ServiceNow PDI (section 4b). **No backend, ACL or real-data behavior has been tested yet.**
 
 For each test: objective, preconditions, steps, expected behavior, observed behavior, pass or fail, recommended correction.
 To keep the document readable, repeated preconditions are stated once per section.
@@ -98,7 +98,25 @@ Preconditions: preview running; sign in with the account shown. All **Pass** unl
 | R3 | Slide-out menu on narrow screens (open, Escape, outside click, Sign out reachable) | **Pass** | |
 | R4 | Defect dialog fits a 375 px screen | **Pass** | |
 | R5 | Real phones and tablets | **Not run** | Only simulated sizes in a desktop browser |
-| R6 | Layout inside ServiceNow | **Not run** | See `DEPLOYMENT_GUIDE.md` |
+| R6 | Layout inside ServiceNow | **Passed on the desktop dashboard**; narrow-window and other pages reported working, not itemised | See section 4b |
+
+## 4b. First run inside the ServiceNow PDI (2026-11-06)
+
+Instance `dev472716`, scope `x_2305075_roomrela`. This is the **prototype UI only**: no tables, roles or ACLs exist yet.
+
+| ID | Check | Result | Observed |
+|---|---|---|---|
+| P1 | Install into the PDI | **Pass** | `npx @servicenow/sdk install --auth roomrelay-pdi` printed "Installation completed", exit code 0; the SDK also printed a rollback link. Observed directly. |
+| P2 | Signed-out visit to the UI Page | **Pass** | A browser with no ServiceNow session was redirected to "You are not logged in... Redirecting to the login page", then the ServiceNow sign-in screen. The page is **not public**. Observed directly. |
+| P3 | Page renders after signing in to the PDI | **Pass** | Team lead's own browser, screenshot of `.../x_2305075_roomrela_incident_manager.do#/dashboard` signed in as Morgan Ellis: sidebar, header, summary strip, charts, tables and Sign out all drawn correctly. Source Sans 3 appears to render. |
+| P4 | Numbers match the local preview | **Pass** | Screenshot shows 40 rooms, 16 Ready, 9, 6, 4 and 5 in the other statuses, 72 open tasks (64 mandatory), 4 unresolved defects, 3 high-priority blockers. |
+| P5 | Hash routing inside the platform page (`#/dashboard`) | **Pass** | The route in the address bar rendered the Operations Dashboard. |
+| P6 | Menu, Back and Forward, refresh, direct room address, dialogs, sign out | **Reported working by the team lead, not itemised** | Re-run these one by one when convenient |
+| P7 | Console errors and Content Security Policy messages | **Not itemised** | Team lead reported no problems; the exact Console output was not captured |
+| P8 | `typeof window.g_ck` | **Not itemised** | Needed before the backend integration; record the answer (`"string"` or `"undefined"`) |
+
+Caveat: P3 to P5 show the prototype running on its own synthetic data. They say nothing yet about real data, ACLs or
+server-side security.
 
 ## 5. Backend and security tests (to run once the backend exists)
 
@@ -130,6 +148,6 @@ until the backend is built. Recommended correction for any failure: fix the serv
 
 ## 6. Known gaps in testing
 
-- Nothing has run in ServiceNow. The biggest unknowns are listed in `BACKEND_HANDOFF.md` section 12.
+- Inside ServiceNow only the prototype UI has run, once (section 4b). Console output and `g_ck` were not captured. The remaining unknowns are in `BACKEND_HANDOFF.md` section 12.
 - Screen readers, real devices, and the successful clipboard path are untested.
 - The browser checks were run by hand from scripts in a temporary test browser; there is no automated end-to-end suite.

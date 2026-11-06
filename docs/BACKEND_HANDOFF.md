@@ -143,8 +143,9 @@ conditions or scripts; test each cell with a non-admin user.
 | activity, handoff_briefing | write | server only | server only | server only | server only |
 
 Also protect the **UI Page**: confirm in the PDI whether the page is reachable without sign-in and restrict it to
-authenticated users with one of the four roles. The SDK `UiPage` docs show no roles property, so this probably has to
-be checked or set on the instance record. **Verify.**
+authenticated users with one of the four roles. The SDK `UiPage` docs show no roles property, so restricting to the four
+roles probably has to be set on the instance record. **Signed-out access is already refused** (verified 2026-11-06:
+redirected to the ServiceNow login); role-level restriction still needs to be set and tested.
 
 Use `GlideRecordSecure` (or explicit `canRead()`/`canWrite()`) in scripts so the caller's ACLs apply, and never return
 fields the caller should not see.
@@ -295,9 +296,15 @@ if anything fails, return the deterministic template briefing labeled as non-AI.
 
 ## 12. Known unknowns (verify early)
 
-- Whether the UI Page is reachable without signing in, and how to restrict it.
+Resolved on 2026-11-06 (prototype installed in `dev472716`):
+
+- **UI Page needs sign-in: verified.** A signed-out visit was redirected to ServiceNow's login. Still confirm it again after adding roles, and decide whether to restrict it to the four app roles.
+- **Hash routing works** inside the platform page (`#/dashboard` rendered; other routes reported working).
+- **The embedded font and inline styles render**; the team lead reported no problems. The Console output was not captured, so re-check for Content Security Policy messages.
+
+Still open:
+
+- How `window.g_ck` behaves on this direct UI Page (run `typeof window.g_ck` in the Console; do not print the token).
 - Fluent API support for each metadata type on the Brazil release (tables, ACLs with scripts, business rules, scripted REST).
-- Whether the embedded font (data URI) and inline styles pass the instance's content security policy.
-- How `window.g_ck` behaves on this direct UI Page (the starter app used it; confirm it is present).
-- The hash-based routing (`#/rooms/305`) inside the platform's page frame.
 - Exact logout path and how the signed-in user's roles are best read on the server.
+- How the prototype's own sign-in page should behave now that ServiceNow already signed the user in (it currently shows a second, demo sign-in).

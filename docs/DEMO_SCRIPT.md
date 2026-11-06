@@ -8,6 +8,7 @@ box if the backend and AI get built before the presentation.
 | Part | Say this |
 |---|---|
 | Screens, roles, validation, readiness rules | Built and tested (17 automated tests, accessibility audit, responsive checks) |
+| Where it runs | Built and **installed in our ServiceNow PDI** (`dev472716`), and also runnable locally with `npm run preview` as a backup |
 | Data | **Synthetic** demo data: 40 rooms, 9 fictional staff |
 | Shift handoff briefing | A template stand-in today, **labeled "Simulated briefing (not AI)"**. Real AI is designed (see `AI_DESIGN.md`), not connected |
 | ServiceNow tables, ACLs, business rules, REST | Designed in `BACKEND_HANDOFF.md`; being built by the backend teammate |

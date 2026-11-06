@@ -5,7 +5,8 @@ A ServiceNow capstone application (Hospitality, use case #35: Room Readiness Han
 
 > **Status: the frontend is a complete, working prototype running on synthetic data. The ServiceNow backend
 > (tables, roles, ACLs, business rules, REST APIs) and the real AI integration are not built yet.** Nothing in
-> this repository has been installed into the PDI or tested there. See [Project status](#project-status).
+> this repository has been tested with real data or real permissions. The prototype UI itself was installed into the PDI
+> and renders there. See [Project status](#project-status).
 
 ## What it does
 
@@ -97,7 +98,7 @@ docs/                      all project documentation (below)
 |---|---|
 | Frontend: dashboard, room board, room details, housekeeping, maintenance, shift handoff, users and access, sign-in and request-account pages | **Built.** Synthetic data. Responsive from 320px to wide desktops. |
 | Local checks: strict TypeScript, SDK build, 17 logic tests, accessibility audit of 13 views, contrast check | **Passed** (details in the test plan). |
-| Installed in the PDI and checked there | **Not done.** |
+| Installed in the PDI and checked there | **Done once on 2026-11-06** for the prototype UI: it renders and works, and signed-out visitors are sent to the ServiceNow login. Console details and `g_ck` were not itemised (see `docs/TEST_PLAN.md` section 4b). |
 | ServiceNow tables, roles, ACLs, business rules, REST APIs (Phase 4) | **Not started.** Specified in the backend handoff. |
 | Real AI summaries (Phase 5) | **Not started.** Designed in `docs/AI_DESIGN.md`. The handoff screen is clearly labeled "Simulated briefing (not AI)". |
 | Server-enforced security | **None yet.** Every role and permission rule in the browser is cosmetic until the backend enforces it. |

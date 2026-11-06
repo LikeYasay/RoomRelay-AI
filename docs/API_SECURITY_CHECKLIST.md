@@ -32,13 +32,13 @@ Loosely based on the OWASP Top 10 and OWASP API Security Top 10, kept practical 
 | A14 | Copy-to-clipboard text stripped of control characters | **Verified** | Automated test. |
 | A15 | Accessibility basics (labels, names, landmarks, focus ring, keyboard sign-in, skip link) | **Verified** | DOM audit of 13 views found 0 issues; keyboard-only sign-in works; contrast 23 of 23 pairs pass. Screen readers **not** tested. |
 | A16 | CSRF token sent with API calls | **Planned** | Reuse the session token pattern (`X-UserToken` / `g_ck`) in the one place the data source calls the server. |
-| A17 | Content security policy compatible | **Planned** | Verify in the PDI that the embedded font and inline styles are allowed. |
+| A17 | Content security policy compatible | **Partly verified** | In the PDI the page renders with the embedded font and styles and no problem was reported (2026-11-06). The Console output was not captured; re-check for Content Security Policy messages. |
 
 ## B. Backend and API controls (all Planned)
 
 | # | Control | Status | Required behavior |
 |---|---|---|---|
-| B1 | Authentication on every endpoint | Planned | Only signed-in ServiceNow users; UI Page not public. |
+| B1 | Authentication on every endpoint | **Partly verified** | The UI Page itself requires a ServiceNow sign-in (verified 2026-11-06). There are no API endpoints yet; each new one must also require sign-in. |
 | B2 | Roles and role-based access | Planned | Four app roles, no role inheritance. |
 | B3 | Table, row and field ACLs, deny by default | Planned | Per matrix in `ROLE_PERMISSION_MATRIX.md`. |
 | B4 | Object-level authorization (IDOR/BOLA) | Planned | Opening, changing or listing another user's room, task or defect must fail. Same response for "not found" and "not allowed". |
@@ -81,7 +81,7 @@ Loosely based on the OWASP Top 10 and OWASP API Security Top 10, kept practical 
 
 ## E. Before you present or ship
 
-- [ ] Confirm the UI Page requires sign-in.
+- [x] Confirm the UI Page requires sign-in (verified 2026-11-06: a signed-out visit was redirected to the ServiceNow login). Repeat after roles are added.
 - [ ] Run every test in `TEST_PLAN.md` section 5 with real non-admin users.
 - [ ] Confirm no demo accounts or "Prototype tools" remain in the production build, or that they are behind a switch.
 - [ ] Search the repo again for secrets and tokens before each push.
