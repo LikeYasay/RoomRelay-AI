@@ -208,7 +208,7 @@ function Housekeeping({ data }: { data: ReadyData }) {
                 ) : (
                     <>
                         <div className="table-wrap">
-                            <table className="table">
+                            <table className="table table--stack">
                                 <caption className="sr-only">Housekeeping tasks, unfinished first</caption>
                                 <thead>
                                     <tr>
@@ -230,25 +230,25 @@ function Housekeeping({ data }: { data: ReadyData }) {
                                                 </a>
                                                 <span className="muted table__sub">Floor {floor}</span>
                                             </th>
-                                            <td className="table__task">
+                                            <td className="table__task" data-label="Task">
                                                 <span className="table__task-title">{task.title}</span>
                                                 <span className="muted table__sub">{task.description}</span>
                                             </td>
-                                            <td>
+                                            <td data-label="Type">
                                                 {task.mandatory ? (
                                                     <Badge tone="info" label="Required" icon="lock" />
                                                 ) : (
                                                     <Badge tone="neutral" label="Optional" />
                                                 )}
                                             </td>
-                                            <td>
+                                            <td data-label="Priority">
                                                 <PriorityBadge priority={task.priority} />
                                             </td>
-                                            <td>
+                                            <td data-label="Status">
                                                 <TaskStatusBadge status={task.status} />
                                             </td>
-                                            <td>{staffNames.get(task.assigneeId) ?? 'Unassigned'}</td>
-                                            <td>
+                                            <td data-label="Assigned to">{staffNames.get(task.assigneeId) ?? 'Unassigned'}</td>
+                                            <td data-label="Supervisor review">
                                                 <ReviewBadge review={task.supervisorReview} />
                                             </td>
                                         </tr>

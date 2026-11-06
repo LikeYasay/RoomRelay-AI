@@ -166,7 +166,7 @@ function Maintenance({ data }: { data: ReadyData }) {
                 ) : (
                     <>
                         <div className="table-wrap">
-                            <table className="table">
+                            <table className="table table--stack">
                                 <caption className="sr-only">Maintenance defects, most urgent first</caption>
                                 <thead>
                                     <tr>
@@ -188,29 +188,29 @@ function Maintenance({ data }: { data: ReadyData }) {
                                                     {defect.roomId}
                                                 </a>
                                             </th>
-                                            <td className="table__task">
+                                            <td className="table__task" data-label="Problem">
                                                 {/* Defect text is untrusted input; React renders it as plain text. */}
                                                 <span className="table__task-title">{defect.title}</span>
                                                 <span className="muted table__sub">{defect.description}</span>
                                                 <span className="muted table__sub">Reported {formatAgo(defect.reportedAt, snapshot.generatedAt)}</span>
                                             </td>
-                                            <td>
+                                            <td data-label="Severity">
                                                 <SeverityBadge severity={defect.severity} />
                                             </td>
-                                            <td>
+                                            <td data-label="Readiness impact">
                                                 {defect.blocking ? (
                                                     <Badge tone="danger" label="Blocks readiness" icon="lock" />
                                                 ) : (
                                                     <Badge tone="neutral" label="Does not block" />
                                                 )}
                                             </td>
-                                            <td>
+                                            <td data-label="Status">
                                                 <DefectStatusBadge status={defect.status} />
                                             </td>
-                                            <td>{defect.technicianId ? (staffNames.get(defect.technicianId) ?? 'Unknown') : 'Unassigned'}</td>
-                                            <td className="table__notes">{defect.resolutionNotes ?? <span className="muted">None</span>}</td>
+                                            <td data-label="Technician">{defect.technicianId ? (staffNames.get(defect.technicianId) ?? 'Unknown') : 'Unassigned'}</td>
+                                            <td className="table__notes" data-label="Resolution notes">{defect.resolutionNotes ?? <span className="muted">None</span>}</td>
                                             {canResolve ? (
-                                                <td>
+                                                <td data-label="Action">
                                                     {defect.technicianId === user.id && defect.status !== 'resolved' ? (
                                                         <button type="button" className="btn btn--ghost btn--flat" onClick={() => setResolving(defect)}>
                                                             Record resolution

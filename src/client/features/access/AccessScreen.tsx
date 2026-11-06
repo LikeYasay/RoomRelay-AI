@@ -39,7 +39,7 @@ function Access({ data }: { data: ReadyData }) {
                 <section className="card" aria-labelledby="h-requests">
                     <h2 id="h-requests">Pending access requests ({PENDING_REQUESTS.length})</h2>
                     <div className="table-wrap">
-                        <table className="table">
+                        <table className="table table--stack">
                             <caption className="sr-only">Pending access requests</caption>
                             <thead>
                                 <tr>
@@ -59,16 +59,16 @@ function Access({ data }: { data: ReadyData }) {
                                             {r.fullName}
                                             <span className="muted table__sub">{r.email}</span>
                                         </th>
-                                        <td>{ROLE_LABEL[r.role]}</td>
-                                        <td>{SHIFT_LABEL[r.shift]}</td>
-                                        <td className="table__notes">{r.reason}</td>
-                                        <td>
+                                        <td data-label="Role requested">{ROLE_LABEL[r.role]}</td>
+                                        <td data-label="Shift">{SHIFT_LABEL[r.shift]}</td>
+                                        <td className="table__notes" data-label="Reason">{r.reason}</td>
+                                        <td data-label="Submitted">
                                             {formatAgo(
                                                 new Date(Date.parse(snapshot.generatedAt) - r.submittedMinutesAgo * 60_000).toISOString(),
                                                 snapshot.generatedAt
                                             )}
                                         </td>
-                                        <td>
+                                        <td data-label="Decision">
                                             <div className="row-actions">
                                                 <button type="button" className="btn btn--primary btn--small" onClick={() => setDecision({ request: r, verb: 'Approve' })}>
                                                     Approve
@@ -88,7 +88,7 @@ function Access({ data }: { data: ReadyData }) {
                 <section className="card" aria-labelledby="h-accounts">
                     <h2 id="h-accounts">Staff accounts ({accounts.length})</h2>
                     <div className="table-wrap">
-                        <table className="table">
+                        <table className="table table--stack">
                             <caption className="sr-only">Staff accounts</caption>
                             <thead>
                                 <tr>
@@ -101,8 +101,8 @@ function Access({ data }: { data: ReadyData }) {
                                 {accounts.map((s) => (
                                     <tr key={s.id}>
                                         <th scope="row">{s.name}</th>
-                                        <td>{ROLE_LABEL[s.role]}</td>
-                                        <td>{SHIFT_LABEL[s.shift]}</td>
+                                        <td data-label="Role">{ROLE_LABEL[s.role]}</td>
+                                        <td data-label="Shift">{SHIFT_LABEL[s.shift]}</td>
                                     </tr>
                                 ))}
                             </tbody>

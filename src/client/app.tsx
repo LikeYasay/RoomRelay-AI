@@ -26,6 +26,7 @@ import './styles/rooms.css'
 import './styles/forms.css'
 import './styles/handoff.css'
 import './styles/auth.css'
+import './styles/responsive.css'
 
 loadBrandFont()
 

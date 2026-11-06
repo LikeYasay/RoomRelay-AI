@@ -112,7 +112,7 @@ function RoomBoard({ data }: { data: ReadyData }) {
                 </ul>
             ) : (
                 <div className="table-wrap">
-                    <table className="table">
+                    <table className="table table--stack">
                         <caption className="sr-only">Room readiness board</caption>
                         <thead>
                             <tr>
@@ -138,16 +138,16 @@ function RoomBoard({ data }: { data: ReadyData }) {
                                                 Floor {v.room.floor} · {v.room.type}
                                             </span>
                                         </th>
-                                        <td>
+                                        <td data-label="Cleaning">
                                             {CLEANING_LABEL[c.state]} ({c.done}/{c.total})
                                         </td>
-                                        <td>{INSPECTION_LABEL[v.room.inspection]}</td>
-                                        <td>
+                                        <td data-label="Inspection">{INSPECTION_LABEL[v.room.inspection]}</td>
+                                        <td data-label="Readiness">
                                             <RoomStatusBadge status={v.readiness.status} />
                                         </td>
-                                        <td>{v.readiness.openTasks}</td>
-                                        <td>{v.readiness.openBlockingDefects}</td>
-                                        <td>{v.assignee?.name ?? 'Unassigned'}</td>
+                                        <td data-label="Open tasks">{v.readiness.openTasks}</td>
+                                        <td data-label="Blocking defects">{v.readiness.openBlockingDefects}</td>
+                                        <td data-label="Assigned to">{v.assignee?.name ?? 'Unassigned'}</td>
                                     </tr>
                                 )
                             })}

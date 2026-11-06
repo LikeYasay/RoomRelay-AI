@@ -70,7 +70,7 @@ export function AttentionTable({ views }: { views: RoomView[] }) {
             ) : (
                 <>
                     <div className="table-wrap">
-                        <table className="table">
+                        <table className="table table--stack">
                             <caption className="sr-only">Rooms that are not yet ready, most urgent first</caption>
                             <thead>
                                 <tr>
@@ -92,14 +92,14 @@ export function AttentionTable({ views }: { views: RoomView[] }) {
                                                 Floor {v.room.floor} · {v.room.type}
                                             </span>
                                         </th>
-                                        <td>
+                                        <td data-label="Status">
                                             <RoomStatusBadge status={v.readiness.status} />
                                         </td>
-                                        <td>
+                                        <td data-label="Mandatory tasks">
                                             {v.readiness.mandatoryDone}/{v.readiness.mandatoryTotal} done
                                         </td>
-                                        <td className="table__blocker">{capitalizeFirst(v.readiness.blockers[0]?.message ?? 'None')}</td>
-                                        <td>{v.assignee?.name ?? 'Unassigned'}</td>
+                                        <td className="table__blocker" data-label="Main blocker">{capitalizeFirst(v.readiness.blockers[0]?.message ?? 'None')}</td>
+                                        <td data-label="Assigned to">{v.assignee?.name ?? 'Unassigned'}</td>
                                     </tr>
                                 ))}
                             </tbody>
