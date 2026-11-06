@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "rootDir": "./",
+        "rootDir": "../",
         "outDir": "../../dist/server",
         "module": "es2022",
         "target": "es2022",
@@ -9,14 +9,22 @@
         "declaration": false,
         "sourceMap": false,
         "skipLibCheck": true,
+        "strict": true,
         "allowImportingTsExtensions": true,
         "noEmit": true
     },
     "include": [
         "./**/*.ts",
+        "../client/shared/**/*.ts",
+        "../client/features/**/*.ts",
+        "../client/app/applyCommand.ts",
+        "../client/mock/mockData.ts",
         "../../@types/**/*.modules.d.ts"
     ],
     "exclude": [
-        "**/*.now.ts"
+        "**/*.now.ts",
+        "../client/shared/api/useSnapshot.ts",
+        "../client/shared/api/serviceNowDataSource.ts",
+        "../client/shared/api/environment.ts"
     ]
 }

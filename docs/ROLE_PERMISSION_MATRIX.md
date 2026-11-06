@@ -92,4 +92,4 @@ Full table in [BACKEND_HANDOFF.md](BACKEND_HANDOFF.md) section 5. Key points:
 | "Not yours" gives the same answer as "does not exist" | Passed (automated test, task and defect rules) |
 | A role's blocked page address shows "Access denied" | Passed (browser) |
 | A housekeeper opening another housekeeper's room gets "Room unavailable" | Passed in the prototype (browser) |
-| Server enforcement of any of the above | **Not built, not tested** |
+| Server enforcement of the above | **Built, not tested in the PDI**: the REST API applies the same rule functions and sends each role only its own data |

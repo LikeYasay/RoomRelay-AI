@@ -92,11 +92,44 @@ tested without a browser, and why the backend teammate can port them one by one.
    ```
 
 3. **No feature imports from `app/`.** `app/` is the only place that knows every feature (routes, menu, data provider).
-4. **Only `app/App.tsx` creates the data source** (today `new MockDataSource(account)`). Swapping in a real backend is a
-   one-line change there plus a new file in `shared/api/`.
+4. **Only `app/App.tsx` creates the data source**: `ServiceNowDataSource` inside ServiceNow, `MockDataSource` in the
+   local preview (`shared/api/environment.ts` decides which).
 
 Logic files (rules, validation, numbers) are plain TypeScript with no React, so `npm run test:logic` can test them
 without a browser. Keep them that way.
+
+## The backend (ServiceNow)
+
+The backend lives in the same repository and uses the same feature names:
+
+```
+src/fluent/                 ServiceNow metadata (installed with the app)
+  auth/                     roles, staff profile table, demo users, cross-scope read privileges
+  rooms/ housekeeping/ maintenance/ activity/   one table (and its ACLs) per feature
+  api/                      the RoomRelay REST API and its access rule
+  ui-pages/                 the UI Page that serves the frontend
+src/server/                 server code (ServiceNow server modules)
+  api/handlers.ts           GET /me, GET /snapshot, POST /commands, POST /demo/reset
+  data/repository.ts        tables <-> Snapshot shape; writes back only what changed
+  data/demoData.ts          Load demo data (administrator only)
+  shared/                   session (who is calling), HTTP helpers, time conversion, table names
+```
+
+**One copy of every rule.** The server does not re-implement the rules: `src/server/api/handlers.ts` imports
+`applyCommand`, `parseCommand` and `scopeSnapshotForRole` from `src/client/`. `now.config.json` turns those plain
+TypeScript files (`client/shared/**`, `client/features/**/*.ts`, `client/app/applyCommand.ts`, `client/mock/mockData.ts`)
+into server modules as well, and `src/server/tsconfig.json` type-checks them. So the rule files must stay free of React
+and browser APIs; the browser-only ones are listed in `serverModulesExcludePatterns`.
+
+```
+Browser                                   ServiceNow
+screen -> run(command)                    POST /commands
+       -> serviceNowDataSource  -------->  handlers.ts: caller from the session, parseCommand(body)
+                                           repository.loadSnapshot()
+                                           applyCommand(...)        <- the same rule files the demo uses
+                                           repository.saveChanges() + audit rows
+       <- { ok } or { error }   <--------
+```
 
 ## How a slice lines up with the ServiceNow backend
 

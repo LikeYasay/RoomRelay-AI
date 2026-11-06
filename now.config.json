@@ -3,5 +3,20 @@
     "scopeId": "fc40740f1b9c13108029e3fb234bcb64",
     "name": "RoomRelay AI",
     "tsconfigPath": "./src/server/tsconfig.json",
-    "packageSourceCodeOnInstance": true
+    "packageSourceCodeOnInstance": true,
+    "serverModulesDir": "src",
+    "serverModulesIncludePatterns": [
+        "server/**/*.ts",
+        "client/shared/**/*.ts",
+        "client/features/**/*.ts",
+        "client/app/applyCommand.ts",
+        "client/mock/mockData.ts"
+    ],
+    "serverModulesExcludePatterns": [
+        "**/*.test.ts",
+        "**/*.d.ts",
+        "client/shared/api/useSnapshot.ts",
+        "client/shared/api/serviceNowDataSource.ts",
+        "client/shared/api/environment.ts"
+    ]
 }

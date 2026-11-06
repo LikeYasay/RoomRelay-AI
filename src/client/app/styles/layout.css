@@ -274,3 +274,11 @@
         font-size: 21px;
     }
 }
+
+/* Full-page state outside the app shell (signing in, no access) */
+.standalone {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+}

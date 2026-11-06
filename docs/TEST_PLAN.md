@@ -14,7 +14,7 @@ To keep the document readable, repeated preconditions are stated once per sectio
 |---|---|---|
 | Type check (strict) | `npx tsc -p src/client/tsconfig.json --noEmit` | Strict mode is on in the tsconfig |
 | SDK build | `npm run build` | Local only; deploys nothing |
-| Logic tests (26) | `npm run test:logic` | Compiles the logic files in a temp folder and runs Node's built-in test runner |
+| Logic tests (29) | `npm run test:logic` | Compiles the logic files in a temp folder and runs Node's built-in test runner |
 | Look at the app | `npm run preview` | http://127.0.0.1:4173/ |
 
 ## 2. Static and automated checks
@@ -28,8 +28,9 @@ To keep the document readable, repeated preconditions are stated once per sectio
 | S5 | `npm audit --omit=dev` | **Pass** | 0 vulnerabilities (no dependencies were added) |
 | S6 | `npm audit` (full) | **Known findings** | 20 (10 moderate, 10 high) in SDK build tooling only; documented in `API_SECURITY_CHECKLIST.md` section D |
 | S7 | Feature folders never depend on each other in a circle; `shared/` imports no feature | **Pass** | Import graph listed in `ARCHITECTURE.md` |
+| S8 | Backend metadata and server modules build | **Pass** | 5 tables, 4 roles, 7 ACLs, 2 cross-scope privileges, 9 demo users with roles, REST API with 4 routes; every server file and every shared rule file becomes a server module and their imports match by path. **Running on the instance is not tested.** |
 
-### Automated logic tests (`npm run test:logic`): 26 of 26 passed
+### Automated logic tests (`npm run test:logic`): 29 of 29 passed
 
 | # | Test | Objective |
 |---|---|---|
@@ -59,6 +60,9 @@ To keep the document readable, repeated preconditions are stated once per sectio
 | 24 | HANDOFF + INJECTION: hostile text cannot change readiness; free-text notes never reach the briefing | Prompt-injection resistance and data minimization |
 | 25 | ACCOUNT REQUEST: validation and no self-granted admin | `admin` role rejected; bad email and name rejected |
 | 26 | PERMISSIONS + NAV: restricted pages not listed, match the matrix | Menu per role; old `#/housekeeping` address opens Rooms |
+| 27 | API: parseCommand accepts well-formed commands and rejects everything else | The server's request parser: unknown types and fields (including `actorId` and `role`), wrong types, over-long ids, bad values |
+| 28 | API: scopeSnapshotForRole sends each role only what it may see | Housekeeper gets her 8 rooms and their audit entries only; technician only rooms with his defects; admin everything |
+| 29 | API: applyCommand routes every command to its feature rule | One router for the demo store and the server; every command writes an audit entry |
 
 Recommended correction if any fail: fix the rule in the feature folder that owns it (for example
 `src/client/features/rooms/readiness.ts`), never edit the test to match a wrong rule. **The server must pass the same
@@ -138,7 +142,7 @@ task and defect rework**: no tables, roles or ACLs exist yet. **The current vers
 
 After the next install, re-run P3 to P7 and the scenario F12 to F19 inside the PDI.
 
-## 5. Backend and security tests (to run once the backend exists)
+## 5. Backend and security tests (backend built 2026-11-06; run these after installing it)
 
 **Preconditions for all:** application installed in the PDI; four test users (one per role, never `admin`) with sample data
 that includes the scenarios used above; a second housekeeper and a second technician to test cross-user access. Observed

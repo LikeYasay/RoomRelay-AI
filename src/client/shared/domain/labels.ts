@@ -10,7 +10,7 @@ import type {
     TaskPriority,
     TaskStatus,
 } from './types'
-import type { IconName } from '../ui/Icon'
+import type { IconName } from '../ui/iconPaths'
 import type { Tone } from '../ui/tone'
 
 /**

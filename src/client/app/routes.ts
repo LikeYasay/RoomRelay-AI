@@ -1,4 +1,4 @@
-import type { IconName } from '../shared/ui/Icon'
+import type { IconName } from '../shared/ui/iconPaths'
 import type { Role } from '../shared/domain/types'
 
 /**

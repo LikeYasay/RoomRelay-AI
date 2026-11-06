@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react'
+import { DATA_NOTE } from '../../shared/api/environment'
 import { DataGate } from '../../shared/api/DataContext'
 import type { ReadyData } from '../../shared/api/DataContext'
 import { AUDIT_ACTION_META, ROLE_LABEL } from '../../shared/domain/labels'
@@ -44,9 +45,7 @@ function AuditLog({ data }: { data: ReadyData }) {
     return (
         <div className="stack">
             <Banner tone="info">
-                <strong>Prototype.</strong> These entries are generated from the synthetic data and from changes made in this
-                browser tab. In the live system the ServiceNow server writes the log, and sign-ins are recorded by ServiceNow
-                itself. Nobody can edit or delete an entry.
+                <strong>Audit log.</strong> {DATA_NOTE.audit}
             </Banner>
 
             <section className="card" aria-labelledby="h-audit">

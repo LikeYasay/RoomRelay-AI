@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react'
+import { DATA_NOTE } from '../../shared/api/environment'
 import { useSession } from '../auth/session'
 import { DataGate } from '../../shared/api/DataContext'
 import type { ReadyData } from '../../shared/api/DataContext'
@@ -134,8 +135,7 @@ function Maintenance({ data, initialDefectId }: { data: ReadyData; initialDefect
     return (
         <div className="stack">
             <Banner tone="info">
-                <strong>Live demo data.</strong> Changes are kept in this browser tab only and are not saved to ServiceNow.
-                Reload the page or use Prototype tools to reset.
+                <strong>Demo data.</strong> {DATA_NOTE.changes}
             </Banner>
 
             {notice ? (

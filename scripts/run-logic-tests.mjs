@@ -42,6 +42,8 @@ const sources = [
     'features/handoff/handoffCommands.ts',
     'features/access/permissions.ts',
     'features/activity/recentActivity.ts',
+    'app/applyCommand.ts',
+    'shared/api/commands.ts',
     'app/routes.ts',
     'app/parseHash.ts',
     'mock/mockData.ts',

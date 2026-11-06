@@ -3,8 +3,8 @@
 **RoomRelay AI: Intelligent Hotel Room Readiness and Shift Handoff Management System**
 A ServiceNow capstone application (Hospitality, use case #35: Room Readiness Handoff Assistant).
 
-> **Status: the frontend is a complete, working prototype running on synthetic data. The ServiceNow backend
-> (tables, roles, ACLs, business rules, REST APIs) and the real AI integration are not built yet.** Nothing in
+> **Status: the frontend is complete, and a first working version of the ServiceNow backend (tables, roles, ACLs,
+> REST API) is built but not yet installed or tested in the PDI. The real AI integration is not built.** Nothing in
 > this repository has been tested with real data or real permissions. The prototype UI itself was installed into the PDI
 > and renders there. See [Project status](#project-status).
 
@@ -50,7 +50,7 @@ Other commands:
 | Command | What it does |
 |---|---|
 | `npm run build` | Type-checks and builds the app with the ServiceNow SDK. Local only, deploys nothing. |
-| `npm run test:logic` | Runs the 26 automated tests for the readiness rules, every action rule, validation, permissions, the audit log and the handoff logic. |
+| `npm run test:logic` | Runs the 29 automated tests for the readiness rules, every action rule, validation, permissions, the audit log, the handoff logic and the backend contract (request parsing, per-role data scoping). |
 | `npm run deploy` | **Installs into the PDI** (`now-sdk install`). Read [docs/DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md) first. Never add `--reinstall` for normal updates. |
 
 ## Demo accounts (prototype only)
@@ -80,7 +80,8 @@ src/client/                React + TypeScript frontend
     auth/ rooms/ housekeeping/ maintenance/ dashboard/ activity/ handoff/ access/
   shared/                  used by every feature: domain types and labels, data-source contract, UI building blocks
   mock/                    all synthetic data and the mock data source (replace when the backend exists)
-src/fluent/ui-pages/       ServiceNow UI Page definition (SDK)
+src/fluent/                ServiceNow metadata by feature: roles, tables, ACLs, REST API, demo users, UI Page
+src/server/                ServiceNow server code: REST handlers, data access, session (reuses the rules in src/client)
 src/fluent/generated/      SDK-generated keys (do not edit by hand)
 scripts/                   local-preview.mjs, run-logic-tests.mjs
 tests/                     logic.test.cjs
@@ -109,9 +110,9 @@ docs/                      all project documentation (below)
 | Frontend: dashboard, Rooms (three views), room details with checklist, maintenance with triage and a defect modal, shift handoff, users and access, audit log, sign-in and request-account pages | **Built.** Synthetic, live in-memory data. Responsive from 320px to wide desktops. |
 | Local checks: strict TypeScript, SDK build, 26 logic tests, accessibility and contrast checks, browser walkthrough of the full scenario | **Passed** (details in the test plan). |
 | Installed in the PDI and checked there | **Done once on 2026-11-06** for the earlier version of the UI: it renders and works, and signed-out visitors are sent to the ServiceNow login. Console details and `g_ck` were not itemised (see `docs/TEST_PLAN.md` section 4b). **The current version (task and defect rework) is not installed yet.** |
-| ServiceNow tables, roles, ACLs, business rules, REST APIs (Phase 4) | **Not started.** Specified in the backend handoff. |
+| ServiceNow tables, roles, ACLs, REST API (Phase 4) | **Built, working version** (`docs/BACKEND_HANDOFF.md` section 0). Builds locally; **not installed or tested in the PDI yet.** |
 | Real AI summaries (Phase 5) | **Not started.** Designed in `docs/AI_DESIGN.md`. The handoff screen is clearly labeled "Simulated briefing (not AI)". |
-| Server-enforced security | **None yet.** Every role and permission rule in the browser is cosmetic until the backend enforces it. |
+| Server-enforced security | **Built, not verified.** The server applies the same rules and scopes data per role; it must be tested with non-admin users in the PDI before it is claimed. |
 
 ## Security notes
 

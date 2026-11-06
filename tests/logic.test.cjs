@@ -22,6 +22,9 @@ const { buildMockSnapshot } = require(path.join(root, 'mock/mockData.js'))
 const perms = require(path.join(root, 'features/access/permissions.js'))
 const routes = require(path.join(root, 'app/routes.js'))
 const { parseHash } = require(path.join(root, 'app/parseHash.js'))
+const { applyCommand } = require(path.join(root, 'app/applyCommand.js'))
+const { parseCommand } = require(path.join(root, 'shared/api/commands.js'))
+const { scopeSnapshotForRole } = require(path.join(root, 'features/rooms/scope.js'))
 
 const room = (over = {}) => ({ id: '305', floor: 3, type: 'Deluxe King', assigneeId: 'h3', inspection: 'passed', ...over })
 const task = (id, over = {}) => ({ id, roomId: '305', title: id, description: '', mandatory: true, priority: 'normal', status: 'completed', assigneeId: 'h3', ...over })
@@ -440,4 +443,64 @@ test('PERMISSIONS + NAV: restricted pages are not listed for a role, and match t
     // The old Housekeeping address still opens Rooms.
     assert.equal(parseHash('#/housekeeping').route.id, 'rooms')
     assert.equal(parseHash('#/nope').route, undefined)
+})
+
+// ---------------------------------------------------------------- backend contract (used by the ServiceNow REST API)
+
+test('API: parseCommand accepts well-formed commands and rejects everything else', () => {
+    const okCmd = { type: 'task.couldntComplete', taskId: 'T-102-2', reason: 'needs_maintenance', note: 'Tap leaking.' }
+    assert.deepEqual(parseCommand(okCmd), okCmd)
+    assert.deepEqual(parseCommand({ type: 'room.recordInspection', roomId: '107', result: 'passed' }), { type: 'room.recordInspection', roomId: '107', result: 'passed' })
+    // A command can never say who is acting or what role they have.
+    assert.equal(parseCommand({ type: 'task.complete', taskId: 'T-102-1', actorId: 's1' }), null)
+    assert.equal(parseCommand({ type: 'task.complete', taskId: 'T-102-1', role: 'supervisor' }), null)
+    for (const bad of [
+        null, 'task.complete', [], {}, { type: 'drop.tables' }, { type: 'task.complete' },
+        { type: 'task.complete', taskId: 42 },
+        { type: 'task.complete', taskId: 'x'.repeat(41) },
+        { type: 'task.couldntComplete', taskId: 'T-1', reason: 'guest_in_room' },
+        { type: 'defect.triage', defectId: 'D-1', technicianId: 'm1', priority: 'critical' },
+        { type: 'room.recordInspection', roomId: '107', result: 'ready' },
+        { type: 'handoff.briefingGenerated', shift: 'noon' },
+    ]) assert.equal(parseCommand(bad), null, JSON.stringify(bad))
+})
+
+test('API: scopeSnapshotForRole sends each role only what it may see', () => {
+    const snap = buildMockSnapshot()
+    const staff = (id) => snap.staff.find((s) => s.id === id)
+    const h1 = scopeSnapshotForRole(snap, 'housekeeping', staff('h1'))
+    assert.equal(h1.rooms.length, 8)
+    assert.ok(h1.rooms.every((r) => r.assigneeId === 'h1'))
+    const mine = new Set(h1.rooms.map((r) => r.id))
+    assert.ok(h1.tasks.every((t) => mine.has(t.roomId)) && h1.defects.every((d) => mine.has(d.roomId)))
+    assert.ok(h1.audit.length > 0 && h1.audit.every((e) => mine.has(e.roomId)), 'only audit entries about her rooms')
+    const m1 = scopeSnapshotForRole(snap, 'maintenance', staff('m1'))
+    assert.ok(m1.rooms.every((r) => snap.defects.some((d) => d.roomId === r.id && d.technicianId === 'm1')))
+    const admin = scopeSnapshotForRole(snap, 'admin', staff('a1'))
+    assert.equal(admin.audit.length, snap.audit.length) // including briefing and access entries
+    assert.ok(!scopeSnapshotForRole(snap, 'supervisor', staff('s1')).audit.some((e) => e.action === 'access_request_approved'))
+})
+
+test('API: applyCommand routes every command to its feature rule', () => {
+    const snap = buildMockSnapshot()
+    const at = (id) => ({ actor: snap.staff.find((s) => s.id === id), now: '2026-11-06T16:00:00.000Z' })
+    const viaRouter = applyCommand(snap, at('h1'), { type: 'task.complete', taskId: 'T-102-1' })
+    const direct = tasksCmd.completeTask(snap, at('h1'), { taskId: 'T-102-1' })
+    assert.deepEqual(viaRouter, direct)
+    const cases = [
+        ['h1', { type: 'task.couldntComplete', taskId: 'T-102-1', reason: 'supplies_missing' }],
+        ['s1', { type: 'task.reopen', taskId: 'T-203-5' }],
+        ['h1', { type: 'defect.report', roomId: '102', title: 'Lamp broken', description: 'Bedside lamp does not switch on.' }],
+        ['s1', { type: 'defect.triage', defectId: 'D-301-1', technicianId: 'm1', priority: 'blocking' }],
+        ['m1', { type: 'defect.start', defectId: 'D-303-1' }],
+        ['m2', { type: 'defect.resolve', defectId: 'D-407-1', notes: 'Replaced the trap and tested.' }],
+        ['h1', { type: 'room.submitInspection', roomId: '104' }],
+        ['s1', { type: 'room.recordInspection', roomId: '107', result: 'passed' }],
+        ['s1', { type: 'handoff.briefingGenerated', shift: 'morning' }],
+    ]
+    for (const [who, command] of cases) {
+        const result = applyCommand(snap, at(who), command)
+        assert.equal(result.ok, true, command.type + ': ' + (result.ok ? '' : result.message))
+        assert.ok(result.snapshot.audit.length > snap.audit.length, command.type + ' writes an audit entry')
+    }
 })

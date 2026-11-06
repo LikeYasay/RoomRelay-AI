@@ -1,4 +1,5 @@
-import type { Role, RoomView, Staff } from '../../shared/domain/types'
+import type { Role, RoomView, Snapshot, Staff } from '../../shared/domain/types'
+import { buildRoomViews } from './roomViews'
 
 /**
  * Narrows the rooms a role sees (least privilege, demo version).
@@ -21,5 +22,23 @@ export function scopeViewsForRole(views: RoomView[], role: Role, user: Staff): {
             }
         default:
             return { views, note: 'Showing all rooms.' }
+    }
+}
+
+/**
+ * The part of the dataset a user may receive at all. The server calls this before sending
+ * anything (and the demo data source does the same), so the browser never gets other people's rooms.
+ *   - rooms, and their tasks and defects: the rooms scopeViewsForRole allows
+ *   - audit entries: everything for the administrator; otherwise only entries about those rooms
+ *   - staff: names, roles and shifts of everyone (needed to show who did what)
+ */
+export function scopeSnapshotForRole(snapshot: Snapshot, role: Role, user: Staff): Snapshot {
+    const visible = new Set(scopeViewsForRole(buildRoomViews(snapshot), role, user).views.map((v) => v.room.id))
+    return {
+        ...snapshot,
+        rooms: snapshot.rooms.filter((r) => visible.has(r.id)),
+        tasks: snapshot.tasks.filter((t) => visible.has(t.roomId)),
+        defects: snapshot.defects.filter((d) => visible.has(d.roomId)),
+        audit: role === 'admin' ? snapshot.audit : snapshot.audit.filter((e) => e.roomId !== undefined && visible.has(e.roomId)),
     }
 }

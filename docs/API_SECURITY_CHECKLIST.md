@@ -7,7 +7,8 @@ Status words used:
 - **Planned**: not built. Required before the application can be called secure.
 - **N/A now**: does not apply until the backend exists.
 
-> **The application is NOT end-to-end secure yet.** Today there is no server-side enforcement at all. The browser rules
+> **The application is NOT verified end-to-end secure yet.** Server-side enforcement is built (section B) but has not
+> been tested in the PDI. Until the TEST_PLAN.md section 5 tests pass with non-admin users, do not claim it. The browser rules
 > are a convenience, not a defense. Do not claim security beyond what the Verified rows show.
 
 Loosely based on the OWASP Top 10 and OWASP API Security Top 10, kept practical for a capstone.
@@ -36,28 +37,28 @@ Loosely based on the OWASP Top 10 and OWASP API Security Top 10, kept practical 
 | A16 | CSRF token sent with API calls | **Planned** | Reuse the session token pattern (`X-UserToken` / `g_ck`) in the one place the data source calls the server. |
 | A17 | Content security policy compatible | **Partly verified** | In the PDI the page renders with the embedded font and styles and no problem was reported (2026-11-06). The Console output was not captured; re-check for Content Security Policy messages. |
 
-## B. Backend and API controls (all Planned)
+## B. Backend and API controls (built 2026-11-06, not yet tested in the PDI)
 
 | # | Control | Status | Required behavior |
 |---|---|---|---|
-| B1 | Authentication on every endpoint | **Partly verified** | The UI Page itself requires a ServiceNow sign-in (verified 2026-11-06). There are no API endpoints yet; each new one must also require sign-in. |
-| B2 | Roles and role-based access | Planned | Four app roles, no role inheritance. |
-| B3 | Table, row and field ACLs, deny by default | Planned | Per matrix in `ROLE_PERMISSION_MATRIX.md`. |
-| B4 | Object-level authorization (IDOR/BOLA) | Planned | Opening, changing or listing another user's room, task or defect must fail. Same response for "not found" and "not allowed". |
-| B5 | Server-side readiness validation | Planned | One Script Include used by business rules and REST; tested with `tests/logic.test.cjs` cases. |
-| B6 | Protected status transitions | Planned | Ready, inspection and `readiness_status` writable only by server logic. |
-| B7 | Block direct Table API bypass | Planned | Non-admin attempts to set protected fields via `/api/now/table/...` fail. |
-| B8 | Duplicate and concurrent request handling | Planned | Conditional updates, 409 on stale state, no double confirmation. |
-| B9 | Input validation on every endpoint | Planned | Repeat all rules from `features/maintenance/defectValidation.ts` and `features/auth/accountRequestValidation.ts`; reject unknown fields. |
-| B10 | Injection prevention | Planned | Use `GlideRecord` with parameters (no string-built queries); validate ids. |
-| B11 | Secure record access in scripts | Planned | `GlideRecordSecure` or explicit `canRead/canWrite`. |
-| B12 | Limited response data | Planned | Return only needed fields; no extra personal data. |
-| B13 | Safe errors | Planned | One error envelope; no stack traces, table names or script text. |
-| B14 | Rate limiting | Planned | At least for the briefing (cost) and any public request endpoint. |
-| B15 | CORS | Planned | Same-origin only; do not enable cross-origin access. |
-| B16 | Audit trail | Planned (prototype built) | Server-written, append-only `audit_entry` rows for every task, defect, inspection, briefing and access decision, with the session user as actor. The prototype's Audit Log page and the append-only rule are built and tested in the browser (`AUDIT` test); the real log must be written by the server. |
-| B17 | Secure logging | Planned | No secrets, passwords or full AI prompts in logs. |
-| B18 | Account requests | Planned | Never create users or grant roles from a public form; administrator decides. See `BACKEND_HANDOFF.md` section 8. |
+| B1 | Authentication on every endpoint | **Implemented** (UI Page **verified**) | The UI Page requires a ServiceNow sign-in (verified 2026-11-06). The REST API requires authentication (default) and one of the four roles (`rest_endpoint` ACL). Not yet run in the PDI. |
+| B2 | Roles and role-based access | **Implemented** | Four app roles, no role inheritance (`src/fluent/auth/roles.now.ts`). Identity and role come from the session, never from the request. |
+| B3 | Table ACLs, deny by default | **Implemented** | Only the app admin can read the tables directly; nobody but the server code writes them (staff profiles: app admin). |
+| B4 | Object-level authorization (IDOR/BOLA) | **Implemented** | Rule functions check ownership and answer "not available" for both "not yours" and "does not exist" (tested); `scopeSnapshotForRole` sends only visible rooms (tested). |
+| B5 | Server-side readiness validation | **Implemented** | The server runs the same `readiness.ts` and rule files as the frontend (`applyCommand`); 29 automated tests cover them. |
+| B6 | Protected status transitions | **Implemented** | Status, inspection and priority change only through the command rules; readiness is derived, never written. |
+| B7 | Block direct Table API bypass | **Implemented** | `allowWebServiceAccess: false` on every table, and read-only ACLs. To verify: call `/api/now/table/x_2305075_roomrela_room` as a non-admin. |
+| B8 | Duplicate and concurrent request handling | **Partly implemented** | Every rule checks the current state (a second "complete" gets 409). No version check: two requests in the same instant could both pass. |
+| B9 | Input validation on every endpoint | **Implemented** | `parseCommand` rejects unknown types, unknown fields, wrong types and over-long values (tested); then the feature validation rules apply. |
+| B10 | Injection prevention | **Implemented** | Queries use `GlideRecord.addQuery` and `get` with values, never encoded queries built from user input. |
+| B11 | Secure record access in scripts | **Implemented differently** | Plain `GlideRecord` behind closed tables; the handlers apply the role and ownership rules themselves (see `BACKEND_HANDOFF.md` section 0). |
+| B12 | Limited response data | **Implemented** | Snapshot scoped per role; the staff list has name, role and shift only (no email). Technicians still receive the tasks of their rooms. |
+| B13 | Safe errors | **Implemented** | One error envelope; rule messages only; unexpected errors are logged with `gs.error` and answered generically. |
+| B14 | Rate limiting | Planned | Needed for the AI briefing (cost) and any public request endpoint. |
+| B15 | CORS | **Implemented (default)** | No CORS rule is created, so the API is same-origin only. |
+| B16 | Audit trail | **Implemented** | `x_2305075_roomrela_audit` rows are written in the same request as each change, with the session user as actor; no role can write the table. |
+| B17 | Secure logging | **Implemented** | Logs contain the error message only; no request bodies, tokens or prompts. |
+| B18 | Account requests | Planned | Still simulated; never create users or grant roles from a public form. |
 
 ## C. AI controls (all Planned; see AI_DESIGN.md)
 

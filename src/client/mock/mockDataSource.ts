@@ -2,6 +2,7 @@ import type { Command, CommandOutcome } from '../shared/api/commands'
 import { ApiError } from '../shared/api/dataSource'
 import type { RoomRelayDataSource, SnapshotRequest } from '../shared/api/dataSource'
 import type { Snapshot, Staff } from '../shared/domain/types'
+import { scopeSnapshotForRole } from '../features/rooms/scope'
 import { dispatchMockCommand, readMockState } from './mockStore'
 
 /**
@@ -44,7 +45,8 @@ export class MockDataSource implements RoomRelayDataSource {
                         reject(new ApiError('server'))
                         return
                     default:
-                        resolve(readMockState())
+                        // Same scoping the server applies: only what this role may see leaves the "server".
+                        resolve(scopeSnapshotForRole(readMockState(), this.actor.role, this.actor))
                 }
             }, this.latencyMs)
 

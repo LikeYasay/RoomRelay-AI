@@ -1,10 +1,8 @@
 # Deployment guide: installing into the PDI and checking it
 
-**Status (2026-11-06): done once for the prototype UI.** The build was installed into `dev472716` (SDK exit code 0) and the
-team lead confirmed the app renders and works inside the PDI; see `TEST_PLAN.md` section 4b. Repeat sections 1 to 4
-every time the app changes, and again after the backend is added. The checks below are still the right ones.
-
-The first install is the first time the app ran inside real ServiceNow, which can reveal problems the local preview cannot.
+**Status (2026-11-06):** an earlier, frontend-only version was installed once into `dev472716` and rendered correctly
+(`TEST_PLAN.md` section 4b). **The current version, with the ServiceNow backend, has been built locally but not
+installed or tested in the PDI yet.**
 
 **Installing writes to the PDI.** The team lead decides when. Do not use a different instance, and never add `--reinstall`.
 
@@ -14,6 +12,21 @@ Keep these four things separate when you report progress. They are not the same:
 2. Local build succeeded
 3. Install into the PDI succeeded
 4. Verified working inside the PDI
+
+## What the install now creates
+
+| Item | Details |
+|---|---|
+| UI Page | `x_2305075_roomrela_incident_manager.do` (unchanged endpoint) and its built JavaScript |
+| 4 roles | `x_2305075_roomrela.housekeeper`, `.maintenance`, `.supervisor`, `.app_admin` |
+| 5 tables | `x_2305075_roomrela_room`, `_task`, `_defect`, `_audit`, `_staff` |
+| 7 ACLs | Read-only table access for the app admin; app admin can edit staff profiles; the REST API needs one of the four roles |
+| REST API | `/api/x_2305075_roomrela/v1/roomrelay/` with `GET /me`, `GET /snapshot`, `POST /commands`, `POST /demo/reset` |
+| Server modules | `src/server/**` plus the shared rule files from `src/client/` (listed in `now.config.json`) |
+| 2 cross-scope privileges | Read `sys_user` and `sys_user_has_role` (names and role assignments) |
+| **Demo users** | 9 users (avery.collins, morgan.ellis, daniel.brooks, riley.chen, ...) with **no password**, each with one RoomRelay role and a staff profile. Defined in `src/fluent/auth/demo-users.now.ts`. |
+
+The tables start **empty**. Demo rooms, tasks and defects are loaded by the administrator after install (section 3).
 
 ## 1. Before you install
 
@@ -29,7 +42,7 @@ npm run build
 npm run test:logic
 ```
 
-All three should finish without errors (build: "Build completed successfully"; tests: "pass 17, fail 0").
+All three should finish without errors (build: "Build completed successfully"; tests: "pass 29, fail 0").
 
 Check which instance the SDK will use. This only lists saved logins and does not show passwords:
 
@@ -40,8 +53,7 @@ npx @servicenow/sdk auth --list
 You should see alias `roomrelay-pdi`, host `https://dev472716.service-now.com`, type `basic`, default `Yes`. If not,
 stop and ask the team lead. **Never type, paste or share a password in chat, screenshots or commits.**
 
-Also confirm in `now.config.json` that the scope is `x_2305075_roomrela`, and run `git status` so you know exactly what
-code is being installed. Commit or note any uncommitted change first.
+Run `git status` so you know exactly what code is being installed. Commit first.
 
 ## 2. Install
 
@@ -49,65 +61,65 @@ code is being installed. Commit or note any uncommitted change first.
 npx @servicenow/sdk install --auth roomrelay-pdi
 ```
 
-(`npm run deploy` is the same command without naming the login, so it uses the default one.)
+If it fails, copy the error text (not any secret) and see section 6.
 
-What this changes: it creates or updates the application's files in the PDI, which today means the UI Page
-`x_2305075_roomrela_incident_manager.do` and its built JavaScript. It does **not** create tables, roles or ACLs yet.
+## 3. First run: load the demo data
 
-If it fails, copy the error text (not any secret) and see section 5.
+1. Sign in to `https://dev472716.service-now.com` as your admin user.
+2. Open `https://dev472716.service-now.com/x_2305075_roomrela_incident_manager.do`.
+   There is no demo sign-in page any more: ServiceNow has already signed you in, and a platform admin is treated as the
+   RoomRelay administrator.
+3. The dashboard is empty. In the menu, open **Demo tools** (bottom-left) and press **Load demo data**, then confirm.
+4. The dashboard should show the same numbers as the local preview: 40 rooms, 16 Ready, 8 Needs Cleaning, 7 In Progress,
+   4 Pending Inspection, 5 Blocked.
 
-## 3. Open it and look
+## 4. Test each role with Impersonate User
 
-1. If your PDI has been unused for a while it may be asleep. Wake it from your ServiceNow Developer account and wait a
-   few minutes. (PDIs usually hibernate when unused; confirm in your account.)
-2. Sign in to `https://dev472716.service-now.com` the normal way.
-3. In the same browser, open:
+The demo users have no password, so nobody can sign in as them directly. As admin:
 
-   `https://dev472716.service-now.com/x_2305075_roomrela_incident_manager.do`
+1. Click your name or avatar (top right of ServiceNow) and choose **Impersonate User**.
+2. Pick **Avery Collins**, then open the UI Page address again.
+3. Avery should see 3 menu items and only her 8 rooms. Run the Room 102 scenario from `DEMO_SCRIPT.md`, switching to
+   Morgan Ellis, Daniel Brooks and back the same way.
+4. End impersonation from the same menu.
 
-4. **Expected today:** the page loads and shows the app's *prototype* sign-in page (a list of demo accounts). That is
-   correct for now: the live version will rely on ServiceNow's own login (see `BACKEND_HANDOFF.md` section 8).
-5. Choose "Morgan Ellis" and sign in.
-
-## 4. Check list (write the result next to each)
+## 5. Check list (write the result next to each)
 
 | # | Check | How | Result |
 |---|---|---|---|
 | 1 | Page is not blank | Something visible within a few seconds | |
 | 2 | Look and font | Same navy sidebar, Source Sans 3 text, no overlapping elements | |
-| 3 | Menu and routes | Click all five menu items; use browser Back and Forward | |
-| 4 | Room details by address | Open `.../x_2305075_roomrela_incident_manager.do#/rooms/305` directly | |
-| 5 | Refresh keeps you signed in | Press F5 on the dashboard | |
-| 6 | Sign out and back in | Bottom-left Sign out | |
-| 7 | Dialogs | Open "Report a defect" and press Escape | |
-| 8 | Narrow window | Make the window narrow, or press F12 and use the device toolbar | |
-| 9 | Console errors | Press F12, open Console, reload; note any red errors | |
-| 10 | CSP or font problems | Console messages that mention "Content Security Policy" or fonts | |
-| 11 | CSRF token present | In the Console type `typeof window.g_ck` and press Enter: it should say `"string"`. **Do not type or paste the token itself anywhere.** | |
-| 12 | Signed-out access | Open the page address in a private window with no ServiceNow login | |
+| 3 | Signed-in user | Header shows your name and role, no demo sign-in page | |
+| 4 | Load demo data | Section 3 | |
+| 5 | Roles | Section 4, for Avery, Daniel, Morgan and Riley: menu and visible rooms match `ROLE_PERMISSION_MATRIX.md` | |
+| 6 | Changes are saved | Complete a task as Avery, reload the page: it is still Completed; the Audit Log (as admin) shows it | |
+| 7 | The server sends only what a role may see | As Avery, open Room 305 by address: "Room unavailable" (the server never sent it). In F12 > Network, the `snapshot` response contains only her 8 rooms | |
+| 8 | Menu and routes | Click every menu item; browser Back and Forward | |
+| 9 | Console errors | F12, Console, reload; note any red errors | |
+| 10 | CSP or font problems | Console messages about "Content Security Policy" or fonts | |
+| 11 | CSRF token present | In the Console type `typeof window.g_ck`: expect `"string"`. **Do not type or paste the token itself anywhere.** | |
+| 12 | Signed-out access | Open the page address in a private window with no ServiceNow login: expect the ServiceNow login | |
+| 13 | User without a role | Impersonate a PDI user with no RoomRelay role and open the page: "No access to RoomRelay" | |
+| 14 | Direct table access is closed | As Avery, open `x_2305075_roomrela_room.list`: no records (only the app admin can read the tables directly) | |
 
-Check 12 matters for security: expected is a redirect to ServiceNow's login. If the app shows without any login, the UI
-Page is public and must be restricted before anything real is added.
+Then run the backend and security tests in `TEST_PLAN.md` section 5 and record the results.
 
-Rerun a few items from `TEST_PLAN.md` section 3 (F7, F10, F13, F19) and record the results in `TEST_PLAN.md` section 4, row R6.
-
-## 5. If something goes wrong
+## 6. If something goes wrong
 
 | Symptom | What to try |
 |---|---|
 | Install says not authorized or cannot connect | The PDI may be asleep, or the saved login is wrong. Ask the team lead; never share the password. |
 | Install error about the application or scope | Stop. Do not create a new application. Share the error text with the team lead. |
+| "No access to RoomRelay" for admin | Check the admin user has the `admin` role, or give it `x_2305075_roomrela.app_admin` |
+| "Something went wrong" on every page | System Logs > All, filter on "RoomRelay API error"; the message says what failed |
+| Load demo data says the demo users are missing | Check `x_2305075_roomrela_staff.list` has 9 rows with demo keys h1 to a1 |
+| Requests fail with 401 | `typeof window.g_ck` is not `"string"`: the page did not get a session token; record this in `BACKEND_HANDOFF.md` section 12 |
 | Blank page | F12, Console tab for red errors; Network tab for a failed request to `.../uxasset/externals/x_2305075_roomrela/main.jsdbx` |
-| Page not found (404) | Type `sys_ui_page.list` in the filter box at the top-left of ServiceNow and check the page record and its endpoint exist and are active |
-| Looks unstyled | Check the Console for Content Security Policy messages |
 | Works locally but not here | Record the difference in this document and in `BACKEND_HANDOFF.md` section 12 |
 
-## 6. Going back
+## 7. Going back
 
 Installing is not destructive, but a bad build can be replaced. Check out the last good commit yourself with Git, run the
 build, and install again with the same command. Do not use `--reinstall`, delete the application, or edit records by hand
-without asking the team lead.
-
-## 7. After the backend exists
-
-Repeat sections 1 to 4, then run the backend and security tests in `TEST_PLAN.md` section 5 with non-admin users.
+without asking the team lead. Before any real use, delete `src/fluent/auth/demo-users.now.ts` and reinstall so the demo
+users are removed.

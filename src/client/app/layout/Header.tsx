@@ -1,4 +1,5 @@
 import React from 'react'
+import { DATA_NOTE } from '../../shared/api/environment'
 import { useSession } from '../../features/auth/session'
 import { ROLE_LABEL } from '../../shared/domain/labels'
 import { Icon } from '../../shared/ui/Icon'
@@ -32,7 +33,7 @@ export function Header({ title, description, menuOpen, onToggleMenu }: HeaderPro
             </div>
 
             <div className="header__user">
-                <span className="chip chip--prototype">Prototype: synthetic data</span>
+                <span className="chip chip--prototype">{DATA_NOTE.chip}</span>
                 <div className="header__who">
                     <p className="header__name">{user.name}</p>
                     <p className="header__role">{ROLE_LABEL[role]}</p>

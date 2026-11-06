@@ -7,9 +7,41 @@ replace the mock data source behind that interface.
 **Read this first, then [GLOSSARY.md](GLOSSARY.md), [ROLE_PERMISSION_MATRIX.md](ROLE_PERMISSION_MATRIX.md),
 [API_SECURITY_CHECKLIST.md](API_SECURITY_CHECKLIST.md) and [AI_DESIGN.md](AI_DESIGN.md).**
 
-> Everything below is a **design proposal** based on the working prototype. Nothing here has been created in
-> the PDI or tested against it. Where this document says "verify", the author could not confirm it without access to
-> the instance. Use your judgement and adjust.
+> **Status (2026-11-06): a first working version of the backend is built** (section 0). It builds locally and its shared
+> rules pass the automated tests, but it has **not been installed in the PDI or tested there yet**. Sections 1 to 12 are the
+> design it follows; where something differs from the design, section 0 says so. Where this document says "verify",
+> it could not be confirmed without the instance.
+
+## 0. What is built
+
+| Piece | Where | Notes |
+|---|---|---|
+| Roles | `src/fluent/auth/roles.now.ts` | The four roles in section 4 |
+| Tables | `src/fluent/<slice>/*-table.now.ts` | `x_2305075_roomrela_room`, `_task`, `_defect`, `_audit`, `_staff` (names are short because table names are limited to 30 characters) |
+| ACLs | same files, plus `src/fluent/api/roomrelay-api.now.ts` | Tables: read-only for `app_admin` (staff profiles also editable by `app_admin`); everyone else is denied direct access. REST API: any of the four roles. |
+| REST API | `src/fluent/api/roomrelay-api.now.ts`, handlers in `src/server/api/handlers.ts` | `GET /me`, `GET /snapshot`, `POST /commands`, `POST /demo/reset` under `/api/x_2305075_roomrela/v1/roomrelay` |
+| Data access | `src/server/data/repository.ts` | Reads the tables into the `Snapshot` shape and writes back only what a rule changed |
+| Identity | `src/server/shared/session.ts` | Caller from `gs.getUserID()`, role from `sys_user_has_role`; a platform admin without an app role counts as `admin` |
+| Rules | **the same files the frontend uses** (section 2) | `now.config.json` turns them into server modules too, so the browser demo and the server can never disagree |
+| Demo users and data | `src/fluent/auth/demo-users.now.ts`, `src/server/data/demoData.ts` | 9 users without passwords (test with Impersonate User); "Load demo data" fills the tables from `src/client/mock/mockData.ts` |
+| Frontend connection | `src/client/shared/api/serviceNowDataSource.ts`, `environment.ts`, `features/auth/session.tsx` | Inside ServiceNow the app uses the real user and the REST API; the local preview keeps the demo |
+
+How a request is handled: the handler resolves the caller from the session, parses the body with `parseCommand`
+(unknown types and unknown fields are rejected), loads the current data, runs the shared rule through `applyCommand`,
+and saves the difference with one audit row per change. Reads go through `scopeSnapshotForRole` so a user only ever
+receives what their role may see.
+
+Differences from the design below:
+
+- **One write endpoint**, `POST /commands`, instead of one path per action (section 7.2). The body is the `Command`.
+- **Readiness is not stored**; it is calculated on every read, so it cannot go stale. Add a stored copy only if lists in
+  the platform need to filter by it.
+- **Plain `GlideRecord`** in the handlers rather than `GlideRecordSecure`: the tables are closed to direct access, and the
+  handlers apply the role and ownership rules themselves.
+- **Concurrency** relies on the rules' state checks ("only if still pending"), not on a version number. Two requests in the
+  same instant could both pass; acceptable for the capstone, noted for later.
+- **Technicians receive the full data of the rooms they work in** (tasks included), as in the prototype. Trim later if needed.
+- **Access requests** (approve, decline, request an account) are still simulated in the browser.
 
 ## 1. Ground rules
 
@@ -245,7 +277,7 @@ nobody calls them. Test by calling `/api/now/table/<your table>` as a non-admin 
 
 ## 7. REST API contract the frontend expects
 
-Recommended: one **Scripted REST API** (`/api/x_2305075_roomrela/v1/...`) instead of letting the browser call the Table API
+Built as one **Scripted REST API** (`/api/x_2305075_roomrela/v1/roomrelay/...`) instead of letting the browser call the Table API
 directly. It returns only the fields needed, applies the caller's access, and gives one place for validation. Verify the
 exact base path when you create it.
 
@@ -277,11 +309,12 @@ The server must return **only records the caller may see** (the frontend's `scop
 frontend computes readiness from this data for display; consider also returning `readinessStatus` from the server and
 having the UI show the server value, so the two can never disagree.
 
-### 7.2 Write: one endpoint per command
+### 7.2 Write: one command endpoint
 
-Every change in the app is one `Command` (`src/client/shared/api/commands.ts`). The frontend sends it through
-`RoomRelayDataSource.execute(command)`, which resolves to `{ ok: true }` or `{ ok: false, kind, message, fieldErrors? }`.
-Commands never carry the actor or role.
+Every change in the app is one `Command` (`src/client/shared/api/commands.ts`), sent as the JSON body of
+**`POST /commands`**. The frontend sends it through `RoomRelayDataSource.execute(command)`, which resolves to
+`{ ok: true }` or `{ ok: false, kind, message, fieldErrors? }`. Commands never carry the actor or role (the parser
+rejects them if they try). The table below is the original per-path design, kept as the mapping of command to rule:
 
 | Command | Method and path | Who | Body | Rule |
 |---|---|---|---|---|
@@ -337,12 +370,10 @@ In the prototype, `#/login` lets you choose a demo account, and `#/signup` is a 
 
 ## 9. What to change in the frontend
 
-All change points are small because screens use interfaces, not `fetch`. Each feature folder matches one backend module;
-see [ARCHITECTURE.md](ARCHITECTURE.md).
+**Done for the working version:** `serviceNowDataSource.ts` implements `RoomRelayDataSource`, `App.tsx` picks it inside
+ServiceNow, and `ServerSessionProvider` gets the user from `GET /me`. The points below remain for later.
 
-1. **Data source.** Add `src/client/shared/api/serviceNowDataSource.ts` implementing `RoomRelayDataSource`
-   (`getSnapshot` and `execute`). In `src/client/app/App.tsx` replace `new MockDataSource(account)`. Map API errors to
-   `ApiError` and command failures to `CommandOutcome` (never show raw server text).
+1. **Data source.** Done (`src/client/shared/api/serviceNowDataSource.ts`).
 2. **Writes already go through one place.** Every screen calls `run(command)` (`shared/api/DataContext.tsx`), which calls
    `execute` and then quietly reloads the snapshot. Nothing else in the UI needs to change. Two flows are still pure
    simulations and need commands added:
@@ -353,8 +384,8 @@ see [ARCHITECTURE.md](ARCHITECTURE.md).
    | Request account | `features/auth/CreateAccountScreen.tsx` | validates only |
    | Shift handoff text | `features/handoff/HandoffScreen.tsx` | `buildSimulatedBriefing` (template, not AI) |
 
-3. **Session.** Replace the demo accounts in `features/auth/session.tsx` with `GET /me`. Remove `PrototypeTools`, `LoginScreen`
-   and the `mock/` folder (including the in-memory `mockStore.ts`) from the production path, or hide them behind the demo switch.
+3. **Session.** Done inside ServiceNow (`GET /me`). The demo sign-in, Prototype tools and the in-memory store are only used
+   by the local preview. Before real use, remove the demo users and the Load demo data endpoint.
 4. **Scope filtering.** `features/rooms/scope.ts` and `features/maintenance/scope.ts` can stay as a convenience, but the
    server must already have filtered the data.
 5. **Remove prototype labels** ("Live demo data", "Prototype" banners, "Simulation only" dialogs) only for flows that are
@@ -368,7 +399,7 @@ a credential, never in the browser; only authorized, minimized data is sent; the
 if anything fails, return the deterministic template briefing labeled as non-AI. The template logic to port is
 `src/client/features/handoff/briefing.ts`. It uses the Couldn't Complete **reason category** only, never the free-text note.
 
-## 11. Suggested build order
+## 11. Build order (steps 1 to 5 are built; none is verified in the PDI yet)
 
 1. Tables, roles, `staff_profile`, sample data matching the prototype's scenarios (see `src/client/mock/mockData.ts`).
 2. `ReadinessEvaluator` and the action Script Includes with the same tests as `tests/logic.test.cjs`.
@@ -393,4 +424,7 @@ Still open:
 - Fluent API support for each metadata type on the Brazil release (tables, ACLs with scripts, business rules, scripted REST).
 - Exact logout path and how the signed-in user's roles are best read on the server.
 - How the prototype's own sign-in page should behave now that ServiceNow already signed the user in (it currently shows a second, demo sign-in).
-- The version of the UI installed in the PDI is the **earlier** one (before the vertical-slice layout and the task and defect rework). Reinstall (without `--reinstall`) when the team lead approves.
+- The version installed in the PDI is the **earlier** frontend-only one. Install the backend version (without `--reinstall`) when the team lead approves, then follow `DEPLOYMENT_GUIDE.md`.
+- Whether the server modules built from `src/client/` load correctly at runtime (they build and their imports line up by path, but this has not run on the instance).
+- Whether installing `sys_user` and `sys_user_has_role` records with the app works on this PDI, and whether the cross-scope reads need approval.
+- Whether `/logout.do` is the right sign-out path.

@@ -1,11 +1,18 @@
-import React, { createContext, useCallback, useContext, useMemo, useState } from 'react'
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { STAFF } from '../../mock/mockData'
+import { ApiError } from '../../shared/api/dataSource'
 import type { DemoScenario } from '../../shared/api/dataSource'
+import type { AppMode } from '../../shared/api/environment'
+import { fetchCurrentAccount } from '../../shared/api/serviceNowDataSource'
 import type { Role, Staff } from '../../shared/domain/types'
 
 /**
- * PROTOTYPE session.
+ * Sessions. Two providers give screens the same useAuth() / useSession() API:
+ *   ServerSessionProvider  inside ServiceNow: the signed-in user comes from GET /me
+ *   SessionProvider        local preview only: pick a synthetic demo account (below)
+ *
+ * PROTOTYPE session (local preview).
  *
  * In the live app, ServiceNow signs people in and out (its own login page and session
  * cookie) and the SERVER decides which roles a user has. This client never sees or
@@ -38,6 +45,11 @@ function storeAccount(id: string | null): void {
 }
 
 interface AuthValue {
+    mode: AppMode
+    /** 'loading' only while ServiceNow mode asks the server who is signed in. */
+    status: 'loading' | 'ready'
+    /** Why there is no account in ServiceNow mode (for example: no RoomRelay role). */
+    error: string | null
     account: Staff | null
     scenario: DemoScenario
     /** Message shown on the sign-in page (for example after a session expires). */
@@ -74,8 +86,47 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     }, [])
 
     const value = useMemo<AuthValue>(
-        () => ({ account, scenario, notice, setScenario, signIn, signOut }),
+        () => ({ mode: 'demo' as const, status: 'ready' as const, error: null, account, scenario, notice, setScenario, signIn, signOut }),
         [account, scenario, notice, signIn, signOut]
+    )
+
+    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+}
+
+/**
+ * ServiceNow mode: ServiceNow has already signed the user in. Ask the server who they are and
+ * which RoomRelay role they hold; the browser never chooses its own identity. Sign out goes to
+ * ServiceNow's logout page. To see another role, an administrator uses Impersonate User.
+ */
+export function ServerSessionProvider({ children }: { children: ReactNode }) {
+    const [account, setAccount] = useState<Staff | null>(null)
+    const [status, setStatus] = useState<'loading' | 'ready'>('loading')
+    const [error, setError] = useState<string | null>(null)
+
+    useEffect(() => {
+        fetchCurrentAccount()
+            .then(setAccount)
+            .catch((err: unknown) => setError(err instanceof ApiError ? err.message : new ApiError('server').message))
+            .finally(() => setStatus('ready'))
+    }, [])
+
+    const signOut = useCallback(() => {
+        window.location.href = '/logout.do'
+    }, [])
+
+    const value = useMemo<AuthValue>(
+        () => ({
+            mode: 'servicenow',
+            status,
+            error,
+            account,
+            scenario: 'normal',
+            notice: null,
+            setScenario: () => undefined, // problem simulation is a local-preview tool only
+            signIn: () => false, // ServiceNow handles sign-in
+            signOut,
+        }),
+        [status, error, account, signOut]
     )
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

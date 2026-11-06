@@ -1,10 +1,6 @@
 import type { Command, CommandOutcome } from '../shared/api/commands'
 import type { Snapshot, Staff } from '../shared/domain/types'
-import type { CommandContext, RuleResult } from '../shared/domain/commandKit'
-import { recordBriefingGenerated } from '../features/handoff/handoffCommands'
-import { completeTask, markTaskCouldntComplete, reopenTask } from '../features/housekeeping/taskCommands'
-import { reportDefect, resolveDefect, startDefect, triageDefect } from '../features/maintenance/defectCommands'
-import { recordInspection, submitForInspection } from '../features/rooms/roomCommands'
+import { applyCommand } from '../app/applyCommand'
 import { buildMockSnapshot, MOCK_NOW_MS } from './mockData'
 
 /**
@@ -35,33 +31,8 @@ export function resetMockStore(): void {
     clockStartedAt = Date.now()
 }
 
-function apply(command: Command, ctx: CommandContext): RuleResult {
-    switch (command.type) {
-        case 'task.complete':
-            return completeTask(state, ctx, command)
-        case 'task.couldntComplete':
-            return markTaskCouldntComplete(state, ctx, command)
-        case 'task.reopen':
-            return reopenTask(state, ctx, command)
-        case 'defect.report':
-            return reportDefect(state, ctx, command)
-        case 'defect.triage':
-            return triageDefect(state, ctx, command)
-        case 'defect.start':
-            return startDefect(state, ctx, command)
-        case 'defect.resolve':
-            return resolveDefect(state, ctx, command)
-        case 'room.submitInspection':
-            return submitForInspection(state, ctx, command)
-        case 'room.recordInspection':
-            return recordInspection(state, ctx, command)
-        case 'handoff.briefingGenerated':
-            return recordBriefingGenerated(state, ctx, command)
-    }
-}
-
 export function dispatchMockCommand(command: Command, actor: Staff): CommandOutcome {
-    const result = apply(command, { actor, now: mockNow() })
+    const result = applyCommand(state, { actor, now: mockNow() }, command)
     if (!result.ok) return result
     state = result.snapshot
     return { ok: true }

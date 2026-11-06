@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react'
+import { DATA_NOTE } from '../../shared/api/environment'
 import { DataGate } from '../../shared/api/DataContext'
 import type { ReadyData } from '../../shared/api/DataContext'
 import { recentActivity } from '../activity/recentActivity'
@@ -46,7 +47,7 @@ function DashboardPage({ data }: { data: ReadyData }) {
         <div className="dashboard">
             <div className="dashboard__filters">
                 <p className="muted">
-                    {scoped.note} Every number is calculated from one synthetic dataset kept in this browser tab; no ServiceNow records are read or changed.
+                    {scoped.note} {DATA_NOTE.dashboard}
                 </p>
                 <label className="field">
                     <span>Floor</span>

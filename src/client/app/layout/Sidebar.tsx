@@ -1,4 +1,5 @@
 import React from 'react'
+import { DATA_NOTE } from '../../shared/api/environment'
 import { ROUTES, canViewRoute } from '../routes'
 import type { RouteId } from '../routes'
 import { useSession } from '../../features/auth/session'
@@ -50,7 +51,7 @@ export function Sidebar({ activeRoute, role, open, onNavigate }: SidebarProps) {
 
             <div className="sidebar__footer">
                 <PrototypeTools />
-                <p className="sidebar__note">Prototype build. Synthetic data only.</p>
+                <p className="sidebar__note">{DATA_NOTE.sidebar}</p>
                 <button type="button" className="sidebar__signout" onClick={() => signOut()}>
                     <Icon name="logout" size={18} />
                     <span>Sign out</span>
