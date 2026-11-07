@@ -4,7 +4,8 @@ For testing the installed app in the PDI (`https://dev472716.service-now.com`) w
 Write **Pass**, **Fail** (with what you saw) or **Blocked** in the Result column. Work through the sections in order:
 several cases build on the one before (marked "after ...").
 
-App address: `https://dev472716.service-now.com/x_2305075_roomrela_incident_manager.do`
+Open the app from ServiceNow: **All** > type `RoomRelay` > **RoomRelay AI > Open RoomRelay** (opens in the same tab).
+Direct address: `https://dev472716.service-now.com/x_2305075_roomrela_incident_manager.do`
 
 ---
 
@@ -78,6 +79,7 @@ app address; end impersonation the same way.
 | AUTH-05 | Riley | Sign in, open the app | Menu: Dashboard, Rooms, Maintenance, Users and Roles, Audit Log, and **Data management** at the bottom | |
 | AUTH-06 | Any user without a RoomRelay role (for example `abel.tuter`, by impersonation) | Open the app address | "No access to RoomRelay"; no data | |
 | AUTH-07 | Anyone | Look for a "Request an account" or sign-up link | There is none: accounts are created by the administrator (section 9) | |
+| AUTH-09 | Avery, then a user without a RoomRelay role | Open **All**, type `RoomRelay` | Avery sees **RoomRelay AI > Open RoomRelay** (not Staff Profiles); the user without a role sees no RoomRelay menu | |
 | AUTH-08 | Avery | Choose **Sign out** | Signed out of ServiceNow; opening the app address again asks for a login | |
 
 ## 2. Dashboard
@@ -181,7 +183,7 @@ Free AI limits apply (at most 5 briefings per supervisor in 10 minutes).
 |---|---|---|---|---|
 | USER-01 | Riley | Open **Users and Roles** | 9 staff accounts (10 when you open it as your own PDI admin, which lists itself too) with role, shift and current work (for example Avery "8 rooms assigned", Sofia "3 open repairs"); the role-permission table | |
 | USER-02 | Riley | Check the permission table against what you saw in sections 1 to 8 | Every "No" was really refused or hidden | |
-| USER-03 | Your admin account | Create a new ServiceNow user `test.housekeeper` (User Administration > Users > New), add the role `x_2305075_roomrela.housekeeper`, then add a RoomRelay Staff Profile (`x_2305075_roomrela_staff.list` > New: user, shift Morning) | The user appears in Users and Roles as Housekeeping Staff with "0 rooms assigned" | |
+| USER-03 | Your admin account | Create a new ServiceNow user `test.housekeeper` (User Administration > Users > New), add the role `x_2305075_roomrela.housekeeper`, then add a RoomRelay Staff Profile (**All > RoomRelay AI > Staff Profiles** > New: user, shift Morning) | The user appears in Users and Roles as Housekeeping Staff with "0 rooms assigned" | |
 | USER-04 | `test.housekeeper` (impersonate) | Open the app | Signed in as Housekeeping Staff; Dashboard shows "No rooms to show: No rooms are currently assigned to you." | |
 | USER-05 | Your admin account | Remove the RoomRelay role from `test.housekeeper`, impersonate again | "No access to RoomRelay" | |
 | USER-06 | Avery | Type `#/access` at the end of the app address | "Access denied" | |
@@ -232,7 +234,7 @@ administrator role covers the RoomRelay pages, not ServiceNow user administratio
 
 | Section | Cases | Passed | Failed | Notes |
 |---|---|---|---|---|
-| 1. Sign-in and access | 8 | | | |
+| 1. Sign-in and access | 9 | | | |
 | 2. Dashboard | 6 | | | |
 | 3. Rooms | 8 | | | |
 | 4. Housekeeping checklist | 7 | | | |
@@ -245,6 +247,6 @@ administrator role covers the RoomRelay pages, not ServiceNow user administratio
 | 11. Data management | 3 | | | |
 | 12. Security | 5 | | | |
 | 13. Layout | 4 | | | |
-| **Total** | **88** | | | |
+| **Total** | **89** | | | |
 
 Tested by: ______________________ Date: ____________ Build / commit: ____________

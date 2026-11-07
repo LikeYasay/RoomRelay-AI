@@ -24,6 +24,7 @@ Keep these four things separate when you report progress. They are not the same:
 | 5 tables | `x_2305075_roomrela_room`, `_task`, `_defect`, `_audit`, `_staff` |
 | 7 ACLs | Read-only table access for the app admin; app admin can edit staff profiles; the REST API needs one of the four roles |
 | REST API | `/api/x_2305075_roomrela/v1/roomrelay/` with `GET /me`, `GET /snapshot`, `POST /commands`, `POST /demo/reset`, `POST /handoff/briefing` |
+| Menu | **All > RoomRelay AI** with **Open RoomRelay** (every RoomRelay role) and **Staff Profiles** (RoomRelay administrator). New menus can need the menu's refresh button (circular arrow next to the filter) before they appear |
 | REST Message | `RoomRelay Groq`: the outbound call to `https://api.groq.com/openai/v1/chat/completions` (no key inside; the key is added by server code from the property in section 3b) |
 | Server modules | `src/server/**` plus the shared rule files from `src/client/` (listed in `now.config.json`) |
 | 2 cross-scope privileges | Read `sys_user` and `sys_user_has_role` (names and role assignments) |

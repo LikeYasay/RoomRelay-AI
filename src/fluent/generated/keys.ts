@@ -165,6 +165,18 @@ declare global {
                         table: 'sys_ws_operation'
                         id: '2ca821d641e74af5834a363d554776ff'
                     }
+                    'roomrelay-menu': {
+                        table: 'sys_app_application'
+                        id: '6dcc8fdaaad049d18eb66f3c6b6689bd'
+                    }
+                    'roomrelay-module-open': {
+                        table: 'sys_app_module'
+                        id: '26c02f6b4bdb442886b73c003e34488d'
+                    }
+                    'roomrelay-module-staff': {
+                        table: 'sys_app_module'
+                        id: '1bd9cb523cd6453783e3804a63b330c7'
+                    }
                     'roomrelay-post-briefing': {
                         table: 'sys_ws_operation'
                         id: 'afbe4390624642f7bdb80180c12a364a'

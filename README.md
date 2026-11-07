@@ -43,7 +43,7 @@ The same code runs in two modes; `src/client/shared/api/environment.ts` picks on
 
 ### Inside ServiceNow (the real app)
 
-1. Sign in to the PDI as admin and open the app page above. There is no RoomRelay sign-in page: ServiceNow has already
+1. Sign in to the PDI and choose **All > RoomRelay AI > Open RoomRelay** (or open the app page above). There is no RoomRelay sign-in page: ServiceNow has already
    signed you in, and the server decides your role.
 2. First time only: open **Data management** (bottom-left, administrator only) and press **Restore initial data**.
 3. To use another role, sign in as one of the staff accounts below (give them a password first, see
