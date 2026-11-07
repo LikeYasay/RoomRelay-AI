@@ -59,3 +59,36 @@
     list-style: decimal;
     padding-left: 22px;
 }
+
+/* Briefing table: one row per room that needs attention. */
+.briefing__caption {
+    margin-bottom: 8px;
+}
+
+.briefing-table td,
+.briefing-table th {
+    vertical-align: top;
+}
+
+.briefing-table__note {
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--warning-fg, inherit);
+}
+
+.briefing-table__defects {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 180px;
+}
+
+.briefing-table__why {
+    min-width: 200px;
+    overflow-wrap: anywhere;
+}
+
+.briefing-table tbody th,
+.briefing-table td:nth-child(2) {
+    white-space: nowrap;
+}

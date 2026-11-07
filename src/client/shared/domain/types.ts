@@ -164,6 +164,20 @@ export interface BriefingItem {
     text: string
 }
 
+/** One row of the briefing table: a room of the outgoing shift that needs attention. Facts only, from the rules. */
+export interface BriefingRoom {
+    roomId: string
+    status: RoomStatus
+    housekeeper?: string
+    mandatoryDone: number
+    mandatoryTotal: number
+    /** Tasks marked Couldn't Complete, with the reason category (never the free-text note). */
+    couldntComplete: Array<{ task: string; reason: string }>
+    /** Unresolved defects. */
+    defects: Array<{ title: string; priority: DefectPriority; status: DefectStatus }>
+    inspection: InspectionStatus
+}
+
 /** template: local preview. ai: written by the AI model. fallback: the AI was unavailable, so this is the template. */
 export type BriefingSource = 'template' | 'ai' | 'fallback'
 
@@ -196,5 +210,7 @@ export interface Briefing {
     couldntComplete: BriefingItem[]
     awaitingTriage: BriefingItem[]
     unresolvedDefects: BriefingItem[]
+    /** Rooms that are not Ready or have an open defect or Couldn't Complete task: the briefing table. */
+    rooms: BriefingRoom[]
     actions: string[]
 }

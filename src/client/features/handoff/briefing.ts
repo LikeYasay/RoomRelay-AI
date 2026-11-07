@@ -1,6 +1,15 @@
-import type { Briefing, BriefingItem, RoomView, Shift } from '../../shared/domain/types.ts'
+import type { Briefing, BriefingItem, BriefingRoom, RoomStatus, RoomView, Shift } from '../../shared/domain/types.ts'
 import { capitalizeFirst, plural } from '../../shared/lib/format.ts'
-import { DEFECT_PRIORITY_META, DEFECT_STATUS_META, DEFECT_STATUS_ORDER, INCOMPLETE_REASON_LABEL, SHIFT_LABEL, SHIFT_ORDER } from '../../shared/domain/labels.ts'
+import {
+    DEFECT_PRIORITY_META,
+    DEFECT_STATUS_META,
+    DEFECT_STATUS_ORDER,
+    INCOMPLETE_REASON_LABEL,
+    INSPECTION_LABEL,
+    ROOM_STATUS_META,
+    SHIFT_LABEL,
+    SHIFT_ORDER,
+} from '../../shared/domain/labels.ts'
 import { isBlockingOpen } from '../maintenance/blockers.ts'
 
 /**
@@ -14,9 +23,31 @@ import { isBlockingOpen } from '../maintenance/blockers.ts'
  * readiness is decided by deterministic rules, not by this text.
  */
 
-export type { Briefing, BriefingItem, BriefingSource } from '../../shared/domain/types.ts'
+export type { Briefing, BriefingItem, BriefingRoom, BriefingSource } from '../../shared/domain/types.ts'
 
 const MAX_LIST = 8
+
+/** Most urgent first, for the briefing table. */
+const STATUS_ORDER: RoomStatus[] = ['blocked', 'pending_inspection', 'in_progress', 'needs_cleaning', 'ready']
+
+/** One table row per room that is not Ready, or still has an open defect or a Couldn't Complete task. */
+function attentionRooms(inShift: RoomView[]): BriefingRoom[] {
+    return inShift
+        .filter((v) => !v.readiness.isReady || v.defects.some((d) => d.status !== 'resolved') || v.tasks.some((t) => t.status === 'couldnt_complete'))
+        .sort((a, b) => STATUS_ORDER.indexOf(a.readiness.status) - STATUS_ORDER.indexOf(b.readiness.status) || a.room.id.localeCompare(b.room.id))
+        .map((v) => ({
+            roomId: v.room.id,
+            status: v.readiness.status,
+            housekeeper: v.assignee?.name,
+            mandatoryDone: v.readiness.mandatoryDone,
+            mandatoryTotal: v.readiness.mandatoryTotal,
+            couldntComplete: v.tasks
+                .filter((t) => t.status === 'couldnt_complete')
+                .map((t) => ({ task: t.title, reason: t.incompleteReason ? INCOMPLETE_REASON_LABEL[t.incompleteReason] : 'No reason given' })),
+            defects: v.defects.filter((d) => d.status !== 'resolved').map((d) => ({ title: d.title, priority: d.priority, status: d.status })),
+            inspection: v.room.inspection,
+        }))
+}
 
 export function nextShift(shift: Shift): Shift {
     const i = SHIFT_ORDER.indexOf(shift)
@@ -116,6 +147,7 @@ export function buildTemplateBriefing(views: RoomView[], shift: Shift, generated
             roomId,
             text: `${d.title}: ${DEFECT_PRIORITY_META[d.priority].label} priority, ${DEFECT_STATUS_META[d.status].label.toLowerCase()}${d.priority === 'blocking' ? ', blocks readiness' : ''}.`,
         })),
+        rooms: attentionRooms(inShift),
         actions,
     }
 }
@@ -131,6 +163,16 @@ export function briefingToText(b: Briefing): string {
     const clean = (s: string) => s.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, ' ')
     const section = (title: string, items: BriefingItem[]) =>
         items.length === 0 ? [] : ['', `${title}`, ...items.map((i) => `- Room ${i.roomId}: ${clean(i.text)}`)]
+    const roomLine = (r: BriefingRoom) =>
+        [
+            `- Room ${r.roomId}`,
+            ROOM_STATUS_META[r.status].label,
+            `Housekeeper: ${r.housekeeper ?? 'unassigned'}`,
+            `Tasks: ${r.mandatoryDone} of ${r.mandatoryTotal} done`,
+            ...r.couldntComplete.map((c) => `Couldn't complete: ${clean(c.task)} (${c.reason})`),
+            `Defects: ${r.defects.length === 0 ? 'none' : r.defects.map((d) => `${clean(d.title)} (${DEFECT_PRIORITY_META[d.priority].label}, ${DEFECT_STATUS_META[d.status].label.toLowerCase()})`).join('; ')}`,
+            `Inspection: ${INSPECTION_LABEL[r.inspection]}`,
+        ].join(' | ')
 
     return [
         `RoomRelay AI shift handoff: ${SHIFT_LABEL[b.shift]} to ${SHIFT_LABEL[b.incomingShift]}`,
@@ -139,12 +181,9 @@ export function briefingToText(b: Briefing): string {
         '',
         clean(b.summary),
         ...section('TOP PRIORITIES', b.priorities),
-        ...section('BLOCKED ROOMS', b.blockedRooms),
-        ...section('PENDING INSPECTIONS', b.pendingInspections),
-        ...section('OUTSTANDING MANDATORY TASKS', b.outstandingTasks),
-        ...section("TASKS THAT COULDN'T BE COMPLETED", b.couldntComplete),
-        ...section('REPORTS AWAITING TRIAGE', b.awaitingTriage),
-        ...section('UNRESOLVED DEFECTS', b.unresolvedDefects),
+        '',
+        `ROOMS NEEDING ATTENTION (${(b.rooms ?? []).length} of ${b.counts.rooms})`,
+        ...((b.rooms ?? []).length === 0 ? ['- None. Every room for this shift is Ready.'] : (b.rooms ?? []).map(roomLine)),
         '',
         'SUGGESTED ACTIONS FOR INCOMING SHIFT',
         ...b.actions.map((a) => `- ${clean(a)}`),
