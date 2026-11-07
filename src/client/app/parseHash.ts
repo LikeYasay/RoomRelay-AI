@@ -3,13 +3,13 @@ import type { RouteDef } from './routes'
 
 /** Turns the address bar hash into a route. Pure logic, no React, so it can be tested on its own. */
 
-export type PublicPage = 'login' | 'signup'
+export type PublicPage = 'login'
 
 export interface ParsedRoute {
     route: RouteDef | undefined
     /** Raw second path segment, for example a room number. Validate before use. */
     param: string | undefined
-    /** Set for the sign-in and create-account pages, which are not part of the signed-in app. */
+    /** Set for the sign-in page (local preview), which is not part of the signed-in app. */
     page: PublicPage | undefined
 }
 
@@ -21,7 +21,7 @@ export function parseHash(hash: string): ParsedRoute {
     const cleaned = hash.replace(/^#\/?/, '')
     if (cleaned === '') return { route: findRoute('dashboard'), param: undefined, page: undefined }
     const [first = '', second] = cleaned.split('/')
-    if (first === 'login' || first === 'signup') return { route: undefined, param: undefined, page: first }
+    if (first === 'login') return { route: undefined, param: undefined, page: first }
     const id = Object.prototype.hasOwnProperty.call(ALIASES, first) ? (ALIASES[first] as string) : first
     return { route: findRoute(id), param: second ? decodeURIComponentSafe(second) : undefined, page: undefined }
 }

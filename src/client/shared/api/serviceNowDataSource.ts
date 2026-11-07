@@ -90,8 +90,8 @@ export async function fetchCurrentAccount(): Promise<Staff> {
     return account
 }
 
-/** Administrator only: replace all RoomRelay data with the demo dataset (POST /demo/reset). */
-export async function resetServerDemoData(): Promise<string | undefined> {
+/** Administrator only: replace all RoomRelay data with the initial data set (POST /demo/reset). */
+export async function restoreInitialData(): Promise<string | undefined> {
     const { status, body } = await call('/demo/reset', { method: 'POST', body: '{}' })
     if (status === 200) return undefined
     const message = (body as ApiErrorBody | null)?.error?.message

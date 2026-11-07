@@ -4,7 +4,7 @@ import { resetMockStore } from '../../mock/mockStore'
 import { useCommands } from '../../shared/api/DataContext'
 import type { DemoScenario } from '../../shared/api/dataSource'
 import { APP_MODE } from '../../shared/api/environment'
-import { resetServerDemoData } from '../../shared/api/serviceNowDataSource'
+import { restoreInitialData } from '../../shared/api/serviceNowDataSource'
 import { ConfirmDialog } from '../../shared/ui/ConfirmDialog'
 
 const SCENARIOS: Array<{ value: DemoScenario; label: string }> = [
@@ -20,11 +20,12 @@ function isScenario(value: string): value is DemoScenario {
 }
 
 /**
- * Demo helpers. Local preview: preview error states and reset the in-memory data.
- * Inside ServiceNow: only the RoomRelay administrator sees this, and can reload the demo dataset
- * (the server checks the role again).
+ * Data management in the sidebar.
+ * Inside ServiceNow: administrator only. Restores the initial rooms, tasks, defects and audit
+ * entries, for example before a new round of testing (the server checks the role again).
+ * Local preview: also lets a developer preview the error screens.
  */
-export function PrototypeTools() {
+export function DataTools() {
     const { role, scenario, setScenario } = useSession()
     const { refresh } = useCommands()
     const [message, setMessage] = useState<string | null>(null)
@@ -35,15 +36,15 @@ export function PrototypeTools() {
     const resetLocal = async () => {
         resetMockStore()
         await refresh()
-        setMessage('Demo data restored to the original.')
+        setMessage('Initial data restored.')
     }
 
     return (
         <details className="proto-tools">
-            <summary>{APP_MODE === 'servicenow' ? 'Demo tools' : 'Prototype tools'}</summary>
+            <summary>{APP_MODE === 'servicenow' ? 'Data management' : 'Preview tools'}</summary>
             {APP_MODE === 'demo' ? (
                 <label>
-                    <span>Simulate a problem</span>
+                    <span>Preview a state</span>
                     <select value={scenario} onChange={(e) => isScenario(e.target.value) && setScenario(e.target.value)}>
                         {SCENARIOS.map((s) => (
                             <option key={s.value} value={s.value}>
@@ -54,24 +55,21 @@ export function PrototypeTools() {
                 </label>
             ) : null}
             <button type="button" className="proto-tools__reset" onClick={APP_MODE === 'demo' ? resetLocal : () => setConfirming(true)}>
-                {APP_MODE === 'demo' ? 'Reset demo data' : 'Load demo data'}
+                Restore initial data
             </button>
             <p className="proto-tools__hint" role="status">
-                {message ??
-                    (APP_MODE === 'demo'
-                        ? 'Changes are kept in this tab until you reload or reset.'
-                        : 'Replaces all RoomRelay rooms, tasks, defects and audit entries in ServiceNow.')}
+                {message ?? 'Replaces all rooms, tasks, defects and audit entries with the initial data set.'}
             </p>
             {confirming ? (
                 <ConfirmDialog
-                    title="Load demo data"
-                    message="This deletes every RoomRelay room, task, defect and audit entry in this ServiceNow instance and loads the demo dataset again. Continue?"
-                    confirmLabel="Load demo data"
+                    title="Restore initial data"
+                    message="This deletes every RoomRelay room, task, defect and audit entry in this instance and restores the initial data set. Staff accounts are not changed. Continue?"
+                    confirmLabel="Restore initial data"
                     onConfirm={async () => {
-                        const failure = await resetServerDemoData()
+                        const failure = await restoreInitialData()
                         if (failure) return failure
                         await refresh()
-                        setMessage('Demo data loaded.')
+                        setMessage('Initial data restored.')
                         return undefined
                     }}
                     onClose={() => setConfirming(false)}

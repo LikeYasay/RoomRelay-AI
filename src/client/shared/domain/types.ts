@@ -2,7 +2,7 @@
  * Domain types for RoomRelay AI: the shapes the backend must return.
  *
  * The ServiceNow server builds these shapes from its tables (src/server/data/repository.ts);
- * the local preview builds them from synthetic data (src/client/mock). Authorization is
+ * the local preview builds them from the initial data set (src/client/mock). Authorization is
  * enforced by the server (roles, ACLs, the rule functions), never by the browser.
  * See docs/GLOSSARY.md for what every term means.
  */
@@ -33,7 +33,7 @@ export interface Staff {
 }
 
 export interface Room {
-    /** Room number doubles as the id in the prototype (for example "305"). */
+    /** Room number doubles as the id (for example "305"). */
     id: string
     floor: number
     type: string
@@ -97,8 +97,6 @@ export type AuditAction =
     | 'inspection_passed'
     | 'inspection_failed'
     | 'briefing_generated'
-    | 'access_request_approved'
-    | 'access_request_declined'
 
 /** One row of the audit log: who did what, when. Entries are never edited or deleted. */
 export interface AuditEntry {
@@ -167,7 +165,7 @@ export interface BriefingItem {
 }
 
 /** template: local preview. ai: written by the AI model. fallback: the AI was unavailable, so this is the template. */
-export type BriefingSource = 'simulated' | 'ai' | 'fallback'
+export type BriefingSource = 'template' | 'ai' | 'fallback'
 
 export interface Briefing {
     source: BriefingSource

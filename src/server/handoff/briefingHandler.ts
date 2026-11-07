@@ -1,6 +1,6 @@
 import { GlideRecord } from '@servicenow/glide'
 import { applyAiNarrative, asFallback, BRIEFING_RATE_LIMIT, buildAiInput, buildAiMessages, parseAiReply } from '../../client/features/handoff/aiBriefing.ts'
-import { buildSimulatedBriefing } from '../../client/features/handoff/briefing.ts'
+import { buildTemplateBriefing } from '../../client/features/handoff/briefing.ts'
 import { recordBriefingGenerated } from '../../client/features/handoff/handoffCommands.ts'
 import { buildRoomViews } from '../../client/features/rooms/roomViews.ts'
 import { SHIFT_ORDER } from '../../client/shared/domain/labels.ts'
@@ -51,7 +51,7 @@ export function handleBriefing(request: RestRequest, response: RestResponse, cal
     // A supervisor sees every room, so the template and the AI get the same, complete view.
     const { snapshot, ids } = loadSnapshot(staff, { withAudit: false })
     const views = buildRoomViews(snapshot)
-    const template = buildSimulatedBriefing(views, shift, now)
+    const template = buildTemplateBriefing(views, shift, now)
     const input = buildAiInput(views, template)
     const shiftRooms = new Set(views.filter((v) => v.assignee?.shift === shift).map((v) => v.room.id))
 

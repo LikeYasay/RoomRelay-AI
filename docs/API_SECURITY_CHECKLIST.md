@@ -30,7 +30,7 @@ Loosely based on the OWASP Top 10 and OWASP API Security Top 10, kept practical 
 | A11 | Safe error messages (no server details shown) | **Verified** | `ApiError` uses fixed messages; error boundary logs only the error name. Simulated server, forbidden and expired states checked in the browser. |
 | A12 | Session expiry handling | **Verified (simulated)** | "Session expired" state with sign-in-again button. Real expiry depends on ServiceNow. |
 | A13 | Browser storage limited | **Verified** | Only the demo account id in `sessionStorage`, cleared on sign-out. The live demo data lives in page memory only (never in storage) and is gone on reload. Goes away with the real session. |
-| A13b | Live demo data is clearly labeled and not presented as security | **Implemented** | "Live demo data" banner on Maintenance, note in Prototype tools, README and demo script. Anyone can change browser memory. |
+| A13b | The local preview is clearly labeled and not presented as security | **Implemented** | "Live demo data" banner on Maintenance, note in Prototype tools, README and demo script. Anyone can change browser memory. |
 | A14 | Copy-to-clipboard text stripped of control characters | **Verified** | Automated test. |
 | A15 | Accessibility basics (labels, names, landmarks, focus ring, keyboard sign-in, skip link) | **Verified** | DOM audit of 13 views found 0 issues; keyboard-only sign-in works; contrast 23 of 23 pairs pass. Screen readers **not** tested. |
 | A16 | CSRF token sent with API calls | **Planned** | Reuse the session token pattern (`X-UserToken` / `g_ck`) in the one place the data source calls the server. |
@@ -57,7 +57,7 @@ Loosely based on the OWASP Top 10 and OWASP API Security Top 10, kept practical 
 | B15 | CORS | **Implemented (default)** | No CORS rule is created, so the API is same-origin only. |
 | B16 | Audit trail | **Verified in the PDI** (P19) | `x_2305075_roomrela_audit` rows are written in the same request as each change, with the session user as actor; no role can write the table. |
 | B17 | Secure logging | **Implemented** | Logs contain the error message only; no request bodies, tokens or prompts. |
-| B18 | Account requests | Planned | Still simulated; never create users or grant roles from a public form. |
+| B18 | Account requests | **Not applicable (removed)** | No self-registration or access-request form. Accounts and roles are created only by an administrator in ServiceNow. |
 
 ## C. AI controls (see AI_DESIGN.md)
 
@@ -88,6 +88,6 @@ Loosely based on the OWASP Top 10 and OWASP API Security Top 10, kept practical 
 - [x] Confirm the UI Page requires sign-in (2026-11-06, and again after the backend install on 2026-11-07).
 - [x] Test each role as a non-admin user in the PDI (Impersonate User; TEST_PLAN P15 to P22).
 - [ ] Run the rest of `TEST_PLAN.md` section 5 (rows marked Not run).
-- [ ] Before any real use: remove the demo users (`src/fluent/auth/demo-users.now.ts`) and the Load demo data endpoint, and keep Prototype tools out of the production build.
+- [ ] Before any real use: remove the installed staff accounts (`src/fluent/auth/demo-users.now.ts`) and the Restore initial data endpoint (`POST /demo/reset`).
 - [ ] Search the repo again for secrets and tokens before each push.
 - [ ] Take screenshots only after removing anything sensitive.

@@ -60,9 +60,9 @@ export const ROUTES: RouteDef[] = [
     },
     {
         id: 'access',
-        label: 'Users and Access',
-        title: 'Users and Access',
-        description: 'Staff accounts, access requests and role permissions.',
+        label: 'Users and Roles',
+        title: 'Users and Roles',
+        description: 'Who has access to RoomRelay, and what each role can do.',
         icon: 'users',
         roles: ['admin'],
         live: true,

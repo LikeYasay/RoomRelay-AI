@@ -415,6 +415,13 @@ select {
     margin-bottom: 12px;
 }
 
+.steps {
+    margin: 8px 0 12px;
+    padding-left: 22px;
+    display: grid;
+    gap: 6px;
+}
+
 .mini-table {
     width: 100%;
     border-collapse: collapse;

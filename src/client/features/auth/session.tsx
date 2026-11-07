@@ -10,13 +10,13 @@ import type { Role, Staff } from '../../shared/domain/types'
 /**
  * Sessions. Two providers give screens the same useAuth() / useSession() API:
  *   ServerSessionProvider  inside ServiceNow: the signed-in user comes from GET /me
- *   SessionProvider        local preview only: pick a synthetic demo account (below)
+ *   SessionProvider        local preview only: pick one of the staff accounts (below)
  *
- * PROTOTYPE session (local preview).
+ * LOCAL PREVIEW session.
  *
  * In the live app, ServiceNow signs people in and out (its own login page and session
  * cookie) and the SERVER decides which roles a user has. This client never sees or
- * stores a password. Here, "signing in" just picks one of the synthetic demo accounts so
+ * stores a password. Here, "signing in" just picks one of the staff accounts so
  * the screens can be shown for each role. It grants no access to anything real.
  *
  * Only the demo account id is kept in sessionStorage (cleared on sign-out or when the

@@ -58,11 +58,11 @@ function SourceNotice({ briefing }: { briefing: Briefing }) {
 const SOURCE_BADGE = {
     ai: { tone: 'info', label: 'AI briefing' },
     fallback: { tone: 'warning', label: 'Fallback template (not AI)' },
-    simulated: { tone: 'warning', label: 'Simulated briefing (not AI)' },
+    template: { tone: 'neutral', label: 'Template briefing (no AI)' },
 } as const
 
 export function BriefingView({ briefing }: { briefing: Briefing }) {
-    const badge = SOURCE_BADGE[briefing.source] ?? SOURCE_BADGE.simulated
+    const badge = SOURCE_BADGE[briefing.source] ?? SOURCE_BADGE.template
     return (
         <article className="briefing" aria-label="Shift handoff briefing">
             <div className="briefing__badges">

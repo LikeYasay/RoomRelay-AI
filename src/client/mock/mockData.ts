@@ -12,8 +12,9 @@ import type {
 import { DEFECT_PRIORITY_META } from '../shared/domain/labels.ts'
 
 /**
- * SYNTHETIC DEMO DATA, for the prototype only.
- * All people, rooms, defects and times are fictional. This is the single source for every
+ * The initial data set: 40 rooms on floors 1 to 5, their housekeeping tasks, maintenance defects
+ * and audit history. Used by the local preview and restored in ServiceNow by the administrator
+ * (Data management > Restore initial data). All people, rooms, defects and times are fictional. This is the single source for every
  * number the app shows, so KPIs, charts, tables and the audit log always agree.
  * Time is anchored to a fixed "now" so the dataset is deterministic.
  */
@@ -300,9 +301,7 @@ function seedAudit(rooms: Room[], tasks: HousekeepingTask[], defects: Defect[]):
     }
 
     rows.push(
-        { at: ago(600), actorId: SUPERVISOR_ID, action: 'briefing_generated', summary: `${name(SUPERVISOR_ID)} generated the Night shift briefing (simulated, not AI).` },
-        { at: ago(2900), actorId: ADMIN_ID, action: 'access_request_approved', targetId: 'req-0', summary: `${name(ADMIN_ID)} approved the access request from Sam Patel (Housekeeping Staff).` },
-        { at: ago(4300), actorId: ADMIN_ID, action: 'access_request_declined', targetId: 'req-00', summary: `${name(ADMIN_ID)} declined an access request for an administrator account (administrator accounts are created by IT only).` }
+        { at: ago(600), actorId: SUPERVISOR_ID, action: 'briefing_generated', summary: `${name(SUPERVISOR_ID)} generated the Night shift briefing (written by AI).` }
     )
 
     return rows

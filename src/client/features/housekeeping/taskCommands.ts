@@ -14,7 +14,7 @@ import { validateIncomplete } from './taskValidation.ts'
  *                                      For "Needs maintenance" this happens automatically when the defect is resolved.
  *
  * There is no waiver: a mandatory task holds the room back until it is Completed.
- * Completed is final in this prototype (a failed inspection is how mistakes get caught).
+ * Completed is final (a failed inspection is how mistakes get caught).
  *
  * These run on the ServiceNow server for every request (src/server/api/handlers.ts), and in
  * the browser for the local preview.

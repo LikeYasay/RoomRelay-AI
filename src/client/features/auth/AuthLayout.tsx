@@ -8,7 +8,7 @@ const ROLE_DESCRIPTION: Record<Role, string> = {
     housekeeping: "Cleans assigned rooms, ticks off the checklist (or marks a task Couldn't Complete with a reason), reports defects and submits rooms for inspection.",
     maintenance: 'Works through the repairs assigned to them and records how each was resolved.',
     supervisor: 'Triages defect reports, inspects rooms and confirms them Ready, and runs shift handoffs.',
-    admin: 'Manages staff accounts, roles and access requests, and reviews the audit log. Accounts of this type are created by IT.',
+    admin: 'Manages staff accounts and roles in ServiceNow, and reviews the audit log.',
 }
 
 const ROLES: Role[] = ['housekeeping', 'maintenance', 'supervisor', 'admin']
@@ -24,7 +24,7 @@ export function AuthLayout({ children }: { children: ReactNode }) {
             <PixelBackground />
             <header className="auth__bar">
                 <span className="brand">RoomRelay AI</span>
-                <span className="chip chip--prototype">Prototype: synthetic data</span>
+                <span className="chip chip--prototype">Local preview</span>
             </header>
             <main className="auth__main" id="main-content">
                 <div className="auth__panel">
@@ -44,8 +44,8 @@ export function AuthLayout({ children }: { children: ReactNode }) {
                             ))}
                         </dl>
                         <p className="auth__note">
-                            Roles are granted by a System Administrator. You can ask for a role when you request an
-                            account, but you cannot give yourself one.
+                            Accounts are created and roles are granted by the hotel's system administrator. There is no
+                            self-registration.
                         </p>
                     </aside>
                 </div>

@@ -192,6 +192,7 @@ declare global {
                     src_client_features_auth_accountRequestValidation_ts: {
                         table: 'sys_module'
                         id: '60028e9b5f8b4fcebf5860141fb90acc'
+                        deleted: true
                     }
                     src_client_features_dashboard_dashboardStats_ts: {
                         table: 'sys_module'

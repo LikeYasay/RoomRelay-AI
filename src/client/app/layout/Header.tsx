@@ -33,7 +33,7 @@ export function Header({ title, description, menuOpen, onToggleMenu }: HeaderPro
             </div>
 
             <div className="header__user">
-                <span className="chip chip--prototype">{DATA_NOTE.chip}</span>
+                {DATA_NOTE.chip ? <span className="chip chip--prototype">{DATA_NOTE.chip}</span> : null}
                 <div className="header__who">
                     <p className="header__name">{user.name}</p>
                     <p className="header__role">{ROLE_LABEL[role]}</p>

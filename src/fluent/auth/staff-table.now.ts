@@ -18,8 +18,8 @@ export const x_2305075_roomrela_staff = Table({
             choices: { morning: 'Morning', afternoon: 'Afternoon', night: 'Night' },
             default: 'morning',
         }),
-        // Links a demo user to the synthetic dataset (h1, s1, ...). Empty for real staff.
-        demo_key: StringColumn({ label: 'Demo key', maxLength: 10 }),
+        // Links an installed staff account to the initial data set (h1, s1, ...). Empty for staff added later.
+        demo_key: StringColumn({ label: 'Initial data key', maxLength: 10 }),
     },
 })
 

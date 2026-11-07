@@ -15,7 +15,7 @@ Guests and anonymous visitors have no access at all.
 | Housekeeping Staff | Room attendants ("workers") | Work through the checklist of assigned rooms (Completed, or Couldn't Complete with a reason), report defects, submit rooms for inspection |
 | Maintenance Staff | Technicians ("workers") | Work through the repairs assigned to them and record each resolution |
 | Housekeeping Supervisor | Floor or shift managers | Triage defect reports, inspect rooms and confirm them Ready, run shift handoffs |
-| System Administrator | IT or app owner | Manage accounts, roles and access requests; review the audit log; view operations read-only |
+| System Administrator | IT or app owner | Create accounts and grant roles in ServiceNow (no self-registration); review the audit log; view operations read-only |
 
 ## 1. Pages
 
@@ -28,7 +28,7 @@ its address shows "Access denied".
 | Rooms (views: Priorities, Cleaning and inspection, Board) and Room Details with the checklist | Own rooms | No | All rooms | All (view only) |
 | Maintenance and defects (role-based views, defect details modal) | Defects in own rooms | Assigned defects | All | All (view only) |
 | Shift Handoff (AI briefing) | No | No | Yes | No |
-| Users and Access | No | No | No | Yes |
+| Users and Roles | No | No | No | Yes |
 | Audit Log | No | No | No | Yes (read only) |
 
 Menu items per role (verified by an automated test):
@@ -36,7 +36,7 @@ Menu items per role (verified by an automated test):
 - Housekeeping: Dashboard, Rooms, Maintenance
 - Maintenance: Dashboard, Maintenance
 - Supervisor: Dashboard, Rooms, Maintenance, Shift Handoff
-- Admin: Dashboard, Rooms, Maintenance, Users and Access, Audit Log
+- Admin: Dashboard, Rooms, Maintenance, Users and Roles, Audit Log
 
 The old `#/housekeeping` address opens Rooms.
 
@@ -59,7 +59,6 @@ Resolved. Housekeeper: Open, Resolved. Admin: All open, New reports, Resolved.
 | Submit a room for inspection | Own rooms | No | No | No | All mandatory tasks Completed; no open Blocking defect; not already pending |
 | **Pass or fail an inspection** (pass = Ready) | No | No | **Yes** | No | **Pass only when all three readiness rules hold; atomic; no duplicates** |
 | Generate a shift handoff briefing | No | No | Yes | No | Data filtered to the caller; AI never decides readiness; generation is audited |
-| Approve or decline access requests | No | No | No | Yes | Admin grants roles in ServiceNow; requester cannot self-grant |
 | Manage accounts, roles, settings | No | No | No | Yes | Platform admin controls |
 | View the audit log | No | No | No | View only | Nobody can edit or delete entries |
 
@@ -71,7 +70,7 @@ Full table in [BACKEND_HANDOFF.md](BACKEND_HANDOFF.md) section 5. Key points:
 - A housekeeper can change only the state (and reason) of tasks in their own rooms, through the task actions.
 - A technician can change only `status` and `resolution_notes` on defects assigned to them.
 - A defect's `priority` and `technician` can be changed by a supervisor only.
-- Access requests: the requester can never set `status` or a role.
+- Accounts and roles: created only by an administrator in ServiceNow; there is no sign-up or access-request form.
 - Audit entries are written by the server only and can never be updated or deleted.
 
 ## 4. Rules that apply to everyone

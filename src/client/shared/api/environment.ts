@@ -1,7 +1,7 @@
 /**
  * Where the app is running.
  *   'servicenow'  inside the ServiceNow UI Page: real sign-in, data from the RoomRelay REST API
- *   'demo'        the local preview (npm run preview): demo accounts and the in-memory demo store
+ *   'demo'        the local preview (npm run preview): staff accounts to pick from and an in-memory copy of the data
  */
 export type AppMode = 'servicenow' | 'demo'
 
@@ -18,20 +18,16 @@ export function sessionToken(): string | undefined {
     return typeof token === 'string' && token !== '' ? token : undefined
 }
 
-/** Short notes shown on screens so nobody mistakes demo data for real records. */
+/**
+ * Notes shown only in the local preview, so nobody mistakes the laptop copy for the live system.
+ * Inside ServiceNow they are null and the screens show nothing extra.
+ */
+const LOCAL = APP_MODE === 'demo'
 export const DATA_NOTE = {
-    chip: APP_MODE === 'servicenow' ? 'Demo data in ServiceNow' : 'Prototype: synthetic data',
-    sidebar: APP_MODE === 'servicenow' ? 'Connected to ServiceNow. Demo data.' : 'Prototype build. Synthetic data only.',
-    dashboard:
-        APP_MODE === 'servicenow'
-            ? 'Every number is calculated from the RoomRelay records in ServiceNow (demo data).'
-            : 'Every number is calculated from one synthetic dataset kept in this browser tab; no ServiceNow records are read or changed.',
-    changes:
-        APP_MODE === 'servicenow'
-            ? 'Changes are saved to ServiceNow and recorded in the audit log. The data is a demo dataset that the administrator can reset.'
-            : 'Changes are kept in this browser tab only and are not saved to ServiceNow. Reload the page or use Prototype tools to reset.',
-    audit:
-        APP_MODE === 'servicenow'
-            ? 'Entries are written by the ServiceNow server in the same request as each change. Sign-ins are recorded by ServiceNow itself. Nobody can edit or delete an entry.'
-            : 'These entries are generated from the synthetic data and from changes made in this browser tab. In the live system the ServiceNow server writes the log, and sign-ins are recorded by ServiceNow itself. Nobody can edit or delete an entry.',
+    chip: LOCAL ? 'Local preview' : null,
+    sidebar: LOCAL ? 'Local preview. Changes stay in this browser tab.' : null,
+    changes: LOCAL ? 'Changes are kept in this browser tab only and are not saved to ServiceNow.' : null,
+    audit: LOCAL
+        ? 'In the local preview these entries come from the initial data and the changes made in this tab. Inside ServiceNow the server writes the log. Nobody can edit or delete an entry.'
+        : 'Entries are written by the ServiceNow server in the same request as each change. Sign-ins are recorded by ServiceNow itself. Nobody can edit or delete an entry.',
 }

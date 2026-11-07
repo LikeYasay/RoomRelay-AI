@@ -45,11 +45,11 @@ The same code runs in two modes; `src/client/shared/api/environment.ts` picks on
 
 1. Sign in to the PDI as admin and open the app page above. There is no RoomRelay sign-in page: ServiceNow has already
    signed you in, and the server decides your role.
-2. First time only: open **Demo tools** (bottom-left) and press **Load demo data**.
-3. To see another role, use ServiceNow's **Impersonate User** (under your name, top right) and pick one of the demo
-   users below. They have no password, so this is the only way to act as them.
+2. First time only: open **Data management** (bottom-left, administrator only) and press **Restore initial data**.
+3. To use another role, sign in as one of the staff accounts below (give them a password first, see
+   [docs/TEST_CASES.md](docs/TEST_CASES.md) section 0.2), or use ServiceNow's **Impersonate User**.
 
-Changes are saved to the RoomRelay tables and recorded in the audit log. **Load demo data** resets everything.
+Changes are saved to the RoomRelay tables and recorded in the audit log. **Restore initial data** resets everything.
 
 ### On your computer (local preview, no ServiceNow)
 
@@ -59,21 +59,23 @@ You need Node.js 22 and `npm install` done once. Then, in the VS Code terminal:
 npm run preview
 ```
 
-It builds the app and serves it at `http://127.0.0.1:4173/`. Press Ctrl+C to stop. Here a demo sign-in page lets you
-pick an account, and the data lives in the browser tab's memory: changes are seen by the next account you sign in as,
-and a reload (or **Prototype tools > Reset demo data**) starts over. There is no server-side security in this mode.
+It builds the app and serves it at `http://127.0.0.1:4173/`. Press Ctrl+C to stop. Here a sign-in page lets you
+pick a staff account, and the data lives in the browser tab's memory: changes are seen by the next account you sign in as,
+and a reload (or **Preview tools > Restore initial data**) starts over. There is no server-side security in this mode.
 
-### Demo users
+### Staff accounts (installed with the app)
 
 | User | Role | Try this ([docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md) has the full walkthrough) |
 |---|---|---|
 | Avery Collins (`avery.collins`) | Housekeeping Staff | Room 102 checklist: complete a task, mark one Couldn't Complete (Needs maintenance) |
 | Morgan Ellis (`morgan.ellis`) | Housekeeping Supervisor | Maintenance > New reports: triage it; pass Room 102's inspection at the end; Shift Handoff |
 | Daniel Brooks (`daniel.brooks`) | Maintenance Staff | My queue: start and resolve the repair |
-| Riley Chen (`riley.chen`) | System Administrator | Audit Log, Users and Access, role-permission table |
+| Riley Chen (`riley.chen`) | System Administrator | Audit Log, Users and Roles, role-permission table, Restore initial data |
 
 Five more housekeepers and technicians exist (Jordan Reyes, Priya Nair, Tomasz Kowalski, Lena Okafor, Sofia Marques).
-The demo users are defined in `src/fluent/auth/demo-users.now.ts`; remove that file before any real use.
+They are defined in `src/fluent/auth/demo-users.now.ts` with no password. There is no self-registration: the system
+administrator creates accounts and grants roles in ServiceNow. For a real hotel, remove that file and create the real staff.
+The full manual test list for every role is [docs/TEST_CASES.md](docs/TEST_CASES.md).
 
 ### Commands
 
@@ -124,11 +126,11 @@ docs/                      all project documentation (below)
 
 | Area | State |
 |---|---|
-| Frontend: dashboard, Rooms (three views), room details with checklist, maintenance with triage and a defect modal, shift handoff, users and access, audit log | **Built.** Responsive from 320px to wide desktops. |
-| ServiceNow backend: 5 tables, 4 roles, ACLs, REST API, demo users and Load demo data | **Built, installed and verified in the PDI** on 2026-11-07 (`docs/TEST_PLAN.md` section 4b, P9 to P22): every role, the full Room 102 scenario, saved changes and the audit trail. |
+| Frontend: dashboard, Rooms (three views), room details with checklist, maintenance with triage and a defect modal, shift handoff, users and roles, audit log | **Built.** Responsive from 320px to wide desktops. |
+| ServiceNow backend: 5 tables, 4 roles, ACLs, REST API, staff accounts and Restore initial data | **Built, installed and verified in the PDI** on 2026-11-07 (`docs/TEST_PLAN.md` section 4b, P9 to P22): every role, the full Room 102 scenario, saved changes and the audit trail. |
 | Server-enforced security | **Verified for the tested cases**: each role receives only its own data; other people's records, wrong roles, extra fields, users without a role and direct table access are refused. Concurrent requests, rate limiting and a full security review are still open. |
 | Local checks | Strict TypeScript, SDK build, 35 logic tests, a check that every server-module import resolves, accessibility and contrast checks. All pass. |
-| Still simulated | Approving access requests and the Request an account page. The local preview always uses the template briefing. |
+| Accounts | No self-registration: the system administrator creates users and grants roles in ServiceNow (the hotel-staff-only model). The simulated sign-up and access-request pages were removed on 2026-11-07. |
 | AI shift briefing (Phase 5) | **Built and verified in the PDI (2026-11-07, `docs/TEST_PLAN.md` P23 to P29).** Server-side Groq call with a key stored in an encrypted system property, data minimization, reply checks, a 5-per-10-minutes limit and a labeled fallback. Setup: `docs/DEPLOYMENT_GUIDE.md` section 3b. |
 
 ## Security notes

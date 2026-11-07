@@ -35,6 +35,6 @@ export const PERMISSIONS: PermissionRow[] = [
     { action: 'Submit a room for inspection', levels: { housekeeping: 'own', maintenance: 'no', supervisor: 'no', admin: 'no' } },
     { action: 'Pass or fail an inspection (Ready only when every rule is met)', levels: { housekeeping: 'no', maintenance: 'no', supervisor: 'yes', admin: 'no' } },
     { action: 'Generate a shift handoff briefing', levels: { housekeeping: 'no', maintenance: 'no', supervisor: 'yes', admin: 'no' } },
-    { action: 'Manage accounts, roles and access requests', levels: { housekeeping: 'no', maintenance: 'no', supervisor: 'no', admin: 'yes' } },
+    { action: 'Manage accounts and roles (in ServiceNow user administration)', levels: { housekeeping: 'no', maintenance: 'no', supervisor: 'no', admin: 'yes' } },
     { action: 'View the audit log', levels: { housekeeping: 'no', maintenance: 'no', supervisor: 'no', admin: 'read' } },
 ]

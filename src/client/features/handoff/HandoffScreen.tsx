@@ -85,7 +85,7 @@ function Handoff() {
                 </Banner>
             ) : (
                 <Banner tone="warning">
-                    <strong>Local preview: simulated briefing.</strong> No AI model is called here. Inside ServiceNow the briefing is
+                    <strong>Local preview: template briefing.</strong> No AI model is called here. Inside ServiceNow the briefing is
                     written by an AI model on the server.
                 </Banner>
             )}
@@ -110,7 +110,7 @@ function Handoff() {
                     {APP_MODE === 'demo' ? (
                         <label className="handoff-controls__demo">
                             <input type="checkbox" checked={simulateFailure} onChange={(e) => setSimulateFailure(e.target.checked)} />
-                            Demo: make generation fail
+                            Preview: make generation fail
                         </label>
                     ) : null}
                 </div>
@@ -125,7 +125,7 @@ function Handoff() {
                     />
                 ) : null}
 
-                {generation.status === 'loading' ? <LoadingState label={APP_MODE === 'servicenow' ? 'Writing the briefing (this can take a few seconds)' : 'Generating simulated briefing'} /> : null}
+                {generation.status === 'loading' ? <LoadingState label={APP_MODE === 'servicenow' ? 'Writing the briefing (this can take a few seconds)' : 'Generating briefing'} /> : null}
 
                 {generation.status === 'error' ? (
                     <StateScreen icon="alert" tone="danger" title="Briefing failed" message={generation.message}>

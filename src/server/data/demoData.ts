@@ -6,13 +6,13 @@ import { insertAudit } from './repository.ts'
 import type { RecordIds } from './repository.ts'
 
 /**
- * DEMO ONLY: replaces all RoomRelay rooms, tasks, defects and audit entries with the same
- * synthetic dataset the local preview uses (src/client/mock/mockData.ts). People are matched to
- * the demo users through the staff profile's demo key (h1, s1, ...). Times are shifted so the
+ * Restores the initial data set: replaces all RoomRelay rooms, tasks, defects and audit entries
+ * with the data the local preview uses (src/client/mock/mockData.ts). People are matched to the
+ * installed staff accounts through the staff profile's key (h1, s1, ...). Times are shifted so the
  * data looks recent. Only the RoomRelay administrator can run it (see api/handlers.ts).
  */
 export function resetDemoData(nowIso: string): { ok: true } | { ok: false; message: string } {
-    // Demo key (h1, m1, s1...) -> sys_user sys_id, from the staff profiles installed with the demo users.
+    // Staff key (h1, m1, s1...) -> sys_user sys_id, from the staff profiles installed with the app.
     const userByKey = new Map<string, string>()
     const profiles = new GlideRecord(TABLES.staff)
     profiles.addNotNullQuery('demo_key')
@@ -21,7 +21,7 @@ export function resetDemoData(nowIso: string): { ok: true } | { ok: false; messa
 
     const seed = buildMockSnapshot()
     const missing = seed.staff.filter((s) => !userByKey.has(s.id))
-    if (missing.length > 0) return { ok: false, message: `The demo users are not installed (missing: ${missing.map((s) => s.name).join(', ')}).` }
+    if (missing.length > 0) return { ok: false, message: `Some staff accounts installed with the app are missing (${missing.map((s) => s.name).join(', ')}).` }
 
     const user = (key: string | undefined) => (key ? (userByKey.get(key) ?? '') : '')
     const offsetMs = Date.parse(nowIso) - MOCK_NOW_MS

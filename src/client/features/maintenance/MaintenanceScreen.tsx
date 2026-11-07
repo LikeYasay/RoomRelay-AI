@@ -134,9 +134,11 @@ function Maintenance({ data, initialDefectId }: { data: ReadyData; initialDefect
 
     return (
         <div className="stack">
-            <Banner tone="info">
-                <strong>Demo data.</strong> {DATA_NOTE.changes}
-            </Banner>
+            {DATA_NOTE.changes ? (
+                <Banner tone="info">
+                    <strong>Local preview.</strong> {DATA_NOTE.changes}
+                </Banner>
+            ) : null}
 
             {notice ? (
                 <div role="status">

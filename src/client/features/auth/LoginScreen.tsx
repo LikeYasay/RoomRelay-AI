@@ -14,8 +14,8 @@ const ACCOUNT_OPTIONS = [...STAFF]
     .map((s) => ({ value: s.id, label: `${s.name} (${ROLE_LABEL[s.role]})` }))
 
 /**
- * PROTOTYPE sign-in. The live app uses ServiceNow's own login page, so this client never
- * asks for, sends or stores a password. Here you pick a synthetic demo account instead.
+ * LOCAL PREVIEW sign-in. Inside ServiceNow the app uses ServiceNow's own login, so this client
+ * never asks for, sends or stores a password. Here you pick one of the staff accounts instead.
  */
 export function LoginScreen() {
     const { signIn, notice } = useAuth()
@@ -25,7 +25,7 @@ export function LoginScreen() {
     const submit = (e: React.FormEvent) => {
         e.preventDefault()
         if (accountId === '') {
-            setError('Choose a demo account to sign in.')
+            setError('Choose an account to sign in.')
             return
         }
         if (!signIn(accountId)) setError('That account is not available. Choose one from the list.')
@@ -41,15 +41,15 @@ export function LoginScreen() {
             ) : null}
 
             <Banner tone="info">
-                <strong>Prototype sign-in.</strong> The live system uses your ServiceNow login. This page never asks for a
-                password. Pick a demo account to see the app as that role.
+                <strong>Local preview.</strong> Inside ServiceNow you sign in with your ServiceNow account. Here, choose a
+                staff account to see the app as that role.
             </Banner>
 
             <form className="form" onSubmit={submit} noValidate>
-                <ErrorSummary errors={{ account: error }} fieldIds={{ account: 'demo-account' }} />
+                <ErrorSummary errors={{ account: error }} fieldIds={{ account: 'account' }} />
                 <SelectInput
-                    id="demo-account"
-                    label="Demo account"
+                    id="account"
+                    label="Account"
                     required
                     value={accountId}
                     placeholder="Choose an account"
@@ -67,9 +67,7 @@ export function LoginScreen() {
                 </div>
             </form>
 
-            <p className="auth__alt">
-                Need access? <a className="link" href="#/signup">Request an account</a>
-            </p>
+            <p className="auth__alt">Need access? Ask your system administrator.</p>
         </AuthLayout>
     )
 }

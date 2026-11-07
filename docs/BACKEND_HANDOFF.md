@@ -23,7 +23,7 @@ in-memory demo in the local preview. Section 0 describes what is built; sections
 | Data access | `src/server/data/repository.ts` | Reads the tables into the `Snapshot` shape and writes back only what a rule changed |
 | Identity | `src/server/shared/session.ts` | Caller from `gs.getUserID()`, role from `sys_user_has_role`; a platform admin without an app role counts as `admin` |
 | Rules | **the same files the frontend uses** (section 2) | `now.config.json` turns them into server modules too, so the browser demo and the server can never disagree |
-| Demo users and data | `src/fluent/auth/demo-users.now.ts`, `src/server/data/demoData.ts` | 9 users without passwords (test with Impersonate User); "Load demo data" fills the tables from `src/client/mock/mockData.ts` |
+| Staff accounts and initial data | `src/fluent/auth/demo-users.now.ts`, `src/server/data/demoData.ts` | 9 users installed without passwords (the administrator sets passwords in ServiceNow, or uses Impersonate User); "Restore initial data" fills the tables from `src/client/mock/mockData.ts` |
 | Frontend connection | `src/client/shared/api/serviceNowDataSource.ts`, `environment.ts`, `features/auth/session.tsx` | Inside ServiceNow the app uses the real user and the REST API; the local preview keeps the demo |
 
 How a request is handled: the handler resolves the caller from the session, parses the body with `parseCommand`
@@ -41,7 +41,7 @@ Differences from the design below:
 - **Concurrency** relies on the rules' state checks ("only if still pending"), not on a version number. Two requests in the
   same instant could both pass; acceptable for the capstone, noted for later.
 - **Technicians receive the full data of the rooms they work in** (tasks included), as in the prototype. Trim later if needed.
-- **Access requests** (approve, decline, request an account) are still simulated in the browser.
+- **No access requests or self-registration.** RoomRelay is for hotel staff only; the administrator creates users and grants roles in ServiceNow. The simulated pages were removed on 2026-11-07.
 
 ## 1. Ground rules
 
@@ -74,7 +74,7 @@ Every rule has a reference implementation in TypeScript, written as a pure funct
 | Tasks: complete, Couldn't Complete, set back to Pending | `src/client/features/housekeeping/taskCommands.ts` |
 | Defects: report, triage, start, resolve | `src/client/features/maintenance/defectCommands.ts` |
 | Audit entries | `src/client/shared/domain/commandKit.ts` (`withAudit`) |
-| Form validation | `features/maintenance/defectValidation.ts`, `features/housekeeping/taskValidation.ts`, `features/auth/accountRequestValidation.ts` |
+| Form validation | `features/maintenance/defectValidation.ts`, `features/housekeeping/taskValidation.ts` |
 
 ### 2.1 Readiness
 
@@ -179,10 +179,9 @@ Use `sys_created_on` and `sys_created_by` for reported-at and reported-by (the f
 `user` (reference to `sys_user`, unique), `shift` (`morning`, `afternoon`, `night`). Shift is needed for the dashboard and
 handoff. Alternatively extend `sys_user`; a separate table avoids changing a platform table.
 
-### 3.5 `access_request` (for the "Request an account" page)
+### 3.5 Access requests (not built, by decision)
 
-`full_name`, `email`, `requested_role`, `shift`, `reason`, `status` (`pending`, `approved`, `declined`),
-`decided_by`, `decided_at`. The requester can never set `status` or any role. See section 8 for the sign-in caveat.
+There is no access-request table. Accounts are created by the administrator in ServiceNow (section 8).
 
 ### 3.6 `audit_entry` (the Audit Log page and every activity feed)
 
@@ -190,7 +189,7 @@ handoff. Alternatively extend `sys_user`; a separate table avoids changing a pla
 |---|---|---|
 | `at` | Date/time | **server** |
 | `actor` | Reference to `sys_user` | **server**: the session user, never a value from the client |
-| `action` | Choice | The `AuditAction` list in `types.ts`: task completed, couldn't complete, reopened, defect reported, assigned, priority changed, started, resolved, inspection requested, passed, failed, briefing generated, access request approved, declined |
+| `action` | Choice | The `AuditAction` list in `types.ts`: task completed, couldn't complete, reopened, defect reported, assigned, priority changed, started, resolved, inspection requested, passed, failed, briefing generated |
 | `room` | Reference, optional | |
 | `target` | String (sys_id or record number) | The task, defect, room or request |
 | `summary` | String (300) | Built by the server; may quote titles typed by staff (render as text) |
@@ -355,19 +354,18 @@ Map status codes to the frontend's kinds (`ApiErrorKind` in `src/client/shared/a
 | 5xx | `server` |
 | network failure | `network` |
 
-## 8. Sign-in and account requests: what changes in production
+## 8. Sign-in and accounts
 
-In the prototype, `#/login` lets you choose a demo account, and `#/signup` is a form anyone can reach. **In ServiceNow:**
+In the local preview, `#/login` lets you choose a staff account. **In ServiceNow:**
 
 - ServiceNow signs people in and out. Users reach the UI Page only after logging in (unless the page is public, which it
   must not be). So the React sign-in page will normally never appear, and **there must be no password handling in React.**
   Sign out should send the user to ServiceNow's logout (the usual path is `/logout.do`; verify on the instance).
-- The "Request an account" form assumes a signed-out visitor, which a protected UI Page cannot serve. Pick one:
-  (a) remove the page and rely on IT creating users, (b) use ServiceNow's own self-registration or SSO onboarding,
-  (c) a separate, deliberately public, heavily limited endpoint. Option (c) needs input validation, rate limiting, spam
-  and abuse controls and must never create a user or grant a role by itself. **Roles are always granted by an administrator.**
-- Keep demo mode for presentations behind a build or configuration switch, and make sure the production build does not
-  contain the demo accounts.
+- **Decision (2026-11-07): option (a).** There is no sign-up or access-request page. The system administrator creates
+  each staff member as a ServiceNow user, grants one RoomRelay role and adds a staff profile (shift). A real hotel would
+  usually connect ServiceNow to its staff directory (SSO or LDAP) instead of typing users in. **Roles are always granted by
+  an administrator.**
+- Before real use, remove the installed staff accounts (`demo-users.now.ts`) and the Restore initial data endpoint.
 
 ## 9. What to change in the frontend
 
@@ -376,20 +374,14 @@ ServiceNow, and `ServerSessionProvider` gets the user from `GET /me`. The points
 
 1. **Data source.** Done (`src/client/shared/api/serviceNowDataSource.ts`).
 2. **Writes already go through one place.** Every screen calls `run(command)` (`shared/api/DataContext.tsx`), which calls
-   `execute` and then quietly reloads the snapshot. Nothing else in the UI needs to change. Two flows are still pure
-   simulations and need commands added:
+   `execute` and then quietly reloads the snapshot. Nothing else in the UI needs to change. No simulated flows remain.
 
-   | Screen | File | Today |
-   |---|---|---|
-   | Approve or decline access | `features/access/AccessScreen.tsx` | `SimulationDialog` |
-   | Request account | `features/auth/CreateAccountScreen.tsx` | validates only |
-
-3. **Session.** Done inside ServiceNow (`GET /me`). The demo sign-in, Prototype tools and the in-memory store are only used
-   by the local preview. Before real use, remove the demo users and the Load demo data endpoint.
+3. **Session.** Done inside ServiceNow (`GET /me`). The preview sign-in, Preview tools and the in-memory store are only used
+   by the local preview. Before real use, remove the installed staff accounts and the Restore initial data endpoint.
 4. **Scope filtering.** Done on the server (`scopeSnapshotForRole`). The browser reuses `features/rooms/scope.ts` and
    `features/maintenance/scope.ts` only to word the "Showing ..." notes and to narrow the Maintenance views.
-5. **Remove prototype labels** ("Live demo data", "Prototype" banners, "Simulation only" dialogs) only for flows that are
-   really connected and tested. Leave them on anything still simulated.
+5. **Prototype labels removed** (2026-11-07). Inside ServiceNow the screens carry no test or demo wording; the local
+   preview shows a single "Local preview" label.
 6. **Keep** the rule files listed in section 2 and the logic tests: they document the rules the server must match.
 
 ## 10. Phase 5: AI briefing (verified in the PDI on 2026-11-07)
@@ -432,4 +424,3 @@ Still open:
 - Whether `/logout.do` is the right sign-out path (Sign out was not clicked during the PDI checks, to keep the admin session).
 - Concurrency: two requests in the same instant could both pass the state checks (no version check yet).
 - Rate limiting exists only for the AI briefing (5 per supervisor in 10 minutes); the other routes have none.
-- Approving access requests and the Request an account page are still simulated.

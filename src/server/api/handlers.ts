@@ -17,7 +17,7 @@ import { nowIso } from '../shared/time.ts'
  *   GET  /me          who the caller is, as RoomRelay staff
  *   GET  /snapshot    everything the caller may see
  *   POST /commands    one change; body is a Command (src/client/shared/api/commands.ts)
- *   POST /demo/reset  reload the demo dataset (RoomRelay administrator only)
+ *   POST /demo/reset  restore the initial data set (RoomRelay administrator only)
  *   POST /handoff/briefing  the shift briefing, written by the AI with a template fallback (supervisors)
  *
  * Every handler identifies the caller from the session and applies the same rule functions the
@@ -81,7 +81,7 @@ export function postCommand(request: RestRequest, response: RestResponse): void 
 export function postDemoReset(_request: RestRequest, response: RestResponse): void {
     withCaller(response, (caller) => {
         if (caller.role !== 'admin') {
-            sendError(response, 'forbidden', 'Only the RoomRelay administrator can reset the demo data.')
+            sendError(response, 'forbidden', 'Only the RoomRelay administrator can restore the initial data.')
             return
         }
         const result = resetDemoData(nowIso())

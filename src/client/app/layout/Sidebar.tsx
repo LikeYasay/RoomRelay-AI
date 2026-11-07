@@ -5,7 +5,7 @@ import type { RouteId } from '../routes'
 import { useSession } from '../../features/auth/session'
 import type { Role } from '../../shared/domain/types'
 import { Icon } from '../../shared/ui/Icon'
-import { PrototypeTools } from './PrototypeTools'
+import { DataTools } from './DataTools'
 
 interface SidebarProps {
     activeRoute: RouteId | undefined
@@ -50,8 +50,8 @@ export function Sidebar({ activeRoute, role, open, onNavigate }: SidebarProps) {
             </nav>
 
             <div className="sidebar__footer">
-                <PrototypeTools />
-                <p className="sidebar__note">{DATA_NOTE.sidebar}</p>
+                <DataTools />
+                {DATA_NOTE.sidebar ? <p className="sidebar__note">{DATA_NOTE.sidebar}</p> : null}
                 <button type="button" className="sidebar__signout" onClick={() => signOut()}>
                     <Icon name="logout" size={18} />
                     <span>Sign out</span>

@@ -38,7 +38,6 @@ const sources = [
     'features/maintenance/defectValidation.ts',
     'features/maintenance/defectCommands.ts',
     'features/maintenance/scope.ts',
-    'features/auth/accountRequestValidation.ts',
     'features/handoff/briefing.ts',
     'features/handoff/handoffCommands.ts',
     'features/handoff/aiBriefing.ts',

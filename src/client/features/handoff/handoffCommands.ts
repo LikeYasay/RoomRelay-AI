@@ -5,7 +5,7 @@ import type { CommandContext, RuleResult } from '../../shared/domain/commandKit.
 import type { BriefingSource } from './briefing.ts'
 
 const SOURCE_NOTE: Record<BriefingSource, string> = {
-    simulated: 'simulated, not AI',
+    template: 'template, no AI',
     ai: 'written by AI',
     fallback: 'AI unavailable, template used',
 }
@@ -20,7 +20,7 @@ export function recordBriefingGenerated(snapshot: Snapshot, ctx: CommandContext,
     return {
         ok: true,
         snapshot: withAudit(snapshot, ctx, [
-            { action: 'briefing_generated', summary: `${ctx.actor.name} generated the ${SHIFT_LABEL[input.shift]} briefing (${SOURCE_NOTE[input.source ?? 'simulated']}).` },
+            { action: 'briefing_generated', summary: `${ctx.actor.name} generated the ${SHIFT_LABEL[input.shift]} briefing (${SOURCE_NOTE[input.source ?? 'template']}).` },
         ]),
     }
 }

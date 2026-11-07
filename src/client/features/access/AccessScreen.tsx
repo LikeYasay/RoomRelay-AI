@@ -1,100 +1,62 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo } from 'react'
 import { DataGate } from '../../shared/api/DataContext'
 import type { ReadyData } from '../../shared/api/DataContext'
-import { PENDING_REQUESTS } from '../../mock/mockAccess'
-import type { AccessRequest } from '../../mock/mockAccess'
-import { formatAgo } from '../../shared/lib/format'
+import { APP_MODE } from '../../shared/api/environment'
 import { ROLE_LABEL, SHIFT_LABEL } from '../../shared/domain/labels'
+import type { Snapshot, Staff } from '../../shared/domain/types'
 import { LEVEL_LABEL, PERMISSIONS, PERMISSION_ROLES } from './permissions'
 import type { Level } from './permissions'
 import { Badge } from '../../shared/ui/Badge'
-import { Banner } from '../../shared/ui/Banner'
-import { SimulationDialog } from '../../shared/ui/SimulationDialog'
-
-type Decision = { request: AccessRequest; verb: 'Approve' | 'Decline' }
 
 const LEVEL_TONE: Record<Level, 'success' | 'info' | 'neutral'> = { yes: 'success', own: 'info', read: 'neutral', no: 'neutral' }
 
+/** ServiceNow's own user list, where the administrator creates accounts and grants roles. */
+const USER_ADMIN_URL = '/now/nav/ui/classic/params/target/sys_user_list.do'
+
 export function AccessScreen() {
-    return <DataGate loadingLabel="Loading accounts">{(data) => <Access data={data} />}</DataGate>
+    return <DataGate loadingLabel="Loading staff accounts">{(data) => <Access data={data} />}</DataGate>
 }
 
+/** What each person is currently responsible for, so the administrator sees the workload at a glance. */
+function workload(person: Staff, snapshot: Snapshot): string {
+    if (person.role === 'housekeeping') {
+        const rooms = snapshot.rooms.filter((r) => r.assigneeId === person.id).length
+        return `${rooms} room${rooms === 1 ? '' : 's'} assigned`
+    }
+    if (person.role === 'maintenance') {
+        const open = snapshot.defects.filter((d) => d.technicianId === person.id && d.status !== 'resolved').length
+        return `${open} open repair${open === 1 ? '' : 's'}`
+    }
+    return '—'
+}
+
+/**
+ * Users and Roles (administrator only). Accounts are not requested or created in RoomRelay:
+ * the hotel's ServiceNow administrator creates each staff member as a ServiceNow user and grants
+ * one RoomRelay role. This page lists who has access and what each role can do.
+ */
 function Access({ data }: { data: ReadyData }) {
     const { snapshot } = data
-    const [decision, setDecision] = useState<Decision | null>(null)
 
     const accounts = useMemo(
-        () => [...snapshot.staff].sort((a, b) => a.role.localeCompare(b.role) || a.name.localeCompare(b.name)),
+        () => [...snapshot.staff].sort((a, b) => PERMISSION_ROLES.indexOf(a.role) - PERMISSION_ROLES.indexOf(b.role) || a.name.localeCompare(b.name)),
         [snapshot.staff]
     )
 
     return (
         <div className="stack">
-            <Banner tone="info">
-                <strong>Prototype.</strong> Accounts and requests are synthetic. Approving, declining and role changes are
-                simulated. In the live system ServiceNow users, roles and groups are the source of truth.
-            </Banner>
-
             <div className="grid grid--wide">
-                <section className="card" aria-labelledby="h-requests">
-                    <h2 id="h-requests">Pending access requests ({PENDING_REQUESTS.length})</h2>
-                    <div className="table-wrap">
-                        <table className="table table--stack">
-                            <caption className="sr-only">Pending access requests</caption>
-                            <thead>
-                                <tr>
-                                    <th scope="col">Person</th>
-                                    <th scope="col">Role requested</th>
-                                    <th scope="col">Shift</th>
-                                    <th scope="col">Reason</th>
-                                    <th scope="col">Submitted</th>
-                                    <th scope="col">Decision</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {PENDING_REQUESTS.map((r) => (
-                                    <tr key={r.id}>
-                                        <th scope="row">
-                                            {/* Request text is untrusted input; React renders it as plain text. */}
-                                            {r.fullName}
-                                            <span className="muted table__sub">{r.email}</span>
-                                        </th>
-                                        <td data-label="Role requested">{ROLE_LABEL[r.role]}</td>
-                                        <td data-label="Shift">{SHIFT_LABEL[r.shift]}</td>
-                                        <td className="table__notes" data-label="Reason">{r.reason}</td>
-                                        <td data-label="Submitted">
-                                            {formatAgo(
-                                                new Date(Date.parse(snapshot.generatedAt) - r.submittedMinutesAgo * 60_000).toISOString(),
-                                                snapshot.generatedAt
-                                            )}
-                                        </td>
-                                        <td data-label="Decision">
-                                            <div className="row-actions">
-                                                <button type="button" className="btn btn--primary btn--small" onClick={() => setDecision({ request: r, verb: 'Approve' })}>
-                                                    Approve
-                                                </button>
-                                                <button type="button" className="btn btn--ghost btn--flat btn--small" onClick={() => setDecision({ request: r, verb: 'Decline' })}>
-                                                    Decline
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-
                 <section className="card" aria-labelledby="h-accounts">
                     <h2 id="h-accounts">Staff accounts ({accounts.length})</h2>
                     <div className="table-wrap">
                         <table className="table table--stack">
-                            <caption className="sr-only">Staff accounts</caption>
+                            <caption className="sr-only">Staff accounts with access to RoomRelay</caption>
                             <thead>
                                 <tr>
                                     <th scope="col">Name</th>
                                     <th scope="col">Role</th>
                                     <th scope="col">Shift</th>
+                                    <th scope="col">Current work</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -103,19 +65,44 @@ function Access({ data }: { data: ReadyData }) {
                                         <th scope="row">{s.name}</th>
                                         <td data-label="Role">{ROLE_LABEL[s.role]}</td>
                                         <td data-label="Shift">{SHIFT_LABEL[s.shift]}</td>
+                                        <td data-label="Current work">{workload(s, snapshot)}</td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
                     </div>
                 </section>
+
+                <section className="card" aria-labelledby="h-manage">
+                    <h2 id="h-manage">Adding or changing an account</h2>
+                    <p>
+                        RoomRelay is for hotel staff only, so there is no self-registration. The system administrator manages every
+                        account in ServiceNow:
+                    </p>
+                    <ol className="steps">
+                        <li>Create the person as a ServiceNow user (User Administration &gt; Users).</li>
+                        <li>
+                            Grant exactly one RoomRelay role: Housekeeping Staff, Maintenance Staff, Housekeeping Supervisor or System
+                            Administrator.
+                        </li>
+                        <li>Add a RoomRelay staff profile with their shift, so they appear in assignments and briefings.</li>
+                        <li>When someone leaves, deactivate the user. Their history stays in the audit log.</li>
+                    </ol>
+                    {APP_MODE === 'servicenow' ? (
+                        <p>
+                            <a className="link" href={USER_ADMIN_URL} target="_blank" rel="noopener noreferrer">
+                                Open ServiceNow user administration
+                            </a>
+                        </p>
+                    ) : null}
+                </section>
             </div>
 
             <section className="card" aria-labelledby="h-matrix">
                 <h2 id="h-matrix">Role permissions</h2>
                 <p className="muted matrix-note">
-                    What each role is meant to be able to do. This table describes the design. The server must enforce it with
-                    roles, ACLs and validation. Screens only follow it.
+                    What each role can do. The ServiceNow server enforces these rules on every request; the screens only show the
+                    actions a role is allowed to take.
                 </p>
                 <div className="table-wrap">
                     <table className="table table--matrix">
@@ -149,19 +136,6 @@ function Access({ data }: { data: ReadyData }) {
                     </table>
                 </div>
             </section>
-
-            {decision ? (
-                <SimulationDialog
-                    title={`${decision.verb} access request: ${decision.request.fullName}`}
-                    intro={`${decision.verb} the request for the ${ROLE_LABEL[decision.request.role]} role? Run the simulation to see what this screen would do.`}
-                    result={
-                        decision.verb === 'Approve'
-                            ? `Simulated result: ${decision.request.fullName} would be approved. In the live system the administrator creates the ServiceNow user and grants only the roles they decide; nothing was changed here.`
-                            : `Simulated result: the request from ${decision.request.fullName} would be declined and the person told. Nothing was changed here.`
-                    }
-                    onClose={() => setDecision(null)}
-                />
-            ) : null}
         </div>
     )
 }

@@ -9,7 +9,6 @@ const { evaluateReadiness } = require(path.join(root, 'features/rooms/readiness.
 const sel = { ...require(path.join(root, 'features/rooms/roomViews.js')), ...require(path.join(root, 'features/dashboard/dashboardStats.js')) }
 const val = {
     ...require(path.join(root, 'features/maintenance/defectValidation.js')),
-    ...require(path.join(root, 'features/auth/accountRequestValidation.js')),
     ...require(path.join(root, 'features/housekeeping/taskValidation.js')),
 }
 const handoff = require(path.join(root, 'features/handoff/briefing.js'))
@@ -357,21 +356,21 @@ test('HANDOFF: briefing is grounded in data and cannot approve rooms', () => {
     const snap = buildMockSnapshot()
     const views = sel.buildRoomViews(snap)
     for (const shift of ['morning', 'afternoon', 'night']) {
-        const b = handoff.buildSimulatedBriefing(views, shift, '2026-11-06T14:30:00Z')
+        const b = handoff.buildTemplateBriefing(views, shift, '2026-11-06T14:30:00Z')
         const inShift = views.filter((v) => v.assignee.shift === shift)
         assert.equal(b.counts.rooms, inShift.length)
         assert.equal(b.counts.ready, inShift.filter((v) => v.readiness.isReady).length)
         assert.equal(b.counts.blocked, inShift.filter((v) => v.readiness.status === 'blocked').length)
         assert.equal(b.counts.couldntComplete, inShift.flatMap((v) => v.tasks).filter((t) => t.status === 'couldnt_complete').length)
-        assert.equal(b.source, 'simulated')
+        assert.equal(b.source, 'template')
         assert.notEqual(b.incomingShift, shift)
         assert.ok(b.actions.length > 0)
         const text = handoff.briefingToText(b)
-        assert.match(text, /SIMULATED/)
+        assert.match(text, /Rule-based template/)
         assert.doesNotMatch(text, /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/)
     }
     // The afternoon shift (Priya, Room 301) has a New report and a task that could not be completed.
-    const pm = handoff.buildSimulatedBriefing(views, 'afternoon', '2026-11-06T14:30:00Z')
+    const pm = handoff.buildTemplateBriefing(views, 'afternoon', '2026-11-06T14:30:00Z')
     assert.ok(pm.awaitingTriage.some((i) => i.roomId === '301'))
     assert.ok(pm.couldntComplete.some((i) => i.roomId === '301'))
 })
@@ -392,7 +391,7 @@ test('HANDOFF + INJECTION: hostile text is only text; it cannot change readiness
     const after = sel.computeKpis(views)
     assert.deepEqual(after.byStatus, before.byStatus) // statuses unchanged by hostile wording
     for (const shift of ['morning', 'afternoon', 'night']) {
-        const b = handoff.buildSimulatedBriefing(views, shift, '2026-11-06T14:30:00Z')
+        const b = handoff.buildTemplateBriefing(views, shift, '2026-11-06T14:30:00Z')
         const text = handoff.briefingToText(b)
         assert.doesNotMatch(text, /\u0007/) // control chars stripped from the copy output
         assert.doesNotMatch(text, /SECRET NOTE/) // only the reason category is used
@@ -402,25 +401,12 @@ test('HANDOFF + INJECTION: hostile text is only text; it cannot change readiness
 
 // ---------------------------------------------------------------- accounts, permissions, navigation
 
-test('ACCOUNT REQUEST: validation rules and no self-granted admin', () => {
-    const okInput = { fullName: "Jamie O'Brien-Ortiz", email: 'jamie@hotel.com', role: 'housekeeping', shift: 'morning', reason: 'New hire on floors 3 and 4.' }
-    const good = val.validateAccountRequest(okInput)
-    assert.equal(good.ok, true)
-    assert.equal(good.value.role, 'housekeeping')
-    const bad = (over) => val.validateAccountRequest({ ...okInput, ...over })
-    assert.ok(bad({ role: 'admin' }).errors.role, 'admin must not be requestable')
-    assert.match(bad({ role: 'admin' }).errors.role, /cannot be requested/)
-    assert.ok(bad({ role: 'superuser' }).errors.role)
-    assert.ok(bad({ role: '' }).errors.role)
-    assert.ok(bad({ shift: 'noon' }).errors.shift)
-    assert.ok(bad({ fullName: '' }).errors.fullName)
-    assert.ok(bad({ fullName: 'A' }).errors.fullName)
-    assert.ok(bad({ fullName: '<script>alert(1)</script>' }).errors.fullName)
-    assert.ok(bad({ fullName: 'x'.repeat(81) }).errors.fullName)
-    for (const email of ['', 'not-an-email', 'a@b', 'a b@c.com', '<x>@c.com', 'a@c.com,b@c.com', 'a@@c.com']) assert.ok(bad({ email }).errors.email, 'email: ' + email)
-    assert.ok(bad({ email: 'a'.repeat(120) + '@c.com' }).errors.email)
-    assert.ok(bad({ reason: 'short' }).errors.reason)
-    assert.ok(bad({ reason: 'y'.repeat(301) }).errors.reason)
+test('ACCOUNTS: there is no self-registration; accounts are managed by the administrator', () => {
+    // The old sign-up address is not a page any more.
+    assert.equal(parseHash('#/signup').page, undefined)
+    assert.equal(parseHash('#/signup').route, undefined)
+    const manage = perms.PERMISSIONS.find((p) => p.action.startsWith('Manage accounts'))
+    assert.deepEqual(Object.entries(manage.levels).filter(([, v]) => v !== 'no').map(([k]) => k), ['admin'])
 })
 
 test('PERMISSIONS + NAV: restricted pages are not listed for a role, and match the matrix', () => {
@@ -480,8 +466,8 @@ test('API: scopeSnapshotForRole sends each role only what it may see', () => {
     const m1 = scopeSnapshotForRole(snap, 'maintenance', staff('m1'))
     assert.ok(m1.rooms.every((r) => snap.defects.some((d) => d.roomId === r.id && d.technicianId === 'm1')))
     const admin = scopeSnapshotForRole(snap, 'admin', staff('a1'))
-    assert.equal(admin.audit.length, snap.audit.length) // including briefing and access entries
-    assert.ok(!scopeSnapshotForRole(snap, 'supervisor', staff('s1')).audit.some((e) => e.action === 'access_request_approved'))
+    assert.equal(admin.audit.length, snap.audit.length) // including entries that are not about a room
+    assert.ok(scopeSnapshotForRole(snap, 'supervisor', staff('s1')).audit.every((e) => e.roomId !== undefined), 'only room entries for a supervisor')
 })
 
 test('API: applyCommand routes every command to its feature rule', () => {
@@ -512,7 +498,7 @@ test('API: applyCommand routes every command to its feature rule', () => {
 const aiSetup = () => {
     const snap = buildMockSnapshot()
     const views = sel.buildRoomViews(snap)
-    const briefing = handoff.buildSimulatedBriefing(views, 'morning', snap.generatedAt)
+    const briefing = handoff.buildTemplateBriefing(views, 'morning', snap.generatedAt)
     return { snap, views, briefing, input: ai.buildAiInput(views, briefing) }
 }
 
@@ -588,7 +574,7 @@ test('AI: the AI only rewrites the narrative; room lists and counts stay from th
 
 test('AI: generating a briefing is audited with its source, and only supervisors may do it', () => {
     const snap = buildMockSnapshot()
-    for (const [source, note] of [['ai', 'written by AI'], ['fallback', 'AI unavailable, template used'], [undefined, 'simulated, not AI']]) {
+    for (const [source, note] of [['ai', 'written by AI'], ['fallback', 'AI unavailable, template used'], [undefined, 'template, no AI']]) {
         const result = handoffCmd.recordBriefingGenerated(snap, ctx(snap, 's1'), { shift: 'morning', source })
         assert.equal(result.ok, true)
         const entry = result.snapshot.audit[result.snapshot.audit.length - 1]

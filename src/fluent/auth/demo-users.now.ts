@@ -3,56 +3,57 @@ import { Record } from '@servicenow/sdk/core'
 import { appAdminRole, housekeeperRole, maintenanceRole, supervisorRole } from './roles.now'
 
 /**
- * DEMO DATA: the nine synthetic staff from src/client/mock/mockData.ts as real ServiceNow users,
- * each with one RoomRelay role and a staff profile. They have NO password, so nobody can sign in
- * as them directly: an administrator tests each role with "Impersonate User".
- * Remove this file (and reinstall) before any real use.
+ * The staff accounts installed with the app: nine ServiceNow users (the people in
+ * src/client/mock/mockData.ts), each with exactly one RoomRelay role and a staff profile.
+ * No password is stored here (passwords never go in the code). To sign in as one of them, the
+ * administrator sets a password on the user record in ServiceNow, or uses "Impersonate User".
+ * For a real hotel, remove this file and create the real staff in ServiceNow instead.
  */
 
 const avery = Record({
     $id: Now.ID['demo-user-h1'],
     table: 'sys_user',
-    data: { user_name: 'avery.collins', first_name: 'Avery', last_name: 'Collins', active: true },
+    data: { user_name: 'avery.collins', first_name: 'Avery', last_name: 'Collins', title: 'Housekeeping Staff', active: true },
 })
 const jordan = Record({
     $id: Now.ID['demo-user-h2'],
     table: 'sys_user',
-    data: { user_name: 'jordan.reyes', first_name: 'Jordan', last_name: 'Reyes', active: true },
+    data: { user_name: 'jordan.reyes', first_name: 'Jordan', last_name: 'Reyes', title: 'Housekeeping Staff', active: true },
 })
 const priya = Record({
     $id: Now.ID['demo-user-h3'],
     table: 'sys_user',
-    data: { user_name: 'priya.nair', first_name: 'Priya', last_name: 'Nair', active: true },
+    data: { user_name: 'priya.nair', first_name: 'Priya', last_name: 'Nair', title: 'Housekeeping Staff', active: true },
 })
 const tomasz = Record({
     $id: Now.ID['demo-user-h4'],
     table: 'sys_user',
-    data: { user_name: 'tomasz.kowalski', first_name: 'Tomasz', last_name: 'Kowalski', active: true },
+    data: { user_name: 'tomasz.kowalski', first_name: 'Tomasz', last_name: 'Kowalski', title: 'Housekeeping Staff', active: true },
 })
 const lena = Record({
     $id: Now.ID['demo-user-h5'],
     table: 'sys_user',
-    data: { user_name: 'lena.okafor', first_name: 'Lena', last_name: 'Okafor', active: true },
+    data: { user_name: 'lena.okafor', first_name: 'Lena', last_name: 'Okafor', title: 'Housekeeping Staff', active: true },
 })
 const daniel = Record({
     $id: Now.ID['demo-user-m1'],
     table: 'sys_user',
-    data: { user_name: 'daniel.brooks', first_name: 'Daniel', last_name: 'Brooks', active: true },
+    data: { user_name: 'daniel.brooks', first_name: 'Daniel', last_name: 'Brooks', title: 'Maintenance Technician', active: true },
 })
 const sofia = Record({
     $id: Now.ID['demo-user-m2'],
     table: 'sys_user',
-    data: { user_name: 'sofia.marques', first_name: 'Sofia', last_name: 'Marques', active: true },
+    data: { user_name: 'sofia.marques', first_name: 'Sofia', last_name: 'Marques', title: 'Maintenance Technician', active: true },
 })
 const morgan = Record({
     $id: Now.ID['demo-user-s1'],
     table: 'sys_user',
-    data: { user_name: 'morgan.ellis', first_name: 'Morgan', last_name: 'Ellis', active: true },
+    data: { user_name: 'morgan.ellis', first_name: 'Morgan', last_name: 'Ellis', title: 'Housekeeping Supervisor', active: true },
 })
 const riley = Record({
     $id: Now.ID['demo-user-a1'],
     table: 'sys_user',
-    data: { user_name: 'riley.chen', first_name: 'Riley', last_name: 'Chen', active: true },
+    data: { user_name: 'riley.chen', first_name: 'Riley', last_name: 'Chen', title: 'Operations Administrator', active: true },
 })
 
 // One role per person.

@@ -68,13 +68,13 @@ npx @servicenow/sdk install --auth roomrelay-pdi
 
 If it fails, copy the error text (not any secret) and see section 6.
 
-## 3. First run: load the demo data
+## 3. First run: restore the initial data
 
 1. Sign in to `https://dev472716.service-now.com` as your admin user.
 2. Open `https://dev472716.service-now.com/x_2305075_roomrela_incident_manager.do`.
-   There is no demo sign-in page any more: ServiceNow has already signed you in, and a platform admin is treated as the
+   There is no RoomRelay sign-in page: ServiceNow has already signed you in, and a platform admin is treated as the
    RoomRelay administrator.
-3. The dashboard is empty. In the menu, open **Demo tools** (bottom-left) and press **Load demo data**, then confirm.
+3. The dashboard is empty. In the menu, open **Data management** (bottom-left) and press **Restore initial data**, then confirm.
 4. The dashboard should show the same numbers as the local preview: 40 rooms, 16 Ready, 8 Needs Cleaning, 7 In Progress,
    4 Pending Inspection, 5 Blocked.
 
@@ -130,7 +130,7 @@ The demo users have no password, so nobody can sign in as them directly. As admi
 | 1 | Page is not blank | Something visible within a few seconds | |
 | 2 | Look and font | Same navy sidebar, Source Sans 3 text, no overlapping elements | |
 | 3 | Signed-in user | Header shows your name and role, no demo sign-in page | |
-| 4 | Load demo data | Section 3 | |
+| 4 | Restore initial data | Section 3 | |
 | 5 | Roles | Section 4, for Avery, Daniel, Morgan and Riley: menu and visible rooms match `ROLE_PERMISSION_MATRIX.md` | |
 | 6 | Changes are saved | Complete a task as Avery, reload the page: it is still Completed; the Audit Log (as admin) shows it | |
 | 7 | The server sends only what a role may see | As Avery, open Room 305 by address: "Room unavailable" (the server never sent it). In F12 > Network, the `snapshot` response contains only her 8 rooms | |
@@ -156,7 +156,7 @@ Then run the backend and security tests in `TEST_PLAN.md` section 5 and record t
 | "Something went wrong" on every page | System Logs > All, filter on "RoomRelay API error"; the message says what failed |
 | A REST call answers 500 "No module with path ..." | An import between server-module files is missing its `.ts` extension (see `ARCHITECTURE.md`); add it, rebuild and reinstall |
 | Users without a RoomRelay role get past the API | Check every route in `src/fluent/api/roomrelay-api.now.ts` has `enforceAcl: [apiAccess]` |
-| Load demo data says the demo users are missing | Check `x_2305075_roomrela_staff.list` has 9 rows with demo keys h1 to a1 |
+| Restore initial data says staff accounts are missing | Check `x_2305075_roomrela_staff.list` has 9 rows with initial data keys h1 to a1 |
 | Requests fail with 401 | `typeof window.g_ck` is not `"string"`: the page did not get a session token; record this in `BACKEND_HANDOFF.md` section 12 |
 | Blank page | F12, Console tab for red errors; Network tab for a failed request to `.../uxasset/externals/x_2305075_roomrela/main.jsdbx` |
 | Briefing says "the AI is not set up on this instance yet" | The property is missing, empty, or was created in the wrong application scope (section 3b step 1) |

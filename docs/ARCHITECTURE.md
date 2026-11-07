@@ -30,7 +30,7 @@ src/client/
     dashboard/              operations dashboard panels and its numbers (dashboardStats.ts)
     activity/               Audit Log page, the activity feed, and how recent activity is read from the log
     handoff/                shift handoff screen, the template briefing, the AI prompt and reply checks, briefing audit rule
-    access/                 users and access screen, role-permission table
+    access/                 users and roles screen (staff accounts, how accounts are managed), role-permission table
   shared/                   used by every feature; knows nothing about any one feature
     domain/                 the hotel vocabulary: data types (types.ts), labels (labels.ts), status badges,
                             and the helpers every rule uses (commandKit.ts: audit entries, safe failures)
@@ -57,7 +57,7 @@ src/client/
 | The Audit Log | `features/activity/AuditLogScreen.tsx` |
 | The shift briefing text | `features/handoff/briefing.ts` |
 | Who can open which page (menu) | `app/routes.ts` |
-| The permission table on Users and Access | `features/access/permissions.ts` |
+| The permission table on Users and Roles | `features/access/permissions.ts` |
 | A status name, color or icon | `shared/domain/labels.ts`, `shared/domain/StatusBadges.tsx` |
 | A data type (Room, Defect, Task, AuditEntry...) | `shared/domain/types.ts` |
 | What the backend must provide | `shared/api/dataSource.ts` (reads) and `shared/api/commands.ts` (writes) |
@@ -111,7 +111,7 @@ src/fluent/                 ServiceNow metadata (installed with the app)
 src/server/                 server code (ServiceNow server modules)
   api/handlers.ts           GET /me, GET /snapshot, POST /commands, POST /demo/reset
   data/repository.ts        tables <-> Snapshot shape; writes back only what changed
-  data/demoData.ts          Load demo data (administrator only)
+  data/demoData.ts          Restore initial data (administrator only)
   shared/                   session (who is calling), HTTP helpers, time conversion, table names
 ```
 

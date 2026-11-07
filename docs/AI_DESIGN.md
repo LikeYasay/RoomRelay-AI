@@ -17,7 +17,7 @@ manipulated AI answer can never put an unready room into service.
 | Handoff screen, shift picker, Generate, loading and error states, Copy button | Built |
 | Briefing in ServiceNow | The server asks **Groq** (model `openai/gpt-oss-120b`) to write the summary, top priorities and suggested actions. The room lists and counts always come from the readiness rules. **Built and verified in the PDI on 2026-11-07** (TEST_PLAN P23 to P29): AI briefing in about 3 seconds, fallback, rate limit, audit, and one prompt-injection attempt. |
 | Fallback | If the AI is not set up, cannot be reached, times out, hits its quota or answers in the wrong shape, the template is shown, labeled "Fallback template (not AI)" with the reason |
-| Local preview | Always the template, labeled "Simulated briefing (not AI)". No AI call is made from a laptop. |
+| Local preview | Always the template, labeled "Template briefing (no AI)". No AI call is made from a laptop. |
 | Labeling | Every briefing shows where its text came from (AI, fallback or simulated) and that it cannot approve a room |
 | Audit | Each generation is recorded in the audit log (who, which shift, when, and whether AI or the template wrote it); the text itself is not stored |
 | Automated tests | 6 tests (`AI:` in `tests/logic.test.cjs`): data minimization, prompt delimiting and escaping, reply checks, the AI cannot change the lists or counts, audit per source |

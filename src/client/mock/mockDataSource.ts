@@ -2,13 +2,13 @@ import type { Command, CommandOutcome } from '../shared/api/commands'
 import { ApiError } from '../shared/api/dataSource'
 import type { RoomRelayDataSource, SnapshotRequest } from '../shared/api/dataSource'
 import type { Briefing, Shift, Snapshot, Staff } from '../shared/domain/types'
-import { buildSimulatedBriefing } from '../features/handoff/briefing'
+import { buildTemplateBriefing } from '../features/handoff/briefing'
 import { buildRoomViews } from '../features/rooms/roomViews'
 import { scopeSnapshotForRole } from '../features/rooms/scope'
 import { dispatchMockCommand, readMockState, recordMockBriefing } from './mockStore'
 
 /**
- * PROTOTYPE data source. Reads nothing from ServiceNow and writes nothing anywhere: it works on
+ * LOCAL PREVIEW data source. Reads nothing from ServiceNow and writes nothing anywhere: it works on
  * the in-memory demo store (mockStore.ts). Short artificial delays let loading states be seen.
  *
  * It is created for one signed-in demo account. A real data source would not be told who the
@@ -74,7 +74,7 @@ export class MockDataSource implements RoomRelayDataSource {
                     return
                 }
                 const state = readMockState()
-                const briefing = buildSimulatedBriefing(buildRoomViews(state), shift, state.generatedAt)
+                const briefing = buildTemplateBriefing(buildRoomViews(state), shift, state.generatedAt)
                 recordMockBriefing(this.actor, shift)
                 resolve(briefing)
             }, 1200)

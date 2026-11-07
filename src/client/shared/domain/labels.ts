@@ -102,6 +102,4 @@ export const AUDIT_ACTION_META: Record<AuditAction, { label: string; icon: IconN
     inspection_passed: { label: 'Inspection passed, room Ready', icon: 'clipboard-check' },
     inspection_failed: { label: 'Inspection failed', icon: 'alert-small' },
     briefing_generated: { label: 'Shift briefing generated', icon: 'sparkles' },
-    access_request_approved: { label: 'Access request approved', icon: 'users' },
-    access_request_declined: { label: 'Access request declined', icon: 'users' },
 }

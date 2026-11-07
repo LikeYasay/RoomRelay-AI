@@ -14,7 +14,7 @@ export interface ReadyData {
     snapshot: Snapshot
     /** Every room. Only for lookups that must not leak existence; screens should use `scoped`. */
     allViews: RoomView[]
-    /** Rooms the current role may see (demo-level scoping; the server must enforce the real rule). */
+    /** Rooms the current role may see (the server already sent only these; this narrows the views). */
     scoped: { views: RoomView[]; note: string }
 }
 
