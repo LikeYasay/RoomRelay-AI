@@ -199,10 +199,11 @@ Written **only** by business rules, in the same transaction as the change. Nobod
 delete rows. ServiceNow's own `sys_audit` and login history still record field changes and sign-ins; this table is the
 readable business log the admin page shows.
 
-### 3.7 `handoff_briefing` (Phase 5)
+### 3.7 Briefings (no table)
 
-`shift`, `generated_by`, `generated_at`, `source` (`ai` or `fallback`), `text`/`json`, `model`, `input_counts`.
-Store enough to audit, not the raw confidential data.
+Briefings are not stored. Each generation writes one audit row (`briefing_generated`: who, which shift, when, and
+whether AI or the template wrote it). The same rows are counted for the rate limit. Add a table later only if past
+briefings must be re-read.
 
 ## 4. Roles
 
@@ -327,7 +328,7 @@ rejects them if they try). The table below is the original per-path design, kept
 | `defect.resolve` | `POST /defects/{id}/resolve` | maintenance (assigned) | `{ notes }` | 6 |
 | `room.submitInspection` | `POST /rooms/{number}/submit-inspection` | housekeeper (own) | none | 4 |
 | `room.recordInspection` | `POST /rooms/{number}/inspection` | supervisor | `{ result: 'passed' or 'failed', version }` | 2, 3 |
-| `handoff.briefingGenerated` | part of `POST /handoff/briefings` | supervisor | `{ shift }` | See `AI_DESIGN.md`; returns `source: 'ai'` or `'fallback'` |
+| (own route, not a command) | `POST /handoff/briefing` | supervisor | `{ shift }` | Built. Returns `{ briefing }` with `source: 'ai'` or `'fallback'`; 429 after 5 in 10 minutes. See `AI_DESIGN.md` |
 | (not yet a command) | `POST /access-requests` | see section 8 | the request form | |
 | (not yet a command) | `POST /access-requests/{id}/decision` | app_admin | `{ decision }` | Approving also needs a person to grant roles in ServiceNow |
 
@@ -382,7 +383,6 @@ ServiceNow, and `ServerSessionProvider` gets the user from `GET /me`. The points
    |---|---|---|
    | Approve or decline access | `features/access/AccessScreen.tsx` | `SimulationDialog` |
    | Request account | `features/auth/CreateAccountScreen.tsx` | validates only |
-   | Shift handoff text | `features/handoff/HandoffScreen.tsx` | `buildSimulatedBriefing` (template, not AI) |
 
 3. **Session.** Done inside ServiceNow (`GET /me`). The demo sign-in, Prototype tools and the in-memory store are only used
    by the local preview. Before real use, remove the demo users and the Load demo data endpoint.
@@ -392,12 +392,14 @@ ServiceNow, and `ServerSessionProvider` gets the user from `GET /me`. The points
    really connected and tested. Leave them on anything still simulated.
 6. **Keep** the rule files listed in section 2 and the logic tests: they document the rules the server must match.
 
-## 10. Phase 5: real AI
+## 10. Phase 5: AI briefing (verified in the PDI on 2026-11-07)
 
-See [AI_DESIGN.md](AI_DESIGN.md). In short: the call to the AI provider is made by ServiceNow server code with the key held in
-a credential, never in the browser; only authorized, minimized data is sent; the reply is validated and shown as plain text;
-if anything fails, return the deterministic template briefing labeled as non-AI. The template logic to port is
-`src/client/features/handoff/briefing.ts`. It uses the Couldn't Complete **reason category** only, never the free-text note.
+See [AI_DESIGN.md](AI_DESIGN.md). In short: `POST /handoff/briefing` (`src/server/handoff/briefingHandler.ts`) checks the
+caller is a supervisor and the rate limit, builds the template from the data the caller may see, sends a minimized version
+to Groq (`src/server/handoff/groq.ts`, REST Message `RoomRelay Groq`, 15-second timeout), checks the reply, and returns
+either the AI narrative merged into the template (`source: 'ai'`) or the template labeled `'fallback'` with a reason.
+The key is read from the `password2` system property `x_2305075_roomrela.groq_api_key`, created by hand
+(`DEPLOYMENT_GUIDE.md` section 3b); it is never in the code, the browser or the logs.
 
 ## 11. Build order (steps 1 to 7 are done and verified in the PDI)
 
@@ -408,7 +410,8 @@ if anything fails, return the deterministic template briefing labeled as non-AI.
 5. `GET /me` and `GET /snapshot`, connected to the frontend. **Done** (P13).
 6. Every command, exercised by the Room 102 scenario. **Done** (P16).
 7. Installed into the PDI and checked with `DEPLOYMENT_GUIDE.md`. **Done** (P9 to P22).
-8. Remaining: the open items in section 12, the rest of `TEST_PLAN.md` section 5, then AI integration.
+8. AI briefing: built, installed and verified (section 10; P23 to P29). **Done.**
+9. Remaining: the open items in section 12 and the rest of `TEST_PLAN.md` section 5.
 
 ## 12. Known unknowns
 
@@ -421,11 +424,12 @@ Resolved:
 - **Server modules built from `src/client/` load**, once every import between module files ends in `.ts`: ServiceNow finds a module by its exact path (P11).
 - **The REST API's role check applies** once the RoomRelay ACL is set on every route as well as on the API; otherwise each route keeps ServiceNow's default "Scripted REST External Default" ACL, which overrides the API-level one (P20, P22).
 - **Demo users and their roles install with the app**, and the cross-scope reads of `sys_user` and `sys_user_has_role` need no extra approval (P13).
+- **The scoped app can read its `password2` property and the PDI can call `api.groq.com`** (P28).
 - **No second sign-in inside ServiceNow**: the app takes the signed-in user from `GET /me`; the demo sign-in page exists only in the local preview.
 
 Still open:
 
 - Whether `/logout.do` is the right sign-out path (Sign out was not clicked during the PDI checks, to keep the admin session).
 - Concurrency: two requests in the same instant could both pass the state checks (no version check yet).
-- Rate limiting, needed before the AI briefing is connected.
+- Rate limiting exists only for the AI briefing (5 per supervisor in 10 minutes); the other routes have none.
 - Approving access requests and the Request an account page are still simulated.

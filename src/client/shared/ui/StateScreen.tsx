@@ -54,6 +54,7 @@ const ERROR_PRESENTATION: Record<ApiErrorKind, { icon: IconName; title: string; 
     not_found: { icon: 'search', title: 'Not found', tone: 'warning' },
     server: { icon: 'alert', title: 'Unable to load data', tone: 'danger' },
     network: { icon: 'alert', title: 'Connection problem', tone: 'danger' },
+    rate_limited: { icon: 'clock', title: 'Please wait a moment', tone: 'warning' },
 }
 
 /**

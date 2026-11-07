@@ -28,19 +28,50 @@ function Section({ id, title, items, empty }: { id: string; title: string; items
     )
 }
 
+/** Says plainly where the text came from, so nobody mistakes the template for AI or the AI for a decision. */
+function SourceNotice({ briefing }: { briefing: Briefing }) {
+    if (briefing.source === 'ai') {
+        return (
+            <Banner tone="info">
+                The summary, priorities and suggested actions were written by an AI model ({briefing.model ?? 'Groq'}) from a
+                minimal summary of the rooms. The room lists below come straight from the readiness rules. The briefing is
+                informational only and cannot approve a room. Check anything important in the room itself.
+            </Banner>
+        )
+    }
+    if (briefing.source === 'fallback') {
+        return (
+            <Banner tone="warning">
+                The AI was not used for this briefing ({briefing.fallbackReason ?? 'it was unavailable'}), so the fixed template
+                was used instead. It is informational only and cannot approve a room.
+            </Banner>
+        )
+    }
+    return (
+        <Banner tone="info">
+            This text comes from a fixed local template, not an AI model. It is informational only and cannot approve a room:
+            Ready status is decided by the readiness rules.
+        </Banner>
+    )
+}
+
+const SOURCE_BADGE = {
+    ai: { tone: 'info', label: 'AI briefing' },
+    fallback: { tone: 'warning', label: 'Fallback template (not AI)' },
+    simulated: { tone: 'warning', label: 'Simulated briefing (not AI)' },
+} as const
+
 export function BriefingView({ briefing }: { briefing: Briefing }) {
+    const badge = SOURCE_BADGE[briefing.source] ?? SOURCE_BADGE.simulated
     return (
         <article className="briefing" aria-label="Shift handoff briefing">
             <div className="briefing__badges">
-                <Badge tone="warning" label="Simulated briefing (not AI)" icon="info" />
+                <Badge tone={badge.tone} label={badge.label} icon="info" />
                 <Badge tone="neutral" label={`${SHIFT_LABEL[briefing.shift]} to ${SHIFT_LABEL[briefing.incomingShift]}`} />
                 <span className="muted">Generated {formatDateTime(briefing.generatedAt)}</span>
             </div>
 
-            <Banner tone="info">
-                This text comes from a fixed local template, not an AI model. It is informational only and cannot approve a
-                room: Ready status is decided by the readiness rules.
-            </Banner>
+            <SourceNotice briefing={briefing} />
 
             <section aria-labelledby="b-summary" className="briefing__section">
                 <h3 id="b-summary">Summary</h3>

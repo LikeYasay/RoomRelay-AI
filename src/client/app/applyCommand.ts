@@ -1,7 +1,6 @@
 import type { Command } from '../shared/api/commands.ts'
 import type { CommandContext, RuleResult } from '../shared/domain/commandKit.ts'
 import type { Snapshot } from '../shared/domain/types.ts'
-import { recordBriefingGenerated } from '../features/handoff/handoffCommands.ts'
 import { completeTask, markTaskCouldntComplete, reopenTask } from '../features/housekeeping/taskCommands.ts'
 import { reportDefect, resolveDefect, startDefect, triageDefect } from '../features/maintenance/defectCommands.ts'
 import { recordInspection, submitForInspection } from '../features/rooms/roomCommands.ts'
@@ -31,7 +30,5 @@ export function applyCommand(snapshot: Snapshot, ctx: CommandContext, command: C
             return submitForInspection(snapshot, ctx, command)
         case 'room.recordInspection':
             return recordInspection(snapshot, ctx, command)
-        case 'handoff.briefingGenerated':
-            return recordBriefingGenerated(snapshot, ctx, command)
     }
 }

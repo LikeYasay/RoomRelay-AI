@@ -41,6 +41,7 @@ const sources = [
     'features/auth/accountRequestValidation.ts',
     'features/handoff/briefing.ts',
     'features/handoff/handoffCommands.ts',
+    'features/handoff/aiBriefing.ts',
     'features/access/permissions.ts',
     'features/activity/recentActivity.ts',
     'app/applyCommand.ts',

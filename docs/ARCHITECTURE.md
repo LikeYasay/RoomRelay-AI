@@ -29,7 +29,7 @@ src/client/
                             (report, triage, start, resolve), what counts as blocking (blockers.ts), defect scoping
     dashboard/              operations dashboard panels and its numbers (dashboardStats.ts)
     activity/               Audit Log page, the activity feed, and how recent activity is read from the log
-    handoff/                shift handoff screen, the template briefing (later: the AI call), briefing audit rule
+    handoff/                shift handoff screen, the template briefing, the AI prompt and reply checks, briefing audit rule
     access/                 users and access screen, role-permission table
   shared/                   used by every feature; knows nothing about any one feature
     domain/                 the hotel vocabulary: data types (types.ts), labels (labels.ts), status badges,
@@ -146,7 +146,7 @@ ACLs, business rules and one Scripted REST resource, named after the slice:
 | `features/rooms` | rooms (the readiness rule lives here on the server too) | `GET /snapshot`, `POST /rooms/{n}/submit-inspection`, `POST /rooms/{n}/inspection` |
 | `features/housekeeping` | housekeeping (tasks) | `POST /tasks/{id}/complete`, `/couldnt-complete`, `/reopen` |
 | `features/maintenance` | maintenance (defects) | `POST /defects`, `/defects/{id}/triage`, `/start`, `/resolve` |
-| `features/handoff` | handoff (AI call, server-side only) | `POST /handoff/briefings` |
+| `features/handoff` | `src/server/handoff/` (Groq call, server-side only) | `POST /handoff/briefing` |
 | `features/access` | access (users, roles, requests) | `POST /access-requests/{id}/decision` |
 | `features/activity` | audit | part of `GET /snapshot` |
 | `features/auth` | session | `GET /me` |

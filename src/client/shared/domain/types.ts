@@ -158,3 +158,45 @@ export interface RoomView {
     /** Highest priority among the room's open tasks. Only used for sorting. Undefined when nothing is open. */
     priority: TaskPriority | undefined
 }
+
+// ---------------------------------------------------------------- shift briefing (returned by the handoff endpoint)
+
+export interface BriefingItem {
+    roomId: string
+    text: string
+}
+
+/** template: local preview. ai: written by the AI model. fallback: the AI was unavailable, so this is the template. */
+export type BriefingSource = 'simulated' | 'ai' | 'fallback'
+
+export interface Briefing {
+    source: BriefingSource
+    /** The AI model that wrote the narrative (source 'ai'). */
+    model?: string
+    /** Why the AI was not used (source 'fallback'); a short, safe phrase. */
+    fallbackReason?: string
+    shift: Shift
+    incomingShift: Shift
+    generatedAt: string
+    counts: {
+        rooms: number
+        ready: number
+        blocked: number
+        pendingInspection: number
+        mandatoryOpen: number
+        couldntComplete: number
+        unresolvedDefects: number
+        blockingDefects: number
+        awaitingTriage: number
+    }
+    summary: string
+    priorities: BriefingItem[]
+    blockedRooms: BriefingItem[]
+    pendingInspections: BriefingItem[]
+    outstandingTasks: BriefingItem[]
+    /** Tasks marked Couldn't Complete. Only the reason category is used, never the free-text note. */
+    couldntComplete: BriefingItem[]
+    awaitingTriage: BriefingItem[]
+    unresolvedDefects: BriefingItem[]
+    actions: string[]
+}

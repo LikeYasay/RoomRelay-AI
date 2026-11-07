@@ -125,6 +125,18 @@ declare global {
                         table: 'sys_user'
                         id: 'd45d3ab4068b4c608cbdbe7668c1bde2'
                     }
+                    'groq-header-accept': {
+                        table: 'sys_rest_message_headers'
+                        id: '8297cb80d8b544a5a92ef515eba255e6'
+                    }
+                    'groq-header-content-type': {
+                        table: 'sys_rest_message_headers'
+                        id: '7ca50fc8d6ef4f3682b030f60f2c59a1'
+                    }
+                    'groq-rest-message': {
+                        table: 'sys_rest_message'
+                        id: '188a644109b845df91d4fb989437cf86'
+                    }
                     package_json: {
                         table: 'sys_module'
                         id: '9c6102d8f0c745428a1f93de71b273d1'
@@ -153,6 +165,10 @@ declare global {
                         table: 'sys_ws_operation'
                         id: '2ca821d641e74af5834a363d554776ff'
                     }
+                    'roomrelay-post-briefing': {
+                        table: 'sys_ws_operation'
+                        id: 'afbe4390624642f7bdb80180c12a364a'
+                    }
                     'roomrelay-post-commands': {
                         table: 'sys_ws_operation'
                         id: '617eeaf2d0a843398d0ab4212edbb407'
@@ -180,6 +196,10 @@ declare global {
                     src_client_features_dashboard_dashboardStats_ts: {
                         table: 'sys_module'
                         id: '8d8fda92a94a4010bb075f2ab626bc85'
+                    }
+                    src_client_features_handoff_aiBriefing_ts: {
+                        table: 'sys_module'
+                        id: 'ce227e5b99894422a250be24b6def4cb'
                     }
                     src_client_features_handoff_briefing_ts: {
                         table: 'sys_module'
@@ -288,6 +308,14 @@ declare global {
                     src_server_data_repository_ts: {
                         table: 'sys_module'
                         id: 'cf585eaed93e4a12ba057023ed0e25c3'
+                    }
+                    src_server_handoff_briefingHandler_ts: {
+                        table: 'sys_module'
+                        id: '86c7412be57843cf9e1925b93ed39784'
+                    }
+                    src_server_handoff_groq_ts: {
+                        table: 'sys_module'
+                        id: 'cc76a926ebb1401fa7ee3ff19ad726bf'
                     }
                     src_server_shared_http_ts: {
                         table: 'sys_module'
@@ -654,6 +682,14 @@ declare global {
                                     name: 'x_2305075_roomrela.supervisor'
                                 }
                             }
+                        }
+                    },
+                    {
+                        table: 'sys_rest_message_fn'
+                        id: '3cc20052c8cf446aad77345280d35895'
+                        key: {
+                            rest_message: '188a644109b845df91d4fb989437cf86'
+                            function_name: 'chat completions'
                         }
                     },
                     {

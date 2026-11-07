@@ -23,7 +23,8 @@ Keep these four things separate when you report progress. They are not the same:
 | 4 roles | `x_2305075_roomrela.housekeeper`, `.maintenance`, `.supervisor`, `.app_admin` |
 | 5 tables | `x_2305075_roomrela_room`, `_task`, `_defect`, `_audit`, `_staff` |
 | 7 ACLs | Read-only table access for the app admin; app admin can edit staff profiles; the REST API needs one of the four roles |
-| REST API | `/api/x_2305075_roomrela/v1/roomrelay/` with `GET /me`, `GET /snapshot`, `POST /commands`, `POST /demo/reset` |
+| REST API | `/api/x_2305075_roomrela/v1/roomrelay/` with `GET /me`, `GET /snapshot`, `POST /commands`, `POST /demo/reset`, `POST /handoff/briefing` |
+| REST Message | `RoomRelay Groq`: the outbound call to `https://api.groq.com/openai/v1/chat/completions` (no key inside; the key is added by server code from the property in section 3b) |
 | Server modules | `src/server/**` plus the shared rule files from `src/client/` (listed in `now.config.json`) |
 | 2 cross-scope privileges | Read `sys_user` and `sys_user_has_role` (names and role assignments) |
 | **Demo users** | 9 users (avery.collins, morgan.ellis, daniel.brooks, riley.chen, ...) with **no password**, each with one RoomRelay role and a staff profile. Defined in `src/fluent/auth/demo-users.now.ts`. |
@@ -44,7 +45,7 @@ npm run build
 npm run test:logic
 ```
 
-All three should finish without errors (build: "Build completed successfully"; tests: "pass 29, fail 0").
+All three should finish without errors (build: "Build completed successfully"; tests: "pass 35, fail 0").
 Run the build from the project folder: if a terminal is sitting inside `dist/`, the build cannot replace that folder
 and fails with "EBUSY". **Only install after a successful build**; an install of a half-built package is rejected.
 
@@ -77,6 +78,41 @@ If it fails, copy the error text (not any secret) and see section 6.
 4. The dashboard should show the same numbers as the local preview: 40 rooms, 16 Ready, 8 Needs Cleaning, 7 In Progress,
    4 Pending Inspection, 5 Blocked.
 
+## 3b. Turn on the AI briefing (one time, by hand)
+
+The app works without this step: the Shift Handoff screen then shows the template, labeled "Fallback template (not AI)".
+To let the server call Groq:
+
+**Get a free Groq API key**
+
+1. Open `https://console.groq.com` and sign up (free, no credit card).
+2. Go to **API Keys** and choose **Create API Key**. Name it `RoomRelay PDI`.
+3. Copy the key. It is shown only once. **Do not paste it into chat, code, a commit, a document or a screenshot.**
+
+**Store it in the PDI**
+
+1. Sign in to the PDI as admin. In the application picker (globe icon, top right), choose **RoomRelay AI**, so the
+   property is created inside the app's scope.
+2. In the filter navigator type `sys_properties.list` and press Enter. Choose **New**.
+3. Fill in:
+
+   | Field | Value |
+   |---|---|
+   | Name | `x_2305075_roomrela.groq_api_key` |
+   | Application | RoomRelay AI (filled in by step 1) |
+   | Type | `password2` (stored encrypted, shown as dots) |
+   | Value | paste the key here, and only here |
+   | Private | ticked (keeps it out of update sets) |
+   | Description | Groq API key for the RoomRelay shift briefing |
+
+4. **Submit.** Switch the application picker back if you like.
+5. Check: impersonate **Morgan Ellis**, open Shift Handoff and choose **Generate briefing**. Expect the badge
+   "AI briefing" and a note naming the model. If you see "Fallback template (not AI)", the reason is shown next to it;
+   see section 6.
+
+To turn the AI off again, clear the property's value. To replace a leaked key, delete it in the Groq console, create a
+new one and paste it into the same property.
+
 ## 4. Test each role with Impersonate User
 
 The demo users have no password, so nobody can sign in as them directly. As admin:
@@ -105,6 +141,8 @@ The demo users have no password, so nobody can sign in as them directly. As admi
 | 12 | Signed-out access | Open the page address in a private window with no ServiceNow login: expect the ServiceNow login | |
 | 13 | User without a role | Impersonate a PDI user with no RoomRelay role and open the page: "No access to RoomRelay" | |
 | 14 | Direct table access is closed | As Avery, open `x_2305075_roomrela_room.list`: no records (only the app admin can read the tables directly) | |
+| 15 | AI briefing | Section 3b step 5: badge "AI briefing"; the room lists match the Rooms page; the Audit Log (as admin) shows "written by AI" | |
+| 16 | AI fallback | Before the key is set (or with its value cleared): badge "Fallback template (not AI)" with the reason | |
 
 Then run the backend and security tests in `TEST_PLAN.md` section 5 and record the results.
 
@@ -121,6 +159,11 @@ Then run the backend and security tests in `TEST_PLAN.md` section 5 and record t
 | Load demo data says the demo users are missing | Check `x_2305075_roomrela_staff.list` has 9 rows with demo keys h1 to a1 |
 | Requests fail with 401 | `typeof window.g_ck` is not `"string"`: the page did not get a session token; record this in `BACKEND_HANDOFF.md` section 12 |
 | Blank page | F12, Console tab for red errors; Network tab for a failed request to `.../uxasset/externals/x_2305075_roomrela/main.jsdbx` |
+| Briefing says "the AI is not set up on this instance yet" | The property is missing, empty, or was created in the wrong application scope (section 3b step 1) |
+| Briefing says "the AI key was rejected" | The key was mistyped or deleted in the Groq console; create a new one |
+| Briefing says "the free AI quota is used up for now" | Groq's free limit was reached; wait and try again (the fallback still works) |
+| Briefing says "the AI service could not be reached in time" | The PDI could not reach `api.groq.com` within 15 seconds. System Logs > All, filter on "RoomRelay AI" |
+| "Too many briefings in a short time" | The limit is 5 per supervisor in 10 minutes; wait a few minutes |
 | Works locally but not here | Record the difference in this document and in `BACKEND_HANDOFF.md` section 12 |
 
 ## 7. Going back

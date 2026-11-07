@@ -1,4 +1,4 @@
-import type { Snapshot, Staff } from '../domain/types'
+import type { Briefing, Shift, Snapshot, Staff } from '../domain/types'
 import type { Command, CommandFailureKind, CommandOutcome } from './commands'
 import { ApiError } from './dataSource'
 import type { RoomRelayDataSource, SnapshotRequest } from './dataSource'
@@ -65,6 +65,17 @@ export class ServiceNowDataSource implements RoomRelayDataSource {
         // Rule failures carry a safe message written by the shared rules; anything else is generic.
         if (kind && typeof error?.message === 'string') {
             return { ok: false, kind, message: error.message.slice(0, 300), fieldErrors: error.fieldErrors }
+        }
+        throw readError(status)
+    }
+
+    async generateBriefing(shift: Shift): Promise<Briefing> {
+        const { status, body } = await call('/handoff/briefing', { method: 'POST', body: JSON.stringify({ shift }) })
+        const briefing = (body as { briefing?: Briefing } | null)?.briefing
+        if (status === 200 && briefing && Array.isArray(briefing.actions)) return briefing
+        if (status === 429) {
+            const message = (body as ApiErrorBody | null)?.error?.message
+            throw new ApiError('rate_limited', typeof message === 'string' ? message.slice(0, 300) : undefined)
         }
         throw readError(status)
     }

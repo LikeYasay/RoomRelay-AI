@@ -1,9 +1,11 @@
 import type { Command, CommandOutcome } from '../shared/api/commands'
 import { ApiError } from '../shared/api/dataSource'
 import type { RoomRelayDataSource, SnapshotRequest } from '../shared/api/dataSource'
-import type { Snapshot, Staff } from '../shared/domain/types'
+import type { Briefing, Shift, Snapshot, Staff } from '../shared/domain/types'
+import { buildSimulatedBriefing } from '../features/handoff/briefing'
+import { buildRoomViews } from '../features/rooms/roomViews'
 import { scopeSnapshotForRole } from '../features/rooms/scope'
-import { dispatchMockCommand, readMockState } from './mockStore'
+import { dispatchMockCommand, readMockState, recordMockBriefing } from './mockStore'
 
 /**
  * PROTOTYPE data source. Reads nothing from ServiceNow and writes nothing anywhere: it works on
@@ -60,6 +62,22 @@ export class MockDataSource implements RoomRelayDataSource {
     execute(command: Command): Promise<CommandOutcome> {
         return new Promise((resolve) => {
             setTimeout(() => resolve(dispatchMockCommand(command, this.actor)), Math.round(this.latencyMs / 2))
+        })
+    }
+
+    /** The local preview has no AI: it always returns the labeled template, after a short delay. */
+    generateBriefing(shift: Shift): Promise<Briefing> {
+        return new Promise((resolve, reject) => {
+            setTimeout(() => {
+                if (this.actor.role !== 'supervisor') {
+                    reject(new ApiError('forbidden'))
+                    return
+                }
+                const state = readMockState()
+                const briefing = buildSimulatedBriefing(buildRoomViews(state), shift, state.generatedAt)
+                recordMockBriefing(this.actor, shift)
+                resolve(briefing)
+            }, 1200)
         })
     }
 }

@@ -1,4 +1,4 @@
-import type { DefectPriority, IncompleteReason, InspectionStatus, Shift } from '../domain/types.ts'
+import type { DefectPriority, IncompleteReason, InspectionStatus } from '../domain/types.ts'
 
 /**
  * Every change a user can make, as one typed list. This is the WRITE contract the backend
@@ -18,7 +18,6 @@ export type Command =
     | { type: 'defect.resolve'; defectId: string; notes: string }
     | { type: 'room.submitInspection'; roomId: string }
     | { type: 'room.recordInspection'; roomId: string; result: Extract<InspectionStatus, 'passed' | 'failed'> }
-    | { type: 'handoff.briefingGenerated'; shift: Shift }
 
 export type CommandFailureKind = 'forbidden' | 'not_found' | 'invalid' | 'conflict'
 
@@ -27,7 +26,6 @@ export type CommandOutcome = { ok: true } | { ok: false; kind: CommandFailureKin
 
 const INCOMPLETE_REASONS: readonly IncompleteReason[] = ['supplies_missing', 'needs_maintenance', 'other']
 const DEFECT_PRIORITIES: readonly DefectPriority[] = ['blocking', 'normal', 'minor']
-const SHIFTS: readonly Shift[] = ['morning', 'afternoon', 'night']
 
 /** The fields each command may carry. Anything else makes the request invalid. */
 const ALLOWED_FIELDS: Record<Command['type'], readonly string[]> = {
@@ -40,7 +38,6 @@ const ALLOWED_FIELDS: Record<Command['type'], readonly string[]> = {
     'defect.resolve': ['defectId', 'notes'],
     'room.submitInspection': ['roomId'],
     'room.recordInspection': ['roomId', 'result'],
-    'handoff.briefingGenerated': ['shift'],
 }
 
 function text(value: unknown, max: number): string | undefined {
@@ -111,10 +108,6 @@ export function parseCommand(raw: unknown): Command | null {
             const roomId = id(o.roomId)
             const result = oneOf(o.result, ['passed', 'failed'] as const)
             return roomId && result ? { type: 'room.recordInspection', roomId, result } : null
-        }
-        case 'handoff.briefingGenerated': {
-            const shift = oneOf(o.shift, SHIFTS)
-            return shift ? { type: 'handoff.briefingGenerated', shift } : null
         }
     }
 }

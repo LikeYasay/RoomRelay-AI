@@ -1,6 +1,6 @@
 import React, { createContext, useContext } from 'react'
 import type { ReactNode } from 'react'
-import type { RoomView, Snapshot } from '../domain/types'
+import type { Briefing, RoomView, Shift, Snapshot } from '../domain/types'
 import { ErrorState, LoadingState } from '../ui/StateScreen'
 import type { Command, CommandOutcome } from './commands'
 import type { ApiErrorKind } from './dataSource'
@@ -31,6 +31,8 @@ export interface DataContextValue {
     run: (command: Command) => Promise<CommandOutcome>
     /** Re-reads the data without showing the loading screen. */
     refresh: () => Promise<void>
+    /** Generates the shift briefing (AI inside ServiceNow, template in the local preview). Rejects with ApiError. */
+    generateBriefing: (shift: Shift) => Promise<Briefing>
     /** Sends the user back to sign-in, with a message (expired session, for example). */
     signOut: (notice?: string) => void
 }
@@ -44,9 +46,9 @@ function useData(): DataContextValue {
 }
 
 /** For screens and dialogs that change data. */
-export function useCommands(): Pick<DataContextValue, 'run' | 'refresh'> {
-    const { run, refresh } = useData()
-    return { run, refresh }
+export function useCommands(): Pick<DataContextValue, 'run' | 'refresh' | 'generateBriefing'> {
+    const { run, refresh, generateBriefing } = useData()
+    return { run, refresh, generateBriefing }
 }
 
 /** Renders loading and error states, and the screen only once data is ready. */

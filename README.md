@@ -5,7 +5,8 @@ A ServiceNow capstone application (Hospitality, use case #35: Room Readiness Han
 
 > **Status (2026-11-07):** the frontend and a first working version of the ServiceNow backend (tables, roles, ACLs,
 > REST API) are built, installed in the PDI and verified there for every role. All data is synthetic demo data.
-> The real AI integration is not built: the shift briefing is a labeled template. See [Project status](#project-status).
+> The AI shift briefing (Groq, called from the ServiceNow server) is installed and verified in the PDI, including the
+> labeled template fallback and a prompt-injection attempt. See [Project status](#project-status).
 
 ## What it does
 
@@ -20,8 +21,9 @@ at shift change. RoomRelay AI puts it in one place:
 - **Never lets a room count as Ready while a mandatory task, a required inspection or a Blocking defect is open.**
   The ServiceNow server enforces this; the browser only explains it.
 - Keeps an audit log of who changed what, for the administrator.
-- Produces a shift handoff briefing for the incoming shift (a labeled template today; real AI is planned, see
-  [docs/AI_DESIGN.md](docs/AI_DESIGN.md)).
+- Produces a shift handoff briefing for the incoming shift. Inside ServiceNow an AI model (Groq) writes the summary
+  and suggested actions from minimized data; the room lists come from the rules, and a labeled template is used if the
+  AI is unavailable. See [docs/AI_DESIGN.md](docs/AI_DESIGN.md).
 - Shows each role only what it needs. Terms are explained in [docs/GLOSSARY.md](docs/GLOSSARY.md).
 
 ## Where things are
@@ -125,9 +127,9 @@ docs/                      all project documentation (below)
 | Frontend: dashboard, Rooms (three views), room details with checklist, maintenance with triage and a defect modal, shift handoff, users and access, audit log | **Built.** Responsive from 320px to wide desktops. |
 | ServiceNow backend: 5 tables, 4 roles, ACLs, REST API, demo users and Load demo data | **Built, installed and verified in the PDI** on 2026-11-07 (`docs/TEST_PLAN.md` section 4b, P9 to P22): every role, the full Room 102 scenario, saved changes and the audit trail. |
 | Server-enforced security | **Verified for the tested cases**: each role receives only its own data; other people's records, wrong roles, extra fields, users without a role and direct table access are refused. Concurrent requests, rate limiting and a full security review are still open. |
-| Local checks | Strict TypeScript, SDK build, 29 logic tests, a check that every server-module import resolves, accessibility and contrast checks. All pass. |
-| Still simulated | Approving access requests, the Request an account page, and the AI briefing (a labeled template). |
-| Real AI summaries (Phase 5) | **Not started.** Designed in `docs/AI_DESIGN.md`. |
+| Local checks | Strict TypeScript, SDK build, 35 logic tests, a check that every server-module import resolves, accessibility and contrast checks. All pass. |
+| Still simulated | Approving access requests and the Request an account page. The local preview always uses the template briefing. |
+| AI shift briefing (Phase 5) | **Built and verified in the PDI (2026-11-07, `docs/TEST_PLAN.md` P23 to P29).** Server-side Groq call with a key stored in an encrypted system property, data minimization, reply checks, a 5-per-10-minutes limit and a labeled fallback. Setup: `docs/DEPLOYMENT_GUIDE.md` section 3b. |
 
 ## Security notes
 

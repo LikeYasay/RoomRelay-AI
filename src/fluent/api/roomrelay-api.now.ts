@@ -1,6 +1,6 @@
 import '@servicenow/sdk/global'
 import { Acl, RestApi } from '@servicenow/sdk/core'
-import { getMe, getSnapshot, postCommand, postDemoReset } from '../../server/api/handlers'
+import { getMe, getSnapshot, postBriefing, postCommand, postDemoReset } from '../../server/api/handlers'
 import { ALL_APP_ROLES } from '../auth/roles.now'
 
 /**
@@ -34,5 +34,6 @@ RestApi({
         { $id: Now.ID['roomrelay-get-snapshot'], name: 'snapshot', method: 'GET', path: '/snapshot', script: getSnapshot, version: 1, enforceAcl: [apiAccess] },
         { $id: Now.ID['roomrelay-post-commands'], name: 'commands', method: 'POST', path: '/commands', script: postCommand, version: 1, enforceAcl: [apiAccess] },
         { $id: Now.ID['roomrelay-post-demo-reset'], name: 'demo reset', method: 'POST', path: '/demo/reset', script: postDemoReset, version: 1, enforceAcl: [apiAccess] },
+        { $id: Now.ID['roomrelay-post-briefing'], name: 'briefing', method: 'POST', path: '/handoff/briefing', script: postBriefing, version: 1, enforceAcl: [apiAccess] },
     ],
 })

@@ -53,23 +53,25 @@ Loosely based on the OWASP Top 10 and OWASP API Security Top 10, kept practical 
 | B11 | Secure record access in scripts | **Implemented differently** | Plain `GlideRecord` behind closed tables; the handlers apply the role and ownership rules themselves (see `BACKEND_HANDOFF.md` section 0). |
 | B12 | Limited response data | **Implemented** | Snapshot scoped per role; the staff list has name, role and shift only (no email). Technicians still receive the tasks of their rooms. |
 | B13 | Safe errors | **Implemented** | One error envelope; rule messages only; unexpected errors are logged with `gs.error` and answered generically. |
-| B14 | Rate limiting | Planned | Needed for the AI briefing (cost) and any public request endpoint. |
+| B14 | Rate limiting | **Partly implemented** | AI briefing only: 5 per supervisor in 10 minutes, counted from the audit log (429). **Verified in the PDI** (P26). Other routes have none. |
 | B15 | CORS | **Implemented (default)** | No CORS rule is created, so the API is same-origin only. |
 | B16 | Audit trail | **Verified in the PDI** (P19) | `x_2305075_roomrela_audit` rows are written in the same request as each change, with the session user as actor; no role can write the table. |
 | B17 | Secure logging | **Implemented** | Logs contain the error message only; no request bodies, tokens or prompts. |
 | B18 | Account requests | Planned | Still simulated; never create users or grant roles from a public form. |
 
-## C. AI controls (all Planned; see AI_DESIGN.md)
+## C. AI controls (see AI_DESIGN.md)
+
+"Implemented" means built and covered by local tests. In the PDI the supervisor-only check, the fallback (C5), the rate limit (C7), the live call with the server-side key (C1) and one prompt-injection attempt (C3, C6) were verified on 2026-11-07 (TEST_PLAN P24 to P29).
 
 | # | Control | Status |
 |---|---|---|
-| C1 | API key in a ServiceNow credential, never in the browser or repo | Planned |
-| C2 | Send only data the caller may see, minimized | Planned (the template already uses reason categories only, never free-text notes; tested) |
-| C3 | Untrusted text delimited; model output cannot trigger actions | Planned |
-| C4 | Reply validated (shape, length) and shown as plain text | Planned (display already safe) |
-| C5 | Timeout, failure handling, labeled fallback | Planned (template exists) |
-| C6 | AI can never approve a room or change permissions | **Verified in the prototype**: readiness depends only on data fields; hostile-text test passes. Must be re-verified server-side. |
-| C7 | Per-user rate limit and cost cap | Planned |
+| C1 | API key server-side only, never in the browser or repo | **Implemented**: encrypted `password2` system property created by hand; read only by `src/server/handoff/groq.ts`; never logged |
+| C2 | Send only data the caller may see, minimized | **Implemented and tested** (`AI:` data test): room numbers, statuses, counts, titles and reason categories; no names, notes or descriptions |
+| C3 | Untrusted text delimited; model output cannot trigger actions | **Implemented and tested** (`AI + INJECTION`): JSON in `<data>` with `<` and `>` escaped; the reply is only displayed |
+| C4 | Reply validated (shape, length) and shown as plain text | **Implemented and tested**: JSON only, lengths capped, control characters removed, invented rooms dropped; React renders text only |
+| C5 | Timeout, failure handling, labeled fallback | **Implemented**: 15 s timeout; every failure returns the template labeled "Fallback template (not AI)" with a reason |
+| C6 | AI can never approve a room or change permissions | **Verified in the prototype and by design on the server**: the AI only replaces the summary, priorities and actions; the lists, counts and readiness come from the rules (tested) |
+| C7 | Per-user rate limit and cost cap | **Implemented**: 5 per supervisor in 10 minutes; Groq free tier (no billing attached), so there is no spend to cap |
 
 ## D. Dependencies and tooling
 

@@ -11,7 +11,7 @@ For the presentation (tentatively December 9 to 12, 2026). About 10 to 12 minute
 | ServiceNow backend | **Built and running in our PDI** (`dev472716`): 5 tables, 4 roles, ACLs and a REST API. Verified for every role on 2026-11-07. |
 | One copy of every rule | The server runs the same rule files as the browser, so they cannot disagree |
 | Data | **Synthetic** demo data (40 rooms, 9 fictional staff), stored in ServiceNow and reset with Load demo data |
-| Shift handoff briefing | A template stand-in today, **labeled "Simulated briefing (not AI)"**. Real AI is designed (see `AI_DESIGN.md`), not connected |
+| Shift handoff briefing | Inside ServiceNow: written by an AI model (Groq) and labeled "AI briefing", with a labeled template fallback. Verified in the PDI on 2026-11-07. Before the demo, generate one briefing to make sure the key and the free quota still work. Local preview: always "Simulated briefing (not AI)" |
 | Still simulated | Approving access requests and the Request an account page |
 | Security | Server enforcement is verified for the cases we tested (see "Likely questions"). Not claimed: concurrency, rate limiting, a full security review |
 
@@ -49,11 +49,11 @@ Never say "the AI decides". Say "the AI only writes the summary; fixed rules dec
 | 5:45 | Daniel | Switch to **Daniel**. **My queue**, **Work on it**, **Start work**, then resolution notes and **Mark resolved** | "Technicians only see their own repairs. Notes are required." |
 | 6:45 | Avery | Switch to **Avery**, open Room 102 | The bathroom task is back to **Pending** with "Repair finished". "The repair doesn't complete the cleaning: Avery re-checks it." Complete the rest, then **Submit for inspection**. |
 | 7:45 | Morgan | Switch to **Morgan**, Room 102, **Pass inspection and confirm Ready** | "Only a supervisor, only when every rule is met, and the server checks it again. That is the only way a room becomes Ready." |
-| 8:15 | Morgan | **Shift Handoff**: pick Morning, Generate | "This is the AI feature. Today it is a template and it says so. It lists blocked rooms, tasks that couldn't be completed and reports awaiting triage. It can never approve a room." Show Copy. |
+| 8:15 | Morgan | **Shift Handoff**: pick Morning, Generate | "This is the AI feature. The server sends Groq only room numbers, statuses and titles, never names or notes. The AI writes the summary and suggested actions; the lists come from the rules. If the AI is down it says 'Fallback template'. It can never approve a room." Show Copy. |
 | 9:00 | Riley | Switch to **Riley**, **Audit Log**, search `102` | "Every step we just did is recorded by the server: who, what, when. Nobody can edit or delete it." |
 | 9:30 | Riley | **Users and Access** | "The admin sees the role-permission table. People can ask for a role, never give themselves one." (Approving requests is still simulated.) |
 | 10:00 | | Narrow the window | "It adapts to tablets and phones; tables turn into cards." |
-| 10:30 | | Close | "Next: real AI for the briefing, made on the ServiceNow server with a stored key, and the remaining security tests." |
+| 10:30 | | Close | "Next: the remaining security tests, concurrency checks and real access requests." |
 
 Optional extras: as Morgan, **Fail inspection** on Room 107 ("Blocked until it's re-cleaned and resubmitted"); as Avery,
 add `#/rooms/305` to the address ("Room unavailable": the server never sent it).
@@ -62,7 +62,8 @@ add `#/rooms/305` to the address ("Room unavailable": the server never sent it).
 
 | Question | Answer |
 |---|---|
-| Is the AI real? | Not yet. The summary is a template stand-in, labeled as such. The design for the real call is in `AI_DESIGN.md`. |
+| Is the AI real? | Yes, inside ServiceNow (once the key is set): Groq's `openai/gpt-oss-120b`, called from the server with an encrypted key. The badge says whether AI or the template wrote it. |
+| What does the AI see? | Room numbers, statuses, counts, task and defect titles and reason categories. No names, notes or descriptions. |
 | What stops the AI from marking a room Ready? | It cannot. Readiness comes only from fixed rules on task, defect and inspection data, enforced on the server. We test this with hostile text in every field. |
 | Is it really server-side? | Yes. The browser sends one small "command" (for example "complete task T-102-1"); the ServiceNow server checks who is calling, applies the rule and saves the change with an audit row. |
 | Can a housekeeper cheat by calling the API directly? | We tried in the PDI: completing someone else's task (404), claiming to be a supervisor (400), setting a defect's priority (403), passing her own room (403), and reading the tables directly (403). All refused. |

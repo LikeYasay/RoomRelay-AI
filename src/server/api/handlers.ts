@@ -8,6 +8,7 @@ import { resetDemoData } from '../data/demoData.ts'
 import { loadSnapshot, saveChanges } from '../data/repository.ts'
 import { readJson, sendError, sendOk } from '../shared/http.ts'
 import type { RestRequest, RestResponse } from '../shared/http.ts'
+import { handleBriefing } from '../handoff/briefingHandler.ts'
 import { currentStaff, loadStaff } from '../shared/session.ts'
 import { nowIso } from '../shared/time.ts'
 
@@ -17,6 +18,7 @@ import { nowIso } from '../shared/time.ts'
  *   GET  /snapshot    everything the caller may see
  *   POST /commands    one change; body is a Command (src/client/shared/api/commands.ts)
  *   POST /demo/reset  reload the demo dataset (RoomRelay administrator only)
+ *   POST /handoff/briefing  the shift briefing, written by the AI with a template fallback (supervisors)
  *
  * Every handler identifies the caller from the session and applies the same rule functions the
  * frontend uses. Unexpected errors are logged and answered with a generic message.
@@ -86,4 +88,8 @@ export function postDemoReset(_request: RestRequest, response: RestResponse): vo
         if (!result.ok) sendError(response, 'conflict', result.message)
         else sendOk(response, { ok: true })
     })
+}
+
+export function postBriefing(request: RestRequest, response: RestResponse): void {
+    withCaller(response, (caller, staff) => handleBriefing(request, response, caller, staff))
 }

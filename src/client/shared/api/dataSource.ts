@@ -1,4 +1,4 @@
-import type { Snapshot } from '../domain/types.ts'
+import type { Briefing, Shift, Snapshot } from '../domain/types.ts'
 import type { Command, CommandOutcome } from './commands.ts'
 
 /**
@@ -9,7 +9,7 @@ import type { Command, CommandOutcome } from './commands.ts'
  * (mock/mockDataSource.ts) for the local preview. app/App.tsx picks one.
  */
 
-export type ApiErrorKind = 'unauthenticated' | 'expired' | 'forbidden' | 'not_found' | 'server' | 'network'
+export type ApiErrorKind = 'unauthenticated' | 'expired' | 'forbidden' | 'not_found' | 'rate_limited' | 'server' | 'network'
 
 /** Error whose message is always safe to show to a user (no server internals). */
 export class ApiError extends Error {
@@ -27,6 +27,7 @@ const SAFE_MESSAGES: Record<ApiErrorKind, string> = {
     expired: 'Your session has expired. Please sign in again.',
     forbidden: 'You do not have permission to view this information.',
     not_found: 'The requested information could not be found.',
+    rate_limited: 'Too many briefings in a short time. Please wait a few minutes and try again.',
     server: 'Something went wrong while loading data. Please try again.',
     network: 'The network connection was interrupted. Please check your connection and try again.',
 }
@@ -48,4 +49,9 @@ export interface RoomRelayDataSource {
      * (not allowed, invalid input, conflict). Rejects with ApiError for session or network problems.
      */
     execute(command: Command): Promise<CommandOutcome>
+    /**
+     * Builds the shift briefing (supervisors only). Inside ServiceNow the server asks the AI and falls
+     * back to the template; the local preview always uses the template. Rejects with ApiError.
+     */
+    generateBriefing(shift: Shift): Promise<Briefing>
 }

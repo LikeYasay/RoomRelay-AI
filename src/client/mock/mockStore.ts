@@ -1,5 +1,6 @@
 import type { Command, CommandOutcome } from '../shared/api/commands'
-import type { Snapshot, Staff } from '../shared/domain/types'
+import type { Shift, Snapshot, Staff } from '../shared/domain/types'
+import { recordBriefingGenerated } from '../features/handoff/handoffCommands'
 import { applyCommand } from '../app/applyCommand'
 import { buildMockSnapshot, MOCK_NOW_MS } from './mockData'
 
@@ -36,4 +37,10 @@ export function dispatchMockCommand(command: Command, actor: Staff): CommandOutc
     if (!result.ok) return result
     state = result.snapshot
     return { ok: true }
+}
+
+/** Audits a template briefing, as the server does for every briefing. */
+export function recordMockBriefing(actor: Staff, shift: Shift): void {
+    const result = recordBriefingGenerated(state, { actor, now: mockNow() }, { shift, source: 'simulated' })
+    if (result.ok) state = result.snapshot
 }
