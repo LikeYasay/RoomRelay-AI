@@ -307,10 +307,12 @@ select {
     appearance: none;
     -webkit-appearance: none;
     padding-right: 38px;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'%3E%3Cpath d='M3 5l4 4 4-4' fill='none' stroke='%234a5568' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    /* The image is 28px wide with the arrow in its left half, so "100% 50%" leaves a 14px gap on the right.
+       Plain percentages are used because some screenshot and design tools ignore "right 14px center". */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='14' viewBox='0 0 28 14'%3E%3Cpath d='M3 5l4 4 4-4' fill='none' stroke='%234a5568' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
-    background-position: right 14px center;
-    background-size: 14px 14px;
+    background-position: 100% 50%;
+    background-size: 28px 14px;
     cursor: pointer;
 }
 

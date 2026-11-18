@@ -4,16 +4,24 @@
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    background:
+    background-color: #142131; /* solid base, kept by tools that drop gradients */
+    background-image:
         radial-gradient(ellipse 60% 50% at 12% 0%, rgba(14, 111, 104, 0.28), transparent 70%),
         linear-gradient(180deg, #172536 0%, #111d2b 100%);
+}
+
+/* The page content sits above the pixel layer. */
+.auth__bar,
+.auth__main {
+    position: relative;
+    z-index: 1;
 }
 
 /* Pixel-grid backdrop (see PixelBackground.tsx) */
 .pixel-bg {
     position: absolute;
     inset: 0;
-    z-index: -1;
+    z-index: 0;
     overflow: hidden;
     pointer-events: none;
 }
