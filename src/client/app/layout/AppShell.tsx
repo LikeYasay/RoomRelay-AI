@@ -41,6 +41,8 @@ export function AppShell({ routeKey, activeRoute, title, description, children }
 
     return (
         <div className="shell">
+            {/* Navy strip behind the sidebar for the whole page height, so a whole-page capture is not cut off. */}
+            <div className="shell__rail" aria-hidden="true" />
             {/* Moves focus only. A normal "#main-content" link would change the address and the hash router would
                 treat it as an unknown page. */}
             <a

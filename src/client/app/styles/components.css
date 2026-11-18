@@ -132,27 +132,36 @@
 }
 
 .kpi {
-    padding: 12px 16px;
+    position: relative;
+    padding: 14px 16px 12px;
     border-right: 1px solid var(--border);
     border-bottom: 1px solid var(--border);
-    border-top: 3px solid var(--neutral-solid);
-    margin-top: -1px;
 }
 
-.kpi--success {
-    border-top-color: var(--success-solid);
+/* The 3px coloured line on top of each card (over the grid's 1px top border). */
+.kpi__bar {
+    position: absolute;
+    top: -1px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--neutral-solid);
 }
-.kpi--warning {
-    border-top-color: var(--warning-solid);
+
+.kpi--success .kpi__bar {
+    background: var(--success-solid);
 }
-.kpi--danger {
-    border-top-color: var(--danger-solid);
+.kpi--warning .kpi__bar {
+    background: var(--warning-solid);
 }
-.kpi--info {
-    border-top-color: var(--info-solid);
+.kpi--danger .kpi__bar {
+    background: var(--danger-solid);
 }
-.kpi--review {
-    border-top-color: var(--review-solid);
+.kpi--info .kpi__bar {
+    background: var(--info-solid);
+}
+.kpi--review .kpi__bar {
+    background: var(--review-solid);
 }
 
 .kpi__label {
