@@ -7,7 +7,7 @@ in-memory demo in the local preview. Section 0 describes what is built; sections
 **Read this first, then [GLOSSARY.md](GLOSSARY.md), [ROLE_PERMISSION_MATRIX.md](ROLE_PERMISSION_MATRIX.md),
 [API_SECURITY_CHECKLIST.md](API_SECURITY_CHECKLIST.md) and [AI_DESIGN.md](AI_DESIGN.md).**
 
-> **Status (2026-11-07): a first working version of the backend is built, installed in `dev472716` and verified there**
+> **Status (2026-11-07): a first working version of the backend is built, installed in `dev486421` and verified there**
 > for every role and the full Room 102 scenario (`TEST_PLAN.md` section 4b, P11 to P21). Sections 1 to 12 are the
 > design it follows; where something differs from the design, section 0 says so. Where this document says "verify",
 > it could not be confirmed without the instance.
@@ -17,9 +17,9 @@ in-memory demo in the local preview. Section 0 describes what is built; sections
 | Piece | Where | Notes |
 |---|---|---|
 | Roles | `src/fluent/auth/roles.now.ts` | The four roles in section 4 |
-| Tables | `src/fluent/<slice>/*-table.now.ts` | `x_2305075_roomrela_room`, `_task`, `_defect`, `_audit`, `_staff` (names are short because table names are limited to 30 characters) |
+| Tables | `src/fluent/<slice>/*-table.now.ts` | `x_2318724_roomrela_room`, `_task`, `_defect`, `_audit`, `_staff` (names are short because table names are limited to 30 characters) |
 | ACLs | same files, plus `src/fluent/api/roomrelay-api.now.ts` | Tables: read-only for `app_admin` (staff profiles also editable by `app_admin`); everyone else is denied direct access. REST API: any of the four roles. |
-| REST API | `src/fluent/api/roomrelay-api.now.ts`, handlers in `src/server/api/handlers.ts` | `GET /me`, `GET /snapshot`, `POST /commands`, `POST /demo/reset` under `/api/x_2305075_roomrela/v1/roomrelay` |
+| REST API | `src/fluent/api/roomrelay-api.now.ts`, handlers in `src/server/api/handlers.ts` | `GET /me`, `GET /snapshot`, `POST /commands`, `POST /demo/reset` under `/api/x_2318724_roomrela/v1/roomrelay` |
 | Data access | `src/server/data/repository.ts` | Reads the tables into the `Snapshot` shape and writes back only what a rule changed |
 | Identity | `src/server/shared/session.ts` | Caller from `gs.getUserID()`, role from `sys_user_has_role`; a platform admin without an app role counts as `admin` |
 | Rules | **the same files the frontend uses** (section 2) | `now.config.json` turns them into server modules too, so the browser demo and the server can never disagree |
@@ -50,8 +50,8 @@ Differences from the design below:
 2. **Room readiness is deterministic.** A room is Ready only when all three are true:
    (a) every mandatory task is **Completed**, (b) no defect with priority **Blocking** is unresolved, (c) the required
    inspection has passed. AI text never influences this.
-3. Keep the existing application scope `x_2305075_roomrela`, the package name and the UI Page endpoint
-   `x_2305075_roomrela_incident_manager.do`. Do not recreate the app and never install with `--reinstall` for normal updates.
+3. Keep the existing application scope `x_2318724_roomrela`, the package name and the UI Page endpoint
+   `x_2318724_roomrela_incident_manager.do`. Do not recreate the app and never install with `--reinstall` for normal updates.
 4. Use the SDK's Fluent API for metadata where it covers it. The installed SDK 4.14.0 docs
    (`node_modules/@servicenow/sdk/docs/api/`) list: `Table`, `Role`, `Acl`, `BusinessRule`, `RestApi`,
    `ScriptInclude`, `RestMessage`, `Property`, `CrossScopePrivilege`, `UiPage` and more. Verify each against the Brazil
@@ -125,7 +125,7 @@ Defect:  new --triage (technician + priority)--> assigned --start--> in_progress
 
 ## 3. Proposed data model
 
-Table names use the scope prefix `x_2305075_roomrela_`. Fields marked **server** must be written only by server code and be
+Table names use the scope prefix `x_2318724_roomrela_`. Fields marked **server** must be written only by server code and be
 read-only to clients through ACLs. The exact JSON shapes are in `src/client/shared/domain/types.ts`.
 
 ### 3.1 `room`
@@ -210,10 +210,10 @@ Create four application roles (suggested names, scoped):
 
 | Role | Suggested name |
 |---|---|
-| Housekeeping Staff | `x_2305075_roomrela.housekeeper` |
-| Maintenance Staff | `x_2305075_roomrela.maintenance` |
-| Housekeeping Supervisor | `x_2305075_roomrela.supervisor` |
-| System Administrator (app) | `x_2305075_roomrela.app_admin` |
+| Housekeeping Staff | `x_2318724_roomrela.housekeeper` |
+| Maintenance Staff | `x_2318724_roomrela.maintenance` |
+| Housekeeping Supervisor | `x_2318724_roomrela.supervisor` |
+| System Administrator (app) | `x_2318724_roomrela.app_admin` |
 
 Do **not** make roles contain each other. The prototype assumes one role per person; if a person can hold several,
 decide how the frontend picks a view and update `Role` handling.
@@ -277,7 +277,7 @@ nobody calls them. Test by calling `/api/now/table/<your table>` as a non-admin 
 
 ## 7. REST API contract the frontend expects
 
-Built as one **Scripted REST API** (`/api/x_2305075_roomrela/v1/roomrelay/...`) instead of letting the browser call the Table API
+Built as one **Scripted REST API** (`/api/x_2318724_roomrela/v1/roomrelay/...`) instead of letting the browser call the Table API
 directly. It returns only the fields needed, applies the caller's access, and gives one place for validation. Verify the
 exact base path when you create it.
 
@@ -390,7 +390,7 @@ See [AI_DESIGN.md](AI_DESIGN.md). In short: `POST /handoff/briefing` (`src/serve
 caller is a supervisor and the rate limit, builds the template from the data the caller may see, sends a minimized version
 to Groq (`src/server/handoff/groq.ts`, REST Message `RoomRelay Groq`, 15-second timeout), checks the reply, and returns
 either the AI narrative merged into the template (`source: 'ai'`) or the template labeled `'fallback'` with a reason.
-The key is read from the `password2` system property `x_2305075_roomrela.groq_api_key`, created by hand
+The key is read from the `password2` system property `x_2318724_roomrela.groq_api_key`, created by hand
 (`DEPLOYMENT_GUIDE.md` section 3b); it is never in the code, the browser or the logs.
 
 ## 11. Build order (steps 1 to 7 are done and verified in the PDI)

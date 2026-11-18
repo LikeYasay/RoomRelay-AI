@@ -3,14 +3,14 @@ import { Acl, BooleanColumn, ChoiceColumn, DateTimeColumn, ReferenceColumn, Stri
 import { appAdminRole } from '../auth/roles.now'
 
 /** Housekeeping checklist tasks, one row per task per room. */
-export const x_2305075_roomrela_task = Table({
-    name: 'x_2305075_roomrela_task',
+export const x_2318724_roomrela_task = Table({
+    name: 'x_2318724_roomrela_task',
     label: 'RoomRelay Housekeeping Task',
     display: 'title',
     allowWebServiceAccess: false, // all access goes through the RoomRelay REST API
     schema: {
         code: StringColumn({ label: 'Code', maxLength: 20, mandatory: true }), // the id the app uses, e.g. T-305-1
-        room: ReferenceColumn({ label: 'Room', referenceTable: 'x_2305075_roomrela_room', mandatory: true }),
+        room: ReferenceColumn({ label: 'Room', referenceTable: 'x_2318724_roomrela_room', mandatory: true }),
         title: StringColumn({ label: 'Title', maxLength: 100, mandatory: true }),
         description: StringColumn({ label: 'Description', maxLength: 300 }),
         mandatory: BooleanColumn({ label: 'Mandatory', default: true }),
@@ -28,7 +28,7 @@ export const x_2305075_roomrela_task = Table({
         }),
         incomplete_note: StringColumn({ label: "Couldn't Complete note", maxLength: 300 }), // untrusted free text; never sent to AI
         incomplete_at: DateTimeColumn({ label: "Marked Couldn't Complete" }),
-        linked_defect: ReferenceColumn({ label: 'Maintenance report', referenceTable: 'x_2305075_roomrela_defect' }),
+        linked_defect: ReferenceColumn({ label: 'Maintenance report', referenceTable: 'x_2318724_roomrela_defect' }),
         repair_note: StringColumn({ label: 'Repair note', maxLength: 500 }),
     },
 })
@@ -37,7 +37,7 @@ export const x_2305075_roomrela_task = Table({
 Acl({
     $id: Now.ID['task-read-acl'],
     type: 'record',
-    table: 'x_2305075_roomrela_task',
+    table: 'x_2318724_roomrela_task',
     operation: 'read',
     roles: [appAdminRole],
 })

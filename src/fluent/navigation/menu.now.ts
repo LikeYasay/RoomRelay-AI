@@ -4,10 +4,10 @@ import { ALL_APP_ROLES } from '../auth/roles.now'
 
 // Modules are plain records, so their roles are written as role names.
 const ALL_ROLE_NAMES = [
-    'x_2305075_roomrela.housekeeper',
-    'x_2305075_roomrela.maintenance',
-    'x_2305075_roomrela.supervisor',
-    'x_2305075_roomrela.app_admin',
+    'x_2318724_roomrela.housekeeper',
+    'x_2318724_roomrela.maintenance',
+    'x_2318724_roomrela.supervisor',
+    'x_2318724_roomrela.app_admin',
 ]
 
 /**
@@ -33,7 +33,7 @@ Record({
         title: 'Open RoomRelay',
         application: roomRelayMenu,
         link_type: 'DIRECT',
-        query: 'x_2305075_roomrela_incident_manager.do',
+        query: 'x_2318724_roomrela_incident_manager.do',
         hint: 'Dashboard, rooms, maintenance and shift handoff',
         roles: ALL_ROLE_NAMES,
         order: 100,
@@ -49,9 +49,9 @@ Record({
         title: 'Staff Profiles',
         application: roomRelayMenu,
         link_type: 'LIST',
-        name: 'x_2305075_roomrela_staff',
+        name: 'x_2318724_roomrela_staff',
         hint: 'Shift for each RoomRelay staff member',
-        roles: ['x_2305075_roomrela.app_admin'],
+        roles: ['x_2318724_roomrela.app_admin'],
         order: 200,
         active: true,
     },

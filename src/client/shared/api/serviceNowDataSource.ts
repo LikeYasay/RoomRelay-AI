@@ -10,7 +10,7 @@ import { sessionToken } from './environment'
  * and the X-UserToken header protects against cross-site requests.
  */
 
-const BASE = '/api/x_2305075_roomrela/v1/roomrelay'
+const BASE = '/api/x_2318724_roomrela/v1/roomrelay'
 const FAILURE_KINDS: CommandFailureKind[] = ['forbidden', 'not_found', 'invalid', 'conflict']
 
 interface ApiErrorBody {

@@ -8,7 +8,7 @@ For the presentation (tentatively December 9 to 12, 2026). About 10 to 12 minute
 | Part | Say this |
 |---|---|
 | Screens, roles, readiness rules, every action rule | Built and tested: 35 automated tests, accessibility and contrast checks, the full scenario walked through in the browser |
-| ServiceNow backend | **Built and running in our PDI** (`dev472716`): 5 tables, 4 roles, ACLs and a REST API. Verified for every role on 2026-11-07. |
+| ServiceNow backend | **Built and running in our PDI** (`dev486421`): 5 tables, 4 roles, ACLs and a REST API. Verified for every role on 2026-11-07. |
 | One copy of every rule | The server runs the same rule files as the browser, so they cannot disagree |
 | Data | Fictional hotel data (40 rooms, 9 staff), stored in ServiceNow and reset with Data management > Restore initial data |
 | Shift handoff briefing | Inside ServiceNow: written by an AI model (Groq) and labeled "AI briefing", with a labeled template fallback. Verified in the PDI on 2026-11-07. Before the demo, generate one briefing to make sure the key and the free quota still work. Local preview: always "Template briefing (no AI)" |
@@ -20,7 +20,7 @@ Never say "the AI decides". Say "the AI only writes the summary; fixed rules dec
 ## Before you start
 
 1. **Main option: the PDI.** Wake the PDI if it is asleep, sign in as admin, and open
-   `https://dev472716.service-now.com/x_2305075_roomrela_incident_manager.do`.
+   `https://dev486421.service-now.com/x_2318724_roomrela_incident_manager.do`.
 2. Open **Data management** (bottom-left) and press **Restore initial data**, so the data starts clean.
 3. Practise switching people with **Impersonate User** (your name, top right). Have the four names ready:
    **Avery Collins** (housekeeping, Room 102), **Morgan Ellis** (supervisor), **Daniel Brooks** (maintenance),

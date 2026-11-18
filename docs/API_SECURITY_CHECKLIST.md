@@ -46,7 +46,7 @@ Loosely based on the OWASP Top 10 and OWASP API Security Top 10, kept practical 
 | B4 | Object-level authorization (IDOR/BOLA) | **Verified in the PDI** (P15, P17) | Rule functions check ownership and answer "not available" for both "not yours" and "does not exist" (tested); `scopeSnapshotForRole` sends only visible rooms (tested). |
 | B5 | Server-side readiness validation | **Implemented** | The server runs the same `readiness.ts` and rule files as the frontend (`applyCommand`); 29 automated tests cover them. |
 | B6 | Protected status transitions | **Implemented** | Status, inspection and priority change only through the command rules; readiness is derived, never written. |
-| B7 | Block direct Table API bypass | **Verified in the PDI** (P18) | `allowWebServiceAccess: false` on every table, and read-only ACLs. To verify: call `/api/now/table/x_2305075_roomrela_room` as a non-admin. |
+| B7 | Block direct Table API bypass | **Verified in the PDI** (P18) | `allowWebServiceAccess: false` on every table, and read-only ACLs. To verify: call `/api/now/table/x_2318724_roomrela_room` as a non-admin. |
 | B8 | Duplicate and concurrent request handling | **Partly implemented** | Every rule checks the current state (a second "complete" gets 409). No version check: two requests in the same instant could both pass. |
 | B9 | Input validation on every endpoint | **Verified in the PDI** (P17) | `parseCommand` rejects unknown types, unknown fields, wrong types and over-long values (tested); then the feature validation rules apply. |
 | B10 | Injection prevention | **Implemented** | Queries use `GlideRecord.addQuery` and `get` with values, never encoded queries built from user input. |
@@ -55,7 +55,7 @@ Loosely based on the OWASP Top 10 and OWASP API Security Top 10, kept practical 
 | B13 | Safe errors | **Implemented** | One error envelope; rule messages only; unexpected errors are logged with `gs.error` and answered generically. |
 | B14 | Rate limiting | **Partly implemented** | AI briefing only: 5 per supervisor in 10 minutes, counted from the audit log (429). **Verified in the PDI** (P26). Other routes have none. |
 | B15 | CORS | **Implemented (default)** | No CORS rule is created, so the API is same-origin only. |
-| B16 | Audit trail | **Verified in the PDI** (P19) | `x_2305075_roomrela_audit` rows are written in the same request as each change, with the session user as actor; no role can write the table. |
+| B16 | Audit trail | **Verified in the PDI** (P19) | `x_2318724_roomrela_audit` rows are written in the same request as each change, with the session user as actor; no role can write the table. |
 | B17 | Secure logging | **Implemented** | Logs contain the error message only; no request bodies, tokens or prompts. |
 | B18 | Account requests | **Not applicable (removed)** | No self-registration or access-request form. Accounts and roles are created only by an administrator in ServiceNow. |
 

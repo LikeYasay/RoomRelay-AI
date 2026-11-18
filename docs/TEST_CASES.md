@@ -1,11 +1,11 @@
 # RoomRelay AI: manual test cases
 
-For testing the installed app in the PDI (`https://dev472716.service-now.com`) with every role and every feature.
+For testing the installed app in the PDI (`https://dev486421.service-now.com`) with every role and every feature.
 Write **Pass**, **Fail** (with what you saw) or **Blocked** in the Result column. Work through the sections in order:
 several cases build on the one before (marked "after ...").
 
 Open the app from ServiceNow: **All** > type `RoomRelay` > **RoomRelay AI > Open RoomRelay** (opens in the same tab).
-Direct address: `https://dev472716.service-now.com/x_2305075_roomrela_incident_manager.do`
+Direct address: `https://dev486421.service-now.com/x_2318724_roomrela_incident_manager.do`
 
 ---
 
@@ -45,7 +45,7 @@ Keep the passwords in your password manager. Do not put them in the repository, 
 
 **Signing in as a test account.** Signing in replaces the current session in that browser, so either:
 - use a different browser (or browser profile) per account, or
-- sign out, then sign in as the next account at `https://dev472716.service-now.com/login.do`, then open the app address.
+- sign out, then sign in as the next account at `https://dev486421.service-now.com/login.do`, then open the app address.
 
 Faster alternative for quick checks: as admin, **Impersonate User** (your avatar, top right), choose the user, open the
 app address; end impersonation the same way.
@@ -175,7 +175,7 @@ Free AI limits apply (at most 5 briefings per supervisor in 10 minutes).
 | AI-08 | Morgan | Generate repeatedly until refused (more than 5 within 10 minutes) | "Briefing failed: You can generate 5 briefings every 10 minutes. Please wait a moment." Nothing else breaks | |
 | AI-09 | Avery | Type `#/handoff` at the end of the app address | "Access denied" | |
 | AI-10 | Riley | Audit Log, filter action "Shift briefing generated" | One entry per briefing, saying "written by AI" (or "AI unavailable, template used" if the AI was down) | |
-| AI-11 | Admin (optional) | Clear the value of the `x_2305075_roomrela.groq_api_key` property, generate as Morgan, then put the key back | Badge **Fallback template (not AI)** with the reason "the AI is not set up on this instance yet"; after restoring the key, AI again | |
+| AI-11 | Admin (optional) | Clear the value of the `x_2318724_roomrela.groq_api_key` property, generate as Morgan, then put the key back | Badge **Fallback template (not AI)** with the reason "the AI is not set up on this instance yet"; after restoring the key, AI again | |
 
 ## 9. Users and Roles, and account management (administrator)
 
@@ -183,7 +183,7 @@ Free AI limits apply (at most 5 briefings per supervisor in 10 minutes).
 |---|---|---|---|---|
 | USER-01 | Riley | Open **Users and Roles** | 9 staff accounts (10 when you open it as your own PDI admin, which lists itself too) with role, shift and current work (for example Avery "8 rooms assigned", Sofia "3 open repairs"); the role-permission table | |
 | USER-02 | Riley | Check the permission table against what you saw in sections 1 to 8 | Every "No" was really refused or hidden | |
-| USER-03 | Your admin account | Create a new ServiceNow user `test.housekeeper` (User Administration > Users > New), add the role `x_2305075_roomrela.housekeeper`, then add a RoomRelay Staff Profile (**All > RoomRelay AI > Staff Profiles** > New: user, shift Morning) | The user appears in Users and Roles as Housekeeping Staff with "0 rooms assigned" | |
+| USER-03 | Your admin account | Create a new ServiceNow user `test.housekeeper` (User Administration > Users > New), add the role `x_2318724_roomrela.housekeeper`, then add a RoomRelay Staff Profile (**All > RoomRelay AI > Staff Profiles** > New: user, shift Morning) | The user appears in Users and Roles as Housekeeping Staff with "0 rooms assigned" | |
 | USER-04 | `test.housekeeper` (impersonate) | Open the app | Signed in as Housekeeping Staff; Dashboard shows "No rooms to show: No rooms are currently assigned to you." | |
 | USER-05 | Your admin account | Remove the RoomRelay role from `test.housekeeper`, impersonate again | "No access to RoomRelay" | |
 | USER-06 | Avery | Type `#/access` at the end of the app address | "Access denied" | |
@@ -213,8 +213,8 @@ administrator role covers the RoomRelay pages, not ServiceNow user administratio
 
 | ID | Role / account | Steps | Expected | Result |
 |---|---|---|---|---|
-| SEC-01 | Avery | Open `https://dev472716.service-now.com/x_2305075_roomrela_room.list` | No records, or "not authorized" (the tables cannot be read directly) | |
-| SEC-02 | Daniel | Open `https://dev472716.service-now.com/x_2305075_roomrela_audit.list` | No records, or "not authorized" | |
+| SEC-01 | Avery | Open `https://dev486421.service-now.com/x_2318724_roomrela_room.list` | No records, or "not authorized" (the tables cannot be read directly) | |
+| SEC-02 | Daniel | Open `https://dev486421.service-now.com/x_2318724_roomrela_audit.list` | No records, or "not authorized" | |
 | SEC-03 | Avery | Report a defect with title `<img src=x onerror=alert(1)>` and description `<script>alert('x')</script> test text` | Saved and shown as plain text everywhere (Maintenance, room details, Audit Log as Riley). No pop-up ever appears | |
 | SEC-04 | Avery | Couldn't Complete with reason Other and a 400-character note | Error: the note is too long (maximum 300) | |
 | SEC-05 | Morgan | Open the same room in two tabs; pass the inspection in one, then try again in the other | The second attempt is refused with a message; one audit entry only | |

@@ -68,7 +68,7 @@ Record({ $id: Now.ID['demo-role-s1'], table: 'sys_user_has_role', data: { user: 
 Record({ $id: Now.ID['demo-role-a1'], table: 'sys_user_has_role', data: { user: riley, role: appAdminRole } })
 
 // Staff profiles: shift, plus the demo key that links each person to the synthetic dataset.
-const STAFF = 'x_2305075_roomrela_staff'
+const STAFF = 'x_2318724_roomrela_staff'
 Record({ $id: Now.ID['demo-staff-h1'], table: STAFF, data: { user: avery, shift: 'morning', demo_key: 'h1' } })
 Record({ $id: Now.ID['demo-staff-h2'], table: STAFF, data: { user: jordan, shift: 'morning', demo_key: 'h2' } })
 Record({ $id: Now.ID['demo-staff-h3'], table: STAFF, data: { user: priya, shift: 'afternoon', demo_key: 'h3' } })

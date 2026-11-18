@@ -6,8 +6,8 @@ import { appAdminRole } from '../auth/roles.now'
  * Hotel rooms. Readiness status is NOT stored: the server derives it from tasks, defects and
  * the inspection every time (src/client/features/rooms/readiness.ts), so it can never be stale.
  */
-export const x_2305075_roomrela_room = Table({
-    name: 'x_2305075_roomrela_room',
+export const x_2318724_roomrela_room = Table({
+    name: 'x_2318724_roomrela_room',
     label: 'RoomRelay Room',
     display: 'number',
     allowWebServiceAccess: false, // all access goes through the RoomRelay REST API
@@ -30,7 +30,7 @@ export const x_2305075_roomrela_room = Table({
 Acl({
     $id: Now.ID['room-read-acl'],
     type: 'record',
-    table: 'x_2305075_roomrela_room',
+    table: 'x_2318724_roomrela_room',
     operation: 'read',
     roles: [appAdminRole],
 })

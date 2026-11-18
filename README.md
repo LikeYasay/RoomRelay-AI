@@ -30,10 +30,10 @@ at shift change. RoomRelay AI puts it in one place:
 
 | Item | Value |
 |---|---|
-| ServiceNow instance (PDI) | `dev472716` (`https://dev472716.service-now.com`), Brazil release |
-| Application / scope | RoomRelay AI / `x_2305075_roomrela` |
-| App page | `https://dev472716.service-now.com/x_2305075_roomrela_incident_manager.do` (endpoint name kept from the starter app; renaming has deployment effects) |
-| REST API | `/api/x_2305075_roomrela/v1/roomrelay/` (`GET /me`, `GET /snapshot`, `POST /commands`, `POST /demo/reset`) |
+| ServiceNow instance (PDI) | `dev486421` (`https://dev486421.service-now.com`), Brazil release |
+| Application / scope | RoomRelay AI / `x_2318724_roomrela` |
+| App page | `https://dev486421.service-now.com/x_2318724_roomrela_incident_manager.do` (endpoint name kept from the starter app; renaming has deployment effects) |
+| REST API | `/api/x_2318724_roomrela/v1/roomrelay/` (`GET /me`, `GET /snapshot`, `POST /commands`, `POST /demo/reset`) |
 | Stack | ServiceNow Now SDK 4.14.0, React 19, TypeScript 5.5 |
 | Repository | `https://github.com/LikeYasay/RoomRelay-AI` (private) |
 

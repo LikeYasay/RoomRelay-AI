@@ -29,7 +29,7 @@ lists stay rule-made and the screen says to check the room itself.
 
 ## 3. Design (built)
 
-The AI call is one more route on the RoomRelay REST API, `POST /api/x_2305075_roomrela/v1/roomrelay/handoff/briefing`,
+The AI call is one more route on the RoomRelay REST API, `POST /api/x_2318724_roomrela/v1/roomrelay/handoff/briefing`,
 with the same ACL as every other route.
 
 ```
@@ -64,7 +64,7 @@ alias would be the more formal place for it.
 |---|---|---|---|
 | Provider | Groq (GroqCloud), free tier | 2026-11-07 | Free API key without a credit card, OpenAI-compatible HTTPS API that a ServiceNow REST Message can call, fast answers |
 | Model | `openai/gpt-oss-120b` with `response_format: json_object` and `reasoning_effort: low` | 2026-11-07 | Open-weight model that follows JSON instructions well; low reasoning keeps answers fast |
-| Where the key is stored | System property `x_2305075_roomrela.groq_api_key`, type `password2`, created by hand | 2026-11-07 | Encrypted, server-only, never in the code or in Git |
+| Where the key is stored | System property `x_2318724_roomrela.groq_api_key`, type `password2`, created by hand | 2026-11-07 | Encrypted, server-only, never in the code or in Git |
 | Timeout | 15 seconds | 2026-11-07 | Long enough for a normal answer, short enough that the fallback appears quickly |
 | Per-user rate limit | 5 briefings per supervisor per 10 minutes (counted from the audit log) | 2026-11-07 | Protects the free quota |
 

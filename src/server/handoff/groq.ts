@@ -7,7 +7,7 @@ import { RESTMessageV2 } from '@servicenow/glide/sn_ws'
  */
 
 export const GROQ_MODEL = 'openai/gpt-oss-120b'
-const KEY_PROPERTY = 'x_2305075_roomrela.groq_api_key'
+const KEY_PROPERTY = 'x_2318724_roomrela.groq_api_key'
 const TIMEOUT_MS = 15000
 
 export type AiCallResult = { ok: true; content: string } | { ok: false; reason: string }

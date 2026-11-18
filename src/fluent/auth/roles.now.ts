@@ -8,22 +8,22 @@ import { Role } from '@servicenow/sdk/core'
  */
 
 export const housekeeperRole = Role({
-    name: 'x_2305075_roomrela.housekeeper',
+    name: 'x_2318724_roomrela.housekeeper',
     description: 'Housekeeping Staff: works the checklist of their own rooms, reports defects, submits rooms for inspection.',
 })
 
 export const maintenanceRole = Role({
-    name: 'x_2305075_roomrela.maintenance',
+    name: 'x_2318724_roomrela.maintenance',
     description: 'Maintenance Staff: starts and resolves the defects assigned to them.',
 })
 
 export const supervisorRole = Role({
-    name: 'x_2305075_roomrela.supervisor',
+    name: 'x_2318724_roomrela.supervisor',
     description: 'Housekeeping Supervisor: triages defects, passes or fails inspections, runs shift handoffs.',
 })
 
 export const appAdminRole = Role({
-    name: 'x_2305075_roomrela.app_admin',
+    name: 'x_2318724_roomrela.app_admin',
     description: 'RoomRelay administrator: reviews the audit log, manages access, views operations read-only.',
 })
 

@@ -4,7 +4,7 @@ import { RestMessage } from '@servicenow/sdk/core'
 /**
  * Outbound call to Groq's OpenAI-compatible chat API, used to write the shift briefing.
  * No secret lives here: the server adds "Authorization: Bearer <key>" at call time from the
- * encrypted system property x_2305075_roomrela.groq_api_key, which an administrator sets on the
+ * encrypted system property x_2318724_roomrela.groq_api_key, which an administrator sets on the
  * instance (see docs/DEPLOYMENT_GUIDE.md). Without it the briefing falls back to the template.
  */
 RestMessage({

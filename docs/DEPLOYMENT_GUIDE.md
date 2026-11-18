@@ -1,6 +1,6 @@
 # Deployment guide: installing into the PDI and checking it
 
-**Status (2026-11-06):** an earlier, frontend-only version was installed once into `dev472716` and rendered correctly
+**Status (2026-11-06):** an earlier, frontend-only version was installed once into `dev486421` and rendered correctly
 (`TEST_PLAN.md` section 4b). **The current version, with the ServiceNow backend, has been built locally but not
 tested in the PDI yet.** It was **installed on 2026-11-06** (SDK exit code 0, "Installation completed", rollback link printed);
 the first call failed (server module paths, fixed and reinstalled), and after the fix the checks in sections 3 to 5 passed
@@ -19,11 +19,11 @@ Keep these four things separate when you report progress. They are not the same:
 
 | Item | Details |
 |---|---|
-| UI Page | `x_2305075_roomrela_incident_manager.do` (unchanged endpoint) and its built JavaScript |
-| 4 roles | `x_2305075_roomrela.housekeeper`, `.maintenance`, `.supervisor`, `.app_admin` |
-| 5 tables | `x_2305075_roomrela_room`, `_task`, `_defect`, `_audit`, `_staff` |
+| UI Page | `x_2318724_roomrela_incident_manager.do` (unchanged endpoint) and its built JavaScript |
+| 4 roles | `x_2318724_roomrela.housekeeper`, `.maintenance`, `.supervisor`, `.app_admin` |
+| 5 tables | `x_2318724_roomrela_room`, `_task`, `_defect`, `_audit`, `_staff` |
 | 7 ACLs | Read-only table access for the app admin; app admin can edit staff profiles; the REST API needs one of the four roles |
-| REST API | `/api/x_2305075_roomrela/v1/roomrelay/` with `GET /me`, `GET /snapshot`, `POST /commands`, `POST /demo/reset`, `POST /handoff/briefing` |
+| REST API | `/api/x_2318724_roomrela/v1/roomrelay/` with `GET /me`, `GET /snapshot`, `POST /commands`, `POST /demo/reset`, `POST /handoff/briefing` |
 | Menu | **All > RoomRelay AI** with **Open RoomRelay** (every RoomRelay role) and **Staff Profiles** (RoomRelay administrator). New menus can need the menu's refresh button (circular arrow next to the filter) before they appear |
 | REST Message | `RoomRelay Groq`: the outbound call to `https://api.groq.com/openai/v1/chat/completions` (no key inside; the key is added by server code from the property in section 3b) |
 | Server modules | `src/server/**` plus the shared rule files from `src/client/` (listed in `now.config.json`) |
@@ -56,7 +56,7 @@ Check which instance the SDK will use. This only lists saved logins and does not
 npx @servicenow/sdk auth --list
 ```
 
-You should see alias `roomrelay-pdi`, host `https://dev472716.service-now.com`, type `basic`, default `Yes`. If not,
+You should see alias `roomrelay-pdi`, host `https://dev486421.service-now.com`, type `basic`, default `Yes`. If not,
 stop and ask the team lead. **Never type, paste or share a password in chat, screenshots or commits.**
 
 Run `git status` so you know exactly what code is being installed. Commit first.
@@ -71,8 +71,8 @@ If it fails, copy the error text (not any secret) and see section 6.
 
 ## 3. First run: restore the initial data
 
-1. Sign in to `https://dev472716.service-now.com` as your admin user.
-2. Open `https://dev472716.service-now.com/x_2305075_roomrela_incident_manager.do`.
+1. Sign in to `https://dev486421.service-now.com` as your admin user.
+2. Open `https://dev486421.service-now.com/x_2318724_roomrela_incident_manager.do`.
    There is no RoomRelay sign-in page: ServiceNow has already signed you in, and a platform admin is treated as the
    RoomRelay administrator.
 3. The dashboard is empty. In the menu, open **Data management** (bottom-left) and press **Restore initial data**, then confirm.
@@ -99,7 +99,7 @@ To let the server call Groq:
 
    | Field | Value |
    |---|---|
-   | Name | `x_2305075_roomrela.groq_api_key` |
+   | Name | `x_2318724_roomrela.groq_api_key` |
    | Application | RoomRelay AI (filled in by step 1) |
    | Type | `password2` (stored encrypted, shown as dots) |
    | Value | paste the key here, and only here |
@@ -141,11 +141,28 @@ The demo users have no password, so nobody can sign in as them directly. As admi
 | 11 | CSRF token present | In the Console type `typeof window.g_ck`: expect `"string"`. **Do not type or paste the token itself anywhere.** | |
 | 12 | Signed-out access | Open the page address in a private window with no ServiceNow login: expect the ServiceNow login | |
 | 13 | User without a role | Impersonate a PDI user with no RoomRelay role and open the page: "No access to RoomRelay" | |
-| 14 | Direct table access is closed | As Avery, open `x_2305075_roomrela_room.list`: no records (only the app admin can read the tables directly) | |
+| 14 | Direct table access is closed | As Avery, open `x_2318724_roomrela_room.list`: no records (only the app admin can read the tables directly) | |
 | 15 | AI briefing | Section 3b step 5: badge "AI briefing"; the room lists match the Rooms page; the Audit Log (as admin) shows "written by AI" | |
 | 16 | AI fallback | Before the key is set (or with its value cleared): badge "Fallback template (not AI)" with the reason | |
 
 Then run the backend and security tests in `TEST_PLAN.md` section 5 and record the results.
+
+## 5b. Moving to a new instance
+
+The first PDI (dev472716) was reclaimed by ServiceNow on 2026-11-17 after 10 days without use. The app now runs on
+**dev486421**. To move again:
+
+1. **Keep the instance alive.** A PDI is reclaimed after about 10 days without activity *in the instance* (signing in to
+   developer.servicenow.com does not count). Open the app at least every few days, and always the day before a demo.
+2. **Scope prefix must match the instance.** The scope `x_<number>_roomrela` must use the instance's company code
+   (`glide.appcreator.company.code`, read-only on a PDI). Otherwise the install fails with "Unable to install third party
+   application". If it differs, replace the prefix in every file (it was changed from `x_2305075` to `x_2318724` on
+   2026-11-18), then build and test.
+3. **Save the install login:** `npx @servicenow/sdk auth --add https://<instance>.service-now.com --type basic --alias roomrelay-pdi`.
+4. **Install twice on a brand-new instance.** The first install creates the roles; the staff role assignments are only
+   created by the second install (on dev486421 the first install left all 9 staff without a role).
+5. **By hand:** create the Groq key property again (section 3b), restore the initial data (section 3), and set staff
+   passwords if needed.
 
 ## 6. If something goes wrong
 
@@ -153,13 +170,13 @@ Then run the backend and security tests in `TEST_PLAN.md` section 5 and record t
 |---|---|
 | Install says not authorized or cannot connect | The PDI may be asleep, or the saved login is wrong. Ask the team lead; never share the password. |
 | Install error about the application or scope | Stop. Do not create a new application. Share the error text with the team lead. |
-| "No access to RoomRelay" for admin | Check the admin user has the `admin` role, or give it `x_2305075_roomrela.app_admin` |
+| "No access to RoomRelay" for admin | Check the admin user has the `admin` role, or give it `x_2318724_roomrela.app_admin` |
 | "Something went wrong" on every page | System Logs > All, filter on "RoomRelay API error"; the message says what failed |
 | A REST call answers 500 "No module with path ..." | An import between server-module files is missing its `.ts` extension (see `ARCHITECTURE.md`); add it, rebuild and reinstall |
 | Users without a RoomRelay role get past the API | Check every route in `src/fluent/api/roomrelay-api.now.ts` has `enforceAcl: [apiAccess]` |
-| Restore initial data says staff accounts are missing | Check `x_2305075_roomrela_staff.list` has 9 rows with initial data keys h1 to a1 |
+| Restore initial data says staff accounts are missing | Check `x_2318724_roomrela_staff.list` has 9 rows with initial data keys h1 to a1 |
 | Requests fail with 401 | `typeof window.g_ck` is not `"string"`: the page did not get a session token; record this in `BACKEND_HANDOFF.md` section 12 |
-| Blank page | F12, Console tab for red errors; Network tab for a failed request to `.../uxasset/externals/x_2305075_roomrela/main.jsdbx` |
+| Blank page | F12, Console tab for red errors; Network tab for a failed request to `.../uxasset/externals/x_2318724_roomrela/main.jsdbx` |
 | Briefing says "the AI is not set up on this instance yet" | The property is missing, empty, or was created in the wrong application scope (section 3b step 1) |
 | Briefing says "the AI key was rejected" | The key was mistyped or deleted in the Groq console; create a new one |
 | Briefing says "the free AI quota is used up for now" | Groq's free limit was reached; wait and try again (the fallback still works) |
