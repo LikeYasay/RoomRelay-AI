@@ -243,6 +243,20 @@ Open `https://dev486421.service-now.com/roomrelay` (or **All > RoomRelay AI > Ro
 | SP-07 | Administrator (Riley Chen) | Open the portal | Room readiness covers all rooms; Waiting on the team is view only; no Report a defect widget | |
 | SP-08 | A user with no RoomRelay role | Open `/roomrelay` | No RoomRelay data is shown (page or widgets refused) | |
 
+## 15. Flows and email notifications
+
+Check the result as the administrator in **System Logs > Emails** (newest first). The addresses are placeholders on example.com, so the email may show as sent, skipped or failed to deliver: what matters is that it was created with the right recipient, subject and body.
+
+| ID | Role / account | Steps | Expected | Result |
+|---|---|---|---|---|
+| FN-01 | Administrator | **All > Flow Designer**, search "RoomRelay" | Three flows, each Active: Notify technician of assigned repair, Notify supervisors of new defect, Notify housekeeper of failed inspection | |
+| FN-02 | Housekeeping (Avery Collins) | Report a defect in one of Avery's rooms (app or portal) | An email "RoomRelay: new defect in Room ... needs triage" to morgan.ellis@example.com with the room, title, reporter and description | |
+| FN-03 | Supervisor (Morgan Ellis) | Triage that defect: assign Daniel Brooks, priority Blocking | An email "RoomRelay: repair assigned in Room ... (Blocking)" to daniel.brooks@example.com | |
+| FN-04 | Supervisor (Morgan Ellis) | Reassign the same defect to Sofia Marques | A new "repair assigned" email to sofia.marques@example.com | |
+| FN-05 | Supervisor (Morgan Ellis) | Fail the inspection of a room that is Pending Inspection | An email "RoomRelay: Room ... failed inspection" to that room's housekeeper | |
+| FN-06 | Supervisor (Morgan Ellis) | Pass an inspection, or change only a defect's priority | No new RoomRelay email | |
+| FN-07 | Administrator | Data management > Restore initial data | No RoomRelay emails are created by the restore | |
+
 ---
 
 ## Results summary
@@ -263,6 +277,7 @@ Open `https://dev486421.service-now.com/roomrelay` (or **All > RoomRelay AI > Ro
 | 12. Security | 5 | | | |
 | 13. Layout | 4 | | | |
 | 14. Service Portal | 8 | | | |
-| **Total** | **97** | | | |
+| 15. Flows and notifications | 7 | | | |
+| **Total** | **104** | | | |
 
 Tested by: ______________________ Date: ____________ Build / commit: ____________

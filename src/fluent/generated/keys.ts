@@ -157,6 +157,42 @@ declare global {
                         table: 'sys_ws_version'
                         id: 'c4e29d5b764b45d3abb5b88297495e43'
                     }
+                    'roomrelay-flow-inspection-failed': {
+                        table: 'sys_hub_flow'
+                        id: '0a64b7f90d2d4610b29067c9694d5448'
+                    }
+                    'roomrelay-flow-inspection-failed-send': {
+                        table: 'sys_hub_action_instance_v2'
+                        id: '3e5cf79cb4d14cf7a5586b78140d18f6'
+                    }
+                    'roomrelay-flow-inspection-failed-trigger': {
+                        table: 'sys_hub_trigger_instance_v2'
+                        id: 'b11ab341ee514a0781a9da7744d5bcee'
+                    }
+                    'roomrelay-flow-new-defect': {
+                        table: 'sys_hub_flow'
+                        id: '992a9a54f5ef4296bb1bef0126101678'
+                    }
+                    'roomrelay-flow-new-defect-send': {
+                        table: 'sys_hub_action_instance_v2'
+                        id: 'b60662cb5099414f8d63662cd815f832'
+                    }
+                    'roomrelay-flow-new-defect-trigger': {
+                        table: 'sys_hub_trigger_instance_v2'
+                        id: '643a517dcf7c409b9b3d8fe8d70ebb87'
+                    }
+                    'roomrelay-flow-repair-assigned': {
+                        table: 'sys_hub_flow'
+                        id: '35784d885573488fbbc4ba00f7aae22f'
+                    }
+                    'roomrelay-flow-repair-assigned-send': {
+                        table: 'sys_hub_action_instance_v2'
+                        id: 'b907650d11c64843a361a948bceadd02'
+                    }
+                    'roomrelay-flow-repair-assigned-trigger': {
+                        table: 'sys_hub_trigger_instance_v2'
+                        id: 'f51c0c0b3f7544779dd7b571bb2642be'
+                    }
                     'roomrelay-get-me': {
                         table: 'sys_ws_operation'
                         id: '44130e4e549f4ddba7ab96fbd8e49c8c'
@@ -184,6 +220,18 @@ declare global {
                     'roomrelay-module-staff': {
                         table: 'sys_app_module'
                         id: '1bd9cb523cd6453783e3804a63b330c7'
+                    }
+                    'roomrelay-notification-inspection-failed': {
+                        table: 'sysevent_email_action'
+                        id: '9aa42e0ecdfd4a9fa7ccd40a5384ba54'
+                    }
+                    'roomrelay-notification-new-defect': {
+                        table: 'sysevent_email_action'
+                        id: 'e90d805b09c74a44ab8524aeca1e55f4'
+                    }
+                    'roomrelay-notification-repair-assigned': {
+                        table: 'sysevent_email_action'
+                        id: 'ac418e17aa56422cbc0c7a8eabca5ed0'
                     }
                     'roomrelay-post-briefing': {
                         table: 'sys_ws_operation'
@@ -244,6 +292,14 @@ declare global {
                     'roomrelay-sp-widget-report-defect': {
                         table: 'sp_widget'
                         id: '5e91612cdb484fc0a45c5e695ed3ae4f'
+                    }
+                    'roomrelay-supervisors-group': {
+                        table: 'sys_user_group'
+                        id: '3edb6184c0e84686af4e5620695f2ee0'
+                    }
+                    'roomrelay-supervisors-member-s1': {
+                        table: 'sys_user_grmember'
+                        id: 'bbfcaff0fbe14191aae60681ca5d153e'
                     }
                     src_client_app_applyCommand_ts: {
                         table: 'sys_module'

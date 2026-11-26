@@ -149,6 +149,7 @@ ACLs, business rules and one Scripted REST resource, named after the slice:
 | `features/handoff` | `src/server/handoff/` (Groq call, server-side only) | `POST /handoff/briefing` |
 | `features/access` | access (users, roles, requests) | `POST /access-requests/{id}/decision` |
 | `features/activity` | audit | part of `GET /snapshot` |
+| Flows and notifications | `src/fluent/flows/`, `src/fluent/notifications/` (Flow Designer, started by record changes the REST API saves) | none: they read the saved record and send one email |
 | `features/portal` | Service Portal widgets (`src/fluent/portal/`); the overview is built on the server from the scoped snapshot | `GET /portal/overview` (Report a Defect uses `POST /commands`) |
 | `features/auth` | session | `GET /me` |
 

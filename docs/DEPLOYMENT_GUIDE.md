@@ -24,12 +24,16 @@ Keep these four things separate when you report progress. They are not the same:
 | 5 tables | `x_2318724_roomrela_room`, `_task`, `_defect`, `_audit`, `_staff` |
 | 7 ACLs | Read-only table access for the app admin; app admin can edit staff profiles; the REST API needs one of the four roles |
 | REST API | `/api/x_2318724_roomrela/v1/roomrelay/` with `GET /me`, `GET /snapshot`, `POST /commands`, `POST /demo/reset`, `POST /handoff/briefing`, `GET /portal/overview` |
+| 3 flows | **RoomRelay - Notify technician of assigned repair**, **RoomRelay - Notify supervisors of new defect**, **RoomRelay - Notify housekeeper of failed inspection** (Flow Designer, run as system). The install activates them; if one shows as Draft in Flow Designer, open it and click **Activate** |
+| 3 email notifications | **RoomRelay - Repair assigned to you**, **RoomRelay - New defect to triage**, **RoomRelay - Inspection failed** (Send when: Triggered, sent by the flows). Check sent emails in **System Logs > Emails** |
+| Group | **RoomRelay Supervisors** (Morgan Ellis), the recipients of "New defect to triage" |
+| Note on email addresses | On an instance where the staff users already exist and have been used (signed in, impersonated), the install does not update them, so their **Email** stays empty and notifications are not created. Set each RoomRelay user's Email (for example daniel.brooks@example.com) once in **All > Users**. On a new instance the install sets them. |
 | Service Portal | `https://<instance>.service-now.com/roomrelay`: portal **RoomRelay AI**, page `roomrelay_home`, widgets **RoomRelay Readiness Overview**, **RoomRelay My Work**, **RoomRelay Report a Defect** and the Angular provider `roomRelayApi`. Signed-in RoomRelay staff only |
 | Menu | **All > RoomRelay AI** with **Open RoomRelay** and **RoomRelay Portal** (every RoomRelay role) and **Staff Profiles** (RoomRelay administrator). New menus can need the menu's refresh button (circular arrow next to the filter) before they appear |
 | REST Message | `RoomRelay Groq`: the outbound call to `https://api.groq.com/openai/v1/chat/completions` (no key inside; the key is added by server code from the property in section 3b) |
 | Server modules | `src/server/**` plus the shared rule files from `src/client/` (listed in `now.config.json`) |
 | 2 cross-scope privileges | Read `sys_user` and `sys_user_has_role` (names and role assignments) |
-| **Demo users** | 9 users (avery.collins, morgan.ellis, daniel.brooks, riley.chen, ...) with **no password**, each with one RoomRelay role and a staff profile. Defined in `src/fluent/auth/demo-users.now.ts`. |
+| **Demo users** | 9 users (avery.collins, morgan.ellis, daniel.brooks, riley.chen, ...) with placeholder `@example.com` email addresses (a reserved domain that reaches nobody) and **no password**, each with one RoomRelay role and a staff profile. Defined in `src/fluent/auth/demo-users.now.ts`. |
 
 The tables start **empty**. Demo rooms, tasks and defects are loaded by the administrator after install (section 3).
 

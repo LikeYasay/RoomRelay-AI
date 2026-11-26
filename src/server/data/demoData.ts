@@ -10,6 +10,9 @@ import type { RecordIds } from './repository.ts'
  * with the data the local preview uses (src/client/mock/mockData.ts). People are matched to the
  * installed staff accounts through the staff profile's key (h1, s1, ...). Times are shifted so the
  * data looks recent. Only the RoomRelay administrator can run it (see api/handlers.ts).
+ *
+ * Records are written with setWorkflow(false) so loading the data does not start the RoomRelay
+ * flows (no emails about defects and inspections that are only part of the starting data).
  */
 export function resetDemoData(nowIso: string): { ok: true } | { ok: false; message: string } {
     // Staff key (h1, m1, s1...) -> sys_user sys_id, from the staff profiles installed with the app.
@@ -39,6 +42,7 @@ export function resetDemoData(nowIso: string): { ok: true } | { ok: false; messa
     for (const room of seed.rooms) {
         const gr = new GlideRecord(TABLES.room)
         gr.initialize()
+        gr.setWorkflow(false) // initial data: no flows or emails
         gr.setValue('number', room.id)
         gr.setValue('floor', room.floor)
         gr.setValue('room_type', room.type)
@@ -52,6 +56,7 @@ export function resetDemoData(nowIso: string): { ok: true } | { ok: false; messa
     for (const d of seed.defects) {
         const gr = new GlideRecord(TABLES.defect)
         gr.initialize()
+        gr.setWorkflow(false) // initial data: no flows or emails
         gr.setValue('code', d.id)
         gr.setValue('room', ids.room.get(d.roomId) ?? '')
         gr.setValue('title', d.title)
@@ -72,6 +77,7 @@ export function resetDemoData(nowIso: string): { ok: true } | { ok: false; messa
     for (const t of seed.tasks) {
         const gr = new GlideRecord(TABLES.task)
         gr.initialize()
+        gr.setWorkflow(false) // initial data: no flows or emails
         gr.setValue('code', t.id)
         gr.setValue('room', ids.room.get(t.roomId) ?? '')
         gr.setValue('title', t.title)
@@ -93,6 +99,7 @@ export function resetDemoData(nowIso: string): { ok: true } | { ok: false; messa
         const gr = new GlideRecord(TABLES.defect)
         if (gr.get(ids.defect.get(d.id) ?? '')) {
             gr.setValue('source_task', ids.task.get(d.sourceTaskId ?? '') ?? '')
+            gr.setWorkflow(false)
             gr.update()
         }
     }
