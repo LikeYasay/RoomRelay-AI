@@ -82,7 +82,7 @@ The full manual test list for every role is [docs/TEST_CASES.md](docs/TEST_CASES
 | Command | What it does |
 |---|---|
 | `npm run build` | Type-checks and builds the app with the ServiceNow SDK. Local only, deploys nothing. |
-| `npm run test:logic` | Runs the 29 automated tests for the readiness rules, every action rule, validation, permissions, the audit log, the handoff logic and the backend contract (request parsing, per-role data scoping). |
+| `npm run test:logic` | Runs the 40 automated tests for the readiness rules, every action rule, validation, permissions, the audit log, the handoff logic and the backend contract (request parsing, per-role data scoping) and the Service Portal overview. |
 | `npm run preview` | Builds and serves the local preview. |
 | `npm run deploy` | **Installs into the PDI** (`now-sdk install`). Read [docs/DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md) first. Never add `--reinstall` for normal updates. |
 
@@ -129,8 +129,9 @@ docs/                      all project documentation (below)
 | Frontend: dashboard, Rooms (three views), room details with checklist, maintenance with triage and a defect modal, shift handoff, users and roles, audit log | **Built.** Responsive from 320px to wide desktops. |
 | ServiceNow backend: 5 tables, 4 roles, ACLs, REST API, staff accounts and Restore initial data | **Built, installed and verified in the PDI** on 2026-11-07 (`docs/TEST_PLAN.md` section 4b, P9 to P22): every role, the full Room 102 scenario, saved changes and the audit trail. |
 | Server-enforced security | **Verified for the tested cases**: each role receives only its own data; other people's records, wrong roles, extra fields, users without a role and direct table access are refused. Concurrent requests, rate limiting and a full security review are still open. |
-| Local checks | Strict TypeScript, SDK build, 35 logic tests, a check that every server-module import resolves, accessibility and contrast checks. All pass. |
+| Local checks | Strict TypeScript, SDK build, 40 logic tests, a check that every server-module import resolves, accessibility and contrast checks. All pass. |
 | Accounts | No self-registration: the system administrator creates users and grants roles in ServiceNow (the hotel-staff-only model). The simulated sign-up and access-request pages were removed on 2026-11-07. |
+| Service Portal (`/roomrelay`) | **Built; PDI check pending (`docs/TEST_PLAN.md` P40).** One portal page with three widgets: Readiness Overview, My Work (per role) and Report a Defect (housekeeping staff and supervisors). The widgets use the same REST API, role checks and readiness rules as the full app (`GET /portal/overview`, `POST /commands`). Defined in `src/fluent/portal/`. |
 | AI shift briefing (Phase 5) | **Built and verified in the PDI (2026-11-07, `docs/TEST_PLAN.md` P23 to P29).** Server-side Groq call with a key stored in an encrypted system property, data minimization, reply checks, a 5-per-10-minutes limit and a labeled fallback. Setup: `docs/DEPLOYMENT_GUIDE.md` section 3b. |
 
 ## Security notes

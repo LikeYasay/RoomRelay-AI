@@ -44,7 +44,7 @@ Loosely based on the OWASP Top 10 and OWASP API Security Top 10, kept practical 
 | B2 | Roles and role-based access | **Implemented** | Four app roles, no role inheritance (`src/fluent/auth/roles.now.ts`). Identity and role come from the session, never from the request. |
 | B3 | Table ACLs, deny by default | **Implemented** | Only the app admin can read the tables directly; nobody but the server code writes them (staff profiles: app admin). |
 | B4 | Object-level authorization (IDOR/BOLA) | **Verified in the PDI** (P15, P17) | Rule functions check ownership and answer "not available" for both "not yours" and "does not exist" (tested); `scopeSnapshotForRole` sends only visible rooms (tested). |
-| B5 | Server-side readiness validation | **Implemented** | The server runs the same `readiness.ts` and rule files as the frontend (`applyCommand`); 29 automated tests cover them. |
+| B5 | Server-side readiness validation | **Implemented** | The server runs the same `readiness.ts` and rule files as the frontend (`applyCommand`); 40 automated tests cover them. |
 | B6 | Protected status transitions | **Implemented** | Status, inspection and priority change only through the command rules; readiness is derived, never written. |
 | B7 | Block direct Table API bypass | **Verified in the PDI** (P18) | `allowWebServiceAccess: false` on every table, and read-only ACLs. To verify: call `/api/now/table/x_2318724_roomrela_room` as a non-admin. |
 | B8 | Duplicate and concurrent request handling | **Partly implemented** | Every rule checks the current state (a second "complete" gets 409). No version check: two requests in the same instant could both pass. |

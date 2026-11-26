@@ -43,6 +43,7 @@ const sources = [
     'features/handoff/aiBriefing.ts',
     'features/access/permissions.ts',
     'features/activity/recentActivity.ts',
+    'features/portal/portalOverview.ts',
     'app/applyCommand.ts',
     'shared/api/commands.ts',
     'app/routes.ts',

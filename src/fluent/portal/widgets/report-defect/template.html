@@ -1,0 +1,47 @@
+<section class="rr-card" aria-labelledby="rr-report-title" ng-if="c.loading || c.error || c.allowed">
+    <header class="rr-card__head">
+        <div>
+            <h2 id="rr-report-title" class="rr-card__title">Report a defect</h2>
+            <p class="rr-card__sub">Something broken in a room? Report it here. A supervisor assigns a technician and sets the priority.</p>
+        </div>
+    </header>
+
+    <p class="rr-state" ng-if="c.loading" role="status">Loading rooms...</p>
+    <div class="rr-alert rr-alert--success" ng-if="c.success" role="status">{{c.success}}</div>
+    <div class="rr-alert rr-alert--danger" ng-if="c.error" role="alert">{{c.error}}</div>
+
+    <form name="reportForm" class="rr-form" ng-if="!c.loading && c.allowed" ng-submit="c.submit()" novalidate>
+        <div class="rr-field">
+            <label for="rr-report-room">Room</label>
+            <select id="rr-report-room" class="form-control" ng-model="c.form.roomId" required
+                ng-attr-aria-invalid="{{c.fieldErrors.roomId ? 'true' : undefined}}"
+                ng-attr-aria-describedby="{{c.fieldErrors.roomId ? 'rr-report-room-error' : undefined}}">
+                <option value="">Choose a room</option>
+                <option ng-repeat="room in c.rooms" value="{{room.id}}">{{room.label}}</option>
+            </select>
+            <p class="rr-field__error" id="rr-report-room-error" ng-if="c.fieldErrors.roomId">{{c.fieldErrors.roomId}}</p>
+        </div>
+
+        <div class="rr-field">
+            <label for="rr-report-title">Problem title</label>
+            <input id="rr-report-title" type="text" class="form-control" ng-model="c.form.title"
+                maxlength="{{c.limits.titleMax}}" placeholder="For example: Shower drain blocked" autocomplete="off"
+                ng-attr-aria-invalid="{{c.fieldErrors.title ? 'true' : undefined}}"
+                ng-attr-aria-describedby="{{c.fieldErrors.title ? 'rr-report-title-error' : undefined}}" />
+            <p class="rr-field__error" id="rr-report-title-error" ng-if="c.fieldErrors.title">{{c.fieldErrors.title}}</p>
+        </div>
+
+        <div class="rr-field">
+            <label for="rr-report-description">Description</label>
+            <textarea id="rr-report-description" class="form-control" rows="3" ng-model="c.form.description"
+                maxlength="{{c.limits.descriptionMax}}" placeholder="What is wrong, and where in the room?"
+                ng-attr-aria-invalid="{{c.fieldErrors.description ? 'true' : undefined}}"
+                ng-attr-aria-describedby="{{c.fieldErrors.description ? 'rr-report-description-error' : undefined}}"></textarea>
+            <p class="rr-field__error" id="rr-report-description-error" ng-if="c.fieldErrors.description">{{c.fieldErrors.description}}</p>
+        </div>
+
+        <button type="submit" class="rr-btn rr-btn--primary" ng-disabled="c.saving">
+            {{c.saving ? 'Reporting...' : 'Report defect'}}
+        </button>
+    </form>
+</section>

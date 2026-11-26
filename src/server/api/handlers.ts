@@ -1,5 +1,6 @@
 import { gs } from '@servicenow/glide'
 import { applyCommand } from '../../client/app/applyCommand.ts'
+import { buildPortalOverview } from '../../client/features/portal/portalOverview.ts'
 import { scopeSnapshotForRole } from '../../client/features/rooms/scope.ts'
 import { parseCommand } from '../../client/shared/api/commands.ts'
 import type { CommandFailureKind } from '../../client/shared/api/commands.ts'
@@ -19,6 +20,7 @@ import { nowIso } from '../shared/time.ts'
  *   POST /commands    one change; body is a Command (src/client/shared/api/commands.ts)
  *   POST /demo/reset  restore the initial data set (RoomRelay administrator only)
  *   POST /handoff/briefing  the shift briefing, written by the AI with a template fallback (supervisors)
+ *   GET  /portal/overview   readiness totals, blocked rooms and "my work" for the Service Portal widgets
  *
  * Every handler identifies the caller from the session and applies the same rule functions the
  * frontend uses. Unexpected errors are logged and answered with a generic message.
@@ -56,6 +58,14 @@ export function getSnapshot(_request: RestRequest, response: RestResponse): void
     withCaller(response, (caller, staff) => {
         const { snapshot } = loadSnapshot(staff, { withAudit: true })
         sendOk(response, scopeSnapshotForRole(snapshot, caller.role, caller))
+    })
+}
+
+/** The Service Portal widgets' data: built from the caller's scoped snapshot with the same readiness rules. */
+export function getPortalOverview(_request: RestRequest, response: RestResponse): void {
+    withCaller(response, (caller, staff) => {
+        const { snapshot } = loadSnapshot(staff, { withAudit: false })
+        sendOk(response, buildPortalOverview(scopeSnapshotForRole(snapshot, caller.role, caller), caller))
     })
 }
 

@@ -228,6 +228,21 @@ administrator role covers the RoomRelay pages, not ServiceNow user administratio
 | UI-03 | Any | Browser Back and Forward between pages, and refresh on a room page | The right page comes back; nothing breaks | |
 | UI-04 | Any | F12 > Console while using the app | No red errors except the refusals you caused on purpose (403, 404, 409, 429) | |
 
+## 14. Service Portal (`/roomrelay`)
+
+Open `https://dev486421.service-now.com/roomrelay` (or **All > RoomRelay AI > RoomRelay Portal**) while impersonating the user named.
+
+| ID | Role / account | Steps | Expected | Result |
+|---|---|---|---|---|
+| SP-01 | Supervisor (Morgan Ellis) | Open the portal | Page "RoomRelay AI" with three widgets: Room readiness, Needs my attention, Report a defect | |
+| SP-02 | Supervisor (Morgan Ellis) | Compare Room readiness with the full app's Dashboard | Same % Ready and the same count for every status; blocked rooms list the same reason sentence as the room's readiness panel | |
+| SP-03 | Housekeeping (Avery Collins) | Open the portal | Numbers cover only Avery's rooms ("Showing only the rooms assigned to you."); My rooms lists only Avery's rooms that are not Ready | |
+| SP-04 | Housekeeping (Avery Collins) | Report a defect: choose one of the listed rooms, title "Shower drain blocked", description "Water does not drain in the shower." | Green message "Defect reported for Room ..."; the form clears; the defect appears in the full app's Maintenance > New reports with priority Normal | |
+| SP-05 | Housekeeping (Avery Collins) | Report a defect with title "ab" and an empty description | Nothing is saved; red messages under Problem title and Description | |
+| SP-06 | Maintenance (Daniel Brooks) | Open the portal | My repairs lists only Daniel's open defects, Blocking first; no Report a defect widget | |
+| SP-07 | Administrator (Riley Chen) | Open the portal | Room readiness covers all rooms; Waiting on the team is view only; no Report a defect widget | |
+| SP-08 | A user with no RoomRelay role | Open `/roomrelay` | No RoomRelay data is shown (page or widgets refused) | |
+
 ---
 
 ## Results summary
@@ -247,6 +262,7 @@ administrator role covers the RoomRelay pages, not ServiceNow user administratio
 | 11. Data management | 3 | | | |
 | 12. Security | 5 | | | |
 | 13. Layout | 4 | | | |
-| **Total** | **89** | | | |
+| 14. Service Portal | 8 | | | |
+| **Total** | **97** | | | |
 
 Tested by: ______________________ Date: ____________ Build / commit: ____________

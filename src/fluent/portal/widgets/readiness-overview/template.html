@@ -1,0 +1,51 @@
+<section class="rr-card" aria-labelledby="rr-overview-title">
+    <header class="rr-card__head">
+        <div>
+            <h2 id="rr-overview-title" class="rr-card__title">Room readiness</h2>
+            <p class="rr-card__sub" ng-if="c.overview">
+                {{c.overview.user.name}}<span ng-if="c.overview.user.roleLabel !== c.overview.user.name">, {{c.overview.user.roleLabel}}</span>.
+                {{c.overview.totals.scopeNote}}
+            </p>
+        </div>
+        <a class="rr-btn rr-btn--ghost" href="/x_2318724_roomrela_incident_manager.do" target="_top">Open full app</a>
+    </header>
+
+    <p class="rr-state" ng-if="c.loading && !c.overview" role="status">Loading room readiness...</p>
+    <div class="rr-alert rr-alert--danger" ng-if="c.error" role="alert">
+        {{c.error}}
+        <button type="button" class="rr-link" ng-click="c.load()">Try again</button>
+    </div>
+
+    <div ng-if="c.overview">
+        <p class="rr-ready">
+            <span class="rr-ready__value">{{c.overview.totals.readyPercent}}%</span>
+            <span class="rr-ready__label">
+                Ready: {{c.overview.totals.ready}} of {{c.overview.totals.rooms}} rooms
+            </span>
+        </p>
+
+        <ul class="rr-stats" aria-label="Rooms by status">
+            <li class="rr-stat rr-tone--{{s.tone}}" ng-repeat="s in c.overview.totals.byStatus">
+                <span class="rr-stat__count">{{s.count}}</span>
+                <span class="rr-stat__label">{{s.label}}</span>
+            </li>
+        </ul>
+
+        <h3 class="rr-section">Blocked rooms</h3>
+        <p class="rr-empty" ng-if="c.overview.blockedRooms.length === 0">No rooms are blocked.</p>
+        <ul class="rr-list" ng-if="c.overview.blockedRooms.length > 0">
+            <li class="rr-list__item" ng-repeat="b in c.overview.blockedRooms">
+                <span class="rr-tag rr-tone--danger">Blocked</span>
+                <span class="rr-list__text">
+                    <strong>Room {{b.roomId}}</strong>
+                    <span class="rr-list__detail">{{b.reason}}</span>
+                </span>
+            </li>
+        </ul>
+
+        <p class="rr-foot">
+            Room status is decided by RoomRelay's readiness rules: every mandatory task completed, no open Blocking
+            defect and a passed inspection.
+        </p>
+    </div>
+</section>

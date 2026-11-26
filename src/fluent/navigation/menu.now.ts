@@ -41,6 +41,22 @@ Record({
     },
 })
 
+// The RoomRelay Service Portal (src/fluent/portal/roomrelay-portal.now.ts): readiness at a glance.
+Record({
+    $id: Now.ID['roomrelay-module-portal'],
+    table: 'sys_app_module',
+    data: {
+        title: 'RoomRelay Portal',
+        application: roomRelayMenu,
+        link_type: 'DIRECT',
+        query: 'roomrelay',
+        hint: 'Service Portal: readiness overview, my work and report a defect',
+        roles: ALL_ROLE_NAMES,
+        order: 150,
+        active: true,
+    },
+})
+
 // For the administrator: the staff profiles (shift per person), used when adding a new staff member.
 Record({
     $id: Now.ID['roomrelay-module-staff'],

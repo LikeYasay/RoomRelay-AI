@@ -1,0 +1,31 @@
+<section class="rr-card" aria-labelledby="rr-work-title">
+    <header class="rr-card__head">
+        <div>
+            <h2 id="rr-work-title" class="rr-card__title">{{c.work ? c.work.title : 'My work'}}</h2>
+            <p class="rr-card__sub" ng-if="c.work">{{c.work.note}}</p>
+        </div>
+    </header>
+
+    <p class="rr-state" ng-if="c.loading && !c.work" role="status">Loading your work...</p>
+    <div class="rr-alert rr-alert--danger" ng-if="c.error" role="alert">
+        {{c.error}}
+        <button type="button" class="rr-link" ng-click="c.load()">Try again</button>
+    </div>
+
+    <div ng-if="c.work">
+        <p class="rr-empty" ng-if="c.work.items.length === 0">{{c.work.emptyText}}</p>
+        <ul class="rr-list" ng-if="c.work.items.length > 0">
+            <li class="rr-list__item" ng-repeat="item in c.work.items">
+                <span class="rr-tag rr-tone--{{item.tone}}">{{item.tag}}</span>
+                <span class="rr-list__text">
+                    <strong>{{item.title}}</strong>
+                    <span class="rr-list__detail">{{item.detail}}</span>
+                </span>
+            </li>
+        </ul>
+        <p class="rr-foot">
+            To act on these, open the full app:
+            <a href="/x_2318724_roomrela_incident_manager.do" target="_top">Open RoomRelay</a>
+        </p>
+    </div>
+</section>

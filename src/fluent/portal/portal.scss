@@ -1,0 +1,202 @@
+/* RoomRelay portal page styles, shared by its three widgets. Colors match the full app (src/client/app/styles/tokens.css). */
+$rr-navy: #1b2a3d;
+$rr-teal: #0e6f68;
+$rr-teal-dark: #0a5a54;
+$rr-text: #1f2933;
+$rr-muted: #52606d;
+$rr-border: #d9dde4;
+$rr-bg: #f4f5f7;
+
+body {
+    background: $rr-bg;
+}
+
+.rr-card {
+    background: #fff;
+    border: 1px solid $rr-border;
+    border-radius: 4px;
+    padding: 16px 18px;
+    margin-bottom: 20px;
+    color: $rr-text;
+}
+.rr-card__head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+.rr-card__title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+.rr-card__sub {
+    margin: 4px 0 0;
+    color: $rr-muted;
+}
+
+.rr-ready {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin: 0 0 12px;
+}
+.rr-ready__value {
+    font-size: 34px;
+    font-weight: 700;
+    color: $rr-teal;
+    line-height: 1;
+}
+.rr-ready__label {
+    color: $rr-muted;
+}
+
+.rr-stats {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 16px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 8px;
+}
+.rr-stat {
+    border-radius: 4px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+}
+.rr-stat__count {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.1;
+}
+.rr-stat__label {
+    font-size: 13px;
+}
+
+.rr-section {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 4px 0 8px;
+}
+.rr-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.rr-list__item {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 10px 0;
+    border-top: 1px solid $rr-border;
+}
+.rr-list__text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+.rr-list__detail {
+    color: $rr-muted;
+    overflow-wrap: anywhere;
+}
+
+.rr-tag {
+    flex: none;
+    display: inline-block;
+    min-width: 76px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 3px;
+    padding: 2px 8px;
+    margin-top: 2px;
+}
+
+/* Tones: text on a tinted background, always with a text label (never color alone). */
+.rr-tone--success { background: #e1f3e7; color: #14612f; }
+.rr-tone--warning { background: #fbf0d6; color: #86480a; }
+.rr-tone--danger { background: #fbe5e3; color: #9c1f1f; }
+.rr-tone--info { background: #e3ecfb; color: #1c4a9e; }
+.rr-tone--review { background: #ece7f8; color: #55309f; }
+.rr-tone--neutral { background: #eaedf1; color: #3b4757; }
+
+.rr-state,
+.rr-empty,
+.rr-foot {
+    color: $rr-muted;
+    margin: 8px 0 0;
+}
+.rr-foot {
+    font-size: 13px;
+    margin-top: 14px;
+}
+
+.rr-alert {
+    border-radius: 4px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+}
+.rr-alert--danger { background: #fbe5e3; color: #9c1f1f; }
+.rr-alert--success { background: #e1f3e7; color: #14612f; }
+
+.rr-btn {
+    display: inline-block;
+    border-radius: 4px;
+    padding: 7px 14px;
+    font-weight: 600;
+    border: 1px solid $rr-teal;
+    cursor: pointer;
+    text-decoration: none;
+}
+.rr-btn--primary {
+    background: $rr-teal;
+    color: #fff;
+}
+.rr-btn--primary:hover,
+.rr-btn--primary:focus {
+    background: $rr-teal-dark;
+    color: #fff;
+}
+.rr-btn--primary[disabled] {
+    opacity: 0.65;
+    cursor: default;
+}
+.rr-btn--ghost {
+    background: #fff;
+    color: $rr-teal;
+}
+.rr-btn--ghost:hover,
+.rr-btn--ghost:focus {
+    background: #e6f2f1;
+    color: $rr-teal-dark;
+    text-decoration: none;
+}
+.rr-link {
+    background: none;
+    border: 0;
+    padding: 0;
+    margin-left: 6px;
+    color: inherit;
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+.rr-form .rr-field {
+    margin-bottom: 12px;
+}
+.rr-form label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+.rr-field__error {
+    color: #9c1f1f;
+    margin: 4px 0 0;
+    font-size: 13px;
+}
+.rr-form [aria-invalid='true'] {
+    border-color: #c8423d;
+}

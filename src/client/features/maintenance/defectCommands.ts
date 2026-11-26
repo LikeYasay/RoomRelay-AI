@@ -22,8 +22,11 @@ export function technicianIds(snapshot: Snapshot): string[] {
     return snapshot.staff.filter((s) => s.role === 'maintenance').map((s) => s.id)
 }
 
-/** Rooms a role may report a defect against: a housekeeper's own rooms, or every room for a supervisor. */
-function reportableRoomIds(snapshot: Snapshot, ctx: CommandContext): string[] {
+/**
+ * Rooms a role may report a defect against: a housekeeper's own rooms, or every room for a supervisor.
+ * Also used by the Service Portal overview to fill the Report a Defect room list.
+ */
+export function reportableRoomIds(snapshot: Snapshot, ctx: CommandContext): string[] {
     if (ctx.actor.role === 'supervisor') return snapshot.rooms.map((r) => r.id)
     if (ctx.actor.role === 'housekeeping') return snapshot.rooms.filter((r) => r.assigneeId === ctx.actor.id).map((r) => r.id)
     return []

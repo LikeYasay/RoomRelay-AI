@@ -328,6 +328,7 @@ rejects them if they try). The table below is the original per-path design, kept
 | `room.submitInspection` | `POST /rooms/{number}/submit-inspection` | housekeeper (own) | none | 4 |
 | `room.recordInspection` | `POST /rooms/{number}/inspection` | supervisor | `{ result: 'passed' or 'failed', version }` | 2, 3 |
 | (own route, not a command) | `POST /handoff/briefing` | supervisor | `{ shift }` | Built. Returns `{ briefing }` with `source: 'ai'` or `'fallback'`; 429 after 5 in 10 minutes. See `AI_DESIGN.md` |
+| (own route, read only) | `GET /portal/overview` | any RoomRelay role | none | Built. Readiness totals, blocked rooms, "my work" and the report room list for the Service Portal widgets, from the caller's scoped data |
 | (not yet a command) | `POST /access-requests` | see section 8 | the request form | |
 | (not yet a command) | `POST /access-requests/{id}/decision` | app_admin | `{ decision }` | Approving also needs a person to grant roles in ServiceNow |
 

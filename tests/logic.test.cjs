@@ -26,6 +26,7 @@ const { parseHash } = require(path.join(root, 'app/parseHash.js'))
 const { applyCommand } = require(path.join(root, 'app/applyCommand.js'))
 const { parseCommand } = require(path.join(root, 'shared/api/commands.js'))
 const { scopeSnapshotForRole } = require(path.join(root, 'features/rooms/scope.js'))
+const { buildPortalOverview } = require(path.join(root, 'features/portal/portalOverview.js'))
 
 const room = (over = {}) => ({ id: '305', floor: 3, type: 'Deluxe King', assigneeId: 'h3', inspection: 'passed', ...over })
 const task = (id, over = {}) => ({ id, roomId: '305', title: id, description: '', mandatory: true, priority: 'normal', status: 'completed', assigneeId: 'h3', ...over })
@@ -630,4 +631,59 @@ test('AI: generating a briefing is audited with its source, and only supervisors
     }
     assert.equal(handoffCmd.recordBriefingGenerated(snap, ctx(snap, 'h1'), { shift: 'morning', source: 'ai' }).ok, false)
     assert.equal(handoffCmd.recordBriefingGenerated(snap, ctx(snap, 's1'), { shift: 'noon' }).ok, false)
+})
+
+// ---------------------------------------------------------------- Service Portal overview (GET /portal/overview)
+
+const portalFor = (snap, id) => {
+    const user = snap.staff.find((s) => s.id === id)
+    return buildPortalOverview(scopeSnapshotForRole(snap, user.role, user), user)
+}
+
+test('PORTAL: totals and blocked rooms come from the readiness rules, for the rooms the role may see', () => {
+    const snap = buildMockSnapshot()
+    const views = sel.buildRoomViews(snap)
+    const o = portalFor(snap, 's1')
+    assert.equal(o.totals.rooms, snap.rooms.length)
+    assert.equal(o.totals.byStatus.reduce((n, s) => n + s.count, 0), o.totals.rooms)
+    const counts = sel.countByStatus(views)
+    for (const s of o.totals.byStatus) assert.equal(s.count, counts[s.status], s.status)
+    assert.equal(o.totals.ready, counts.ready)
+    const blocked = views.filter((v) => v.readiness.status === 'blocked')
+    assert.ok(blocked.length > 0, 'the initial data has blocked rooms')
+    for (const b of o.blockedRooms) assert.equal(b.reason, viewOf(snap, b.roomId).readiness.summary)
+    assert.equal(o.blockedRooms.length, Math.min(blocked.length, 8))
+})
+
+test('PORTAL: a housekeeper sees only their own rooms, their unfinished rooms as work, and may report on their rooms only', () => {
+    const snap = buildMockSnapshot()
+    const own = snap.rooms.filter((r) => r.assigneeId === 'h1').map((r) => r.id)
+    const o = portalFor(snap, 'h1')
+    assert.equal(o.totals.rooms, own.length)
+    assert.equal(o.myWork.title, 'My rooms')
+    for (const item of o.myWork.items) {
+        assert.ok(own.includes(item.roomId))
+        assert.equal(viewOf(snap, item.roomId).readiness.isReady, false)
+    }
+    assert.equal(o.report.allowed, true)
+    assert.deepEqual(o.report.rooms.map((r) => r.id).sort(), [...own].sort())
+})
+
+test('PORTAL: a technician sees only their open repairs and cannot report; supervisor work is inspections then triage', () => {
+    const snap = buildMockSnapshot()
+    const m = portalFor(snap, 'm1')
+    assert.equal(m.report.allowed, false)
+    assert.deepEqual(m.report.rooms, [])
+    const mine = snap.defects.filter((d) => d.technicianId === 'm1' && d.status !== 'resolved')
+    assert.equal(m.myWork.items.length, Math.min(mine.length, 8))
+    for (const item of m.myWork.items) assert.ok(mine.some((d) => d.roomId === item.roomId))
+
+    const s = portalFor(snap, 's1')
+    assert.equal(s.report.allowed, true)
+    assert.equal(s.report.rooms.length, snap.rooms.length)
+    const tags = s.myWork.items.map((i) => i.tag)
+    assert.deepEqual(tags, [...tags].sort((a, b) => (a === 'Inspect' ? 0 : 1) - (b === 'Inspect' ? 0 : 1)), 'inspections come first')
+
+    const a = portalFor(snap, 'a1')
+    assert.equal(a.report.allowed, false, 'the administrator views only')
 })

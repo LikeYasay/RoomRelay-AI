@@ -161,6 +161,10 @@ declare global {
                         table: 'sys_ws_operation'
                         id: '44130e4e549f4ddba7ab96fbd8e49c8c'
                     }
+                    'roomrelay-get-portal-overview': {
+                        table: 'sys_ws_operation'
+                        id: '293818fd80934334b67870d889fbb233'
+                    }
                     'roomrelay-get-snapshot': {
                         table: 'sys_ws_operation'
                         id: '2ca821d641e74af5834a363d554776ff'
@@ -172,6 +176,10 @@ declare global {
                     'roomrelay-module-open': {
                         table: 'sys_app_module'
                         id: '26c02f6b4bdb442886b73c003e34488d'
+                    }
+                    'roomrelay-module-portal': {
+                        table: 'sys_app_module'
+                        id: '6bde81a04a6e49a1a2daea337dc7cd30'
                     }
                     'roomrelay-module-staff': {
                         table: 'sys_app_module'
@@ -188,6 +196,54 @@ declare global {
                     'roomrelay-post-demo-reset': {
                         table: 'sys_ws_operation'
                         id: 'e96e7a342cb44dcc81fd6fc981e7d78b'
+                    }
+                    'roomrelay-sp-api-provider': {
+                        table: 'sp_angular_provider'
+                        id: '1beacc5cff7949269770b4dba852e5f8'
+                    }
+                    'roomrelay-sp-home-col-main': {
+                        table: 'sp_column'
+                        id: 'b2b2d012965943eb94ff8c056f259d94'
+                    }
+                    'roomrelay-sp-home-col-side': {
+                        table: 'sp_column'
+                        id: '0353b46852744adbbae32b229a811f35'
+                    }
+                    'roomrelay-sp-home-container': {
+                        table: 'sp_container'
+                        id: '29c73b6a79ba4f6db1dd7ede46f204af'
+                    }
+                    'roomrelay-sp-home-row': {
+                        table: 'sp_row'
+                        id: 'cbb1d769e7ed42a592df7af8460f79ee'
+                    }
+                    'roomrelay-sp-instance-my-work': {
+                        table: 'sp_instance'
+                        id: 'd43ae2d97b15425998d5dcd172381158'
+                    }
+                    'roomrelay-sp-instance-overview': {
+                        table: 'sp_instance'
+                        id: '37a8aaacf0e44a99a4d695eeac86863e'
+                    }
+                    'roomrelay-sp-instance-report': {
+                        table: 'sp_instance'
+                        id: '6fc88ff938de48209f514a850d403b9a'
+                    }
+                    'roomrelay-sp-portal': {
+                        table: 'sp_portal'
+                        id: '793b0c7d37f74189bb9abb6443e5ee9b'
+                    }
+                    'roomrelay-sp-widget-my-work': {
+                        table: 'sp_widget'
+                        id: 'a7543b4a2fac4b5b9b79891daf58b56a'
+                    }
+                    'roomrelay-sp-widget-overview': {
+                        table: 'sp_widget'
+                        id: 'c29dfbef53a44b3c8d24b631d3cb3b48'
+                    }
+                    'roomrelay-sp-widget-report-defect': {
+                        table: 'sp_widget'
+                        id: '5e91612cdb484fc0a45c5e695ed3ae4f'
                     }
                     src_client_app_applyCommand_ts: {
                         table: 'sys_module'
@@ -245,6 +301,10 @@ declare global {
                     src_client_features_maintenance_scope_ts: {
                         table: 'sys_module'
                         id: '19402ca6ff134128abef7b3b3392e3d5'
+                    }
+                    src_client_features_portal_portalOverview_ts: {
+                        table: 'sys_module'
+                        id: '51786e7a7bd54a3fadcdb71a6388325e'
                     }
                     src_client_features_rooms_progress_ts: {
                         table: 'sys_module'
@@ -487,6 +547,14 @@ declare global {
                         }
                     },
                     {
+                        table: 'm2m_sp_ng_pro_sp_widget'
+                        id: '1507594ad6184ede8283cec1e2471842'
+                        key: {
+                            sp_widget: 'a7543b4a2fac4b5b9b79891daf58b56a'
+                            sp_angular_provider: '1beacc5cff7949269770b4dba852e5f8'
+                        }
+                    },
+                    {
                         table: 'sys_dictionary'
                         id: '186e008fcc9b48a180cfbed64e191cfa'
                         key: {
@@ -592,6 +660,14 @@ declare global {
                         key: {
                             name: 'x_2318724_roomrela_defect'
                             element: 'status'
+                        }
+                    },
+                    {
+                        table: 'm2m_sp_ng_pro_sp_widget'
+                        id: '2bfd1dc1d59248b195bc08d2ea70f0e0'
+                        key: {
+                            sp_widget: 'c29dfbef53a44b3c8d24b631d3cb3b48'
+                            sp_angular_provider: '1beacc5cff7949269770b4dba852e5f8'
                         }
                     },
                     {
@@ -727,6 +803,14 @@ declare global {
                         key: {
                             name: 'x_2318724_roomrela_defect'
                             element: 'reported_at'
+                        }
+                    },
+                    {
+                        table: 'm2m_sp_ng_pro_sp_widget'
+                        id: '3e166d211f9e472383d16b0e9690b2c6'
+                        key: {
+                            sp_widget: '5e91612cdb484fc0a45c5e695ed3ae4f'
+                            sp_angular_provider: '1beacc5cff7949269770b4dba852e5f8'
                         }
                     },
                     {
@@ -1588,6 +1672,13 @@ declare global {
                         key: {
                             name: 'x_2318724_roomrela_task'
                             element: 'priority'
+                        }
+                    },
+                    {
+                        table: 'sp_page'
+                        id: 'd987ed4afdae4cb0ad00322c99faf4d1'
+                        key: {
+                            id: 'roomrelay_home'
                         }
                     },
                     {
